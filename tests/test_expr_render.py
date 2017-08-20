@@ -45,11 +45,11 @@ def test_exotic_types():
         '  1 < 2 = True (bool)\n'
         '  1 << 2 = 4 (int)\n'
         '  \'t\' if True else \'f\' = "t" (str) len=1\n'
-        '  1 or 2, [ = 1 (int)\n'
-        '  a for a in aa] = [1, 2, 3] (list)\n'
+        '  1 or 2 = 1 (int)\n'
+        '  [a for a in aa] = [1, 2, 3] (list)\n'
         '  {a for a in aa} = {1, 2, 3} (set)\n'
-        '  {a: a + 1 for a in aa}, ( = {1: 2, 2: 3, 3: 4} (dict)\n'
-        '  a for a in aa) = <generator object test_exotic_types.<locals>.<genexpr> at 0x<hash>> (generator)'
+        '  {a: a + 1 for a in aa} = {1: 2, 2: 3, 3: 4} (dict)\n'
+        '  (a for a in aa) = <generator object test_exotic_types.<locals>.<genexpr> at 0x<hash>> (generator)'
     ) == s
 
 

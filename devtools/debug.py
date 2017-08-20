@@ -125,11 +125,12 @@ class Debug:
                 yield self.output_class.arg_class(arg, name=ast_node.id)
             elif isinstance(ast_node, self.complex_nodes):
                 # TODO replace this hack with astor when it get's round to a new release
-                start_line, start_col = ast_node.lineno - 1, ast_node.col_offset
-                end_line, end_col = len(code_lines) - 1, None
+                start_line, start_col = arg_offsets[i]
 
-                if i < len(arg_offsets) - 1:
+                if i + 1 < len(arg_offsets):
                     end_line, end_col = arg_offsets[i + 1]
+                else:
+                    end_line, end_col = len(code_lines) - 1, None
 
                 name_lines = []
                 for l in range(start_line, end_line + 1):
@@ -193,7 +194,12 @@ class Debug:
     @classmethod
     def _get_offsets(cls, func_ast):
         for arg in func_ast.args:
-            yield arg.lineno - 1, arg.col_offset
+            start_line, start_col = arg.lineno - 1, arg.col_offset
+
+            # horrible hack for http://bugs.python.org/issue31241
+            if isinstance(arg, (ast.ListComp, ast.GeneratorExp)):
+                start_col -= 1
+            yield start_line, start_col
         for kw in func_ast.keywords:
             yield kw.value.lineno - 1, kw.value.col_offset - len(kw.arg) - 1
 

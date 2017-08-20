@@ -16,7 +16,10 @@ class DebugArgument:
     def __init__(self, value, *, name=None, **extra):
         self.value = value
         self.name = name
-        self.extra = {k: v for k, v in extra.items() if v}
+        self.extra = []
+        if isinstance(value, (str, bytes)):
+            self.extra.append(('len', len(value)))
+        self.extra += [(k, v) for k, v in extra.items() if v is not None]
 
     def value_str(self):
         if isinstance(self.value, str):
@@ -30,7 +33,7 @@ class DebugArgument:
         return template.format(
             self=self,
             value=self.value_str(),
-            extra=' '.join('{}={}'.format(k, v) for k, v in self.extra.items())
+            extra=' '.join('{}={}'.format(k, v) for k, v in self.extra)
         ).rstrip(' ')  # trailing space if extra is empty
 
 
@@ -63,12 +66,12 @@ class Debug:
     output_class = DebugOutput
 
     def __call__(self, *args, **kwargs):
-        print(self._process(args, kwargs), flush=True)
+        print(self._process(args, kwargs, r'debug *\('), flush=True)
 
     def format(self, *args, **kwargs):
-        return self._process(args, kwargs)
+        return self._process(args, kwargs, r'debug.format *\(')
 
-    def _process(self, args, kwargs):
+    def _process(self, args, kwargs, func_regex):
         curframe = inspect.currentframe()
         frames = inspect.getouterframes(curframe, context=20)
         # BEWARE: this must be call by a method which in turn is called "directly" for the frame to be correct
@@ -87,31 +90,30 @@ class Debug:
         for line in range(call_frame.index, 0, -1):
             new_line = call_frame.code_context[line]
             call_lines.append(new_line)
-            if re.search('debug *\(', new_line):
+            if re.search(func_regex, new_line):
                 break
         call_lines.reverse()
 
         return self.output_class(
             filename=filename,
-            lineno=call_frame.lineno - len(call_lines),
+            lineno=call_frame.lineno - len(call_lines) + 1,
             frame=call_frame.function,
             arguments=list(self._process_args(call_lines, args, kwargs))
         )
 
     def _process_args(self, call_lines, args, kwargs) -> Generator[DebugArgument, None, None]:  # noqa: C901
         code = dedent(''.join(call_lines))
+        # print(code)
         func_ast = ast.parse(code).body[0].value
 
         arg_offsets = list(self._get_offsets(func_ast))
         for arg, ast_node, i in zip(args, func_ast.args, range(1000)):
             if isinstance(ast_node, ast.Name):
                 yield self.output_class.arg_class(arg, name=ast_node.id)
-            elif isinstance(ast_node, ast.Str):
-                yield self.output_class.arg_class(arg, len=len(arg))
-            elif isinstance(ast_node, (ast.Num, ast.List, ast.Dict, ast.Set)):
+            elif isinstance(ast_node, (ast.Str, ast.Bytes, ast.Num, ast.List, ast.Dict, ast.Set)):
                 yield self.output_class.arg_class(arg)
             elif isinstance(ast_node, (ast.Call, ast.Compare)):
-                # TODO replace this hack with astor when it get's a new release
+                # TODO replace this hack with astor when it get's round to a new release
                 end = -2
                 try:
                     next_line, next_offset = arg_offsets[i + 1]

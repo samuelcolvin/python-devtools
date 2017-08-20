@@ -12,7 +12,7 @@ matrix:
   - python: 'nightly'
 
 install:
-- make install
+- make install-test
 - pip freeze
 
 script:

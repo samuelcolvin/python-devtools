@@ -4,7 +4,7 @@ import re
 import warnings
 from pathlib import Path
 from textwrap import dedent
-from typing import Generator, List
+from typing import Generator, List, Optional, Tuple
 
 __all__ = ['Debug', 'debug']
 CWD = Path('.').resolve()
@@ -66,6 +66,11 @@ class Debug:
     output_class = DebugOutput
     # 50 lines should be enough to make sure we always get the entire function definition
     frame_context_length = 50
+    complex_nodes = (
+        ast.Call,
+        ast.IfExp, ast.BoolOp, ast.BinOp, ast.Compare,
+        ast.DictComp, ast.ListComp, ast.SetComp, ast.GeneratorExp
+    )
 
     def __call__(self, *args, **kwargs):
         print(self._process(args, kwargs, r'debug *\('), flush=True)
@@ -88,26 +93,23 @@ class Debug:
                 # happens if filename path is not within CWD
                 pass
 
-        call_lines = []
-        # print(call_frame)
-        # from pprint import pprint
-        # pprint(call_frame.code_context)
         if call_frame.code_context:
-            for line in range(call_frame.index, 0, -1):
-                new_line = call_frame.code_context[line]
-                call_lines.append(new_line)
-                if re.search(func_regex, new_line):
-                    break
-            call_lines.reverse()
-            lineno = call_frame.lineno - len(call_lines) + 1
+            func_ast, code_lines, lineno = self._parse_code(call_frame, func_regex, filename)
+            if func_ast:
+                arguments = list(self._process_args(func_ast, code_lines, args, kwargs))
+            else:
+                # parsing failed
+                arguments = list(self._args_inspection_failed(args, kwargs))
         else:
-            lineno = call_frame.lineno - len(call_lines)
+            lineno = call_frame.lineno
+            warnings.warn('no code context for debug call, code inspection impossible', RuntimeWarning)
+            arguments = list(self._args_inspection_failed(args, kwargs))
 
         return self.output_class(
             filename=filename,
             lineno=lineno,
             frame=call_frame.function,
-            arguments=list(self._process_args(call_lines, args, kwargs, call_frame))
+            arguments=arguments
         )
 
     def _args_inspection_failed(self, args, kwargs):
@@ -116,44 +118,12 @@ class Debug:
         for name, value in kwargs.items():
             yield self.output_class.arg_class(value, name=name)
 
-    def _process_args(self, call_lines, args, kwargs, call_frame) -> Generator[DebugArgument, None, None]:  # noqa: C901
-        if not call_lines:
-            warnings.warn('no code context for debug call, code inspection impossible', RuntimeWarning)
-            yield from self._args_inspection_failed(args, kwargs)
-            return
-
-        code = dedent(''.join(call_lines))
-        # print(code)
-        try:
-            func_ast = ast.parse(code).body[0].value
-        except SyntaxError as e1:
-            # if the trailing bracket of the function is on a new line eg.
-            # debug(
-            #     foo, bar,
-            # )
-            # inspect ignores it with index and we have to add it back
-            code2 = code + call_frame.code_context[call_frame.index + 1]
-            try:
-                func_ast = ast.parse(code2).body[0].value
-            except SyntaxError:
-                warnings.warn('error passing code:\n"{}"\nError: {}'.format(code, e1), SyntaxWarning)
-                yield from self._args_inspection_failed(args, kwargs)
-                return
-            else:
-                code = code2
-
-        code_lines = [l for l in code.split('\n') if l]
-        # this removes the trailing bracket from the lines of code meaning it doesn't appear in the
-        # representation of the last argument
-        code_lines[-1] = code_lines[-1][:-1]
-
+    def _process_args(self, func_ast, code_lines, args, kwargs) -> Generator[DebugArgument, None, None]:  # noqa: C901
         arg_offsets = list(self._get_offsets(func_ast))
         for arg, ast_node, i in zip(args, func_ast.args, range(1000)):
             if isinstance(ast_node, ast.Name):
                 yield self.output_class.arg_class(arg, name=ast_node.id)
-            elif isinstance(ast_node, (ast.Str, ast.Bytes, ast.Num, ast.List, ast.Dict, ast.Set)):
-                yield self.output_class.arg_class(arg)
-            elif isinstance(ast_node, (ast.Call, ast.Compare)):
+            elif isinstance(ast_node, self.complex_nodes):
                 # TODO replace this hack with astor when it get's round to a new release
                 start_line, start_col = ast_node.lineno - 1, ast_node.col_offset
                 end_line, end_col = len(code_lines) - 1, None
@@ -170,7 +140,6 @@ class Debug:
                     )
                 yield self.output_class.arg_class(arg, name=' '.join(name_lines).strip(' ,'))
             else:
-                warnings.warn('Unknown type: {}'.format(ast.dump(ast_node)), RuntimeWarning)
                 yield self.output_class.arg_class(arg)
 
         kw_arg_names = {}
@@ -179,6 +148,47 @@ class Debug:
                 kw_arg_names[kw.arg] = kw.value.id
         for name, value in kwargs.items():
             yield self.output_class.arg_class(value, name=name, variable=kw_arg_names.get(name))
+
+    def _parse_code(self, call_frame, func_regex, filename) -> Tuple[Optional[ast.AST], Optional[List[str]], int]:
+        call_lines = []
+        for line in range(call_frame.index, 0, -1):
+            new_line = call_frame.code_context[line]
+            call_lines.append(new_line)
+            if re.search(func_regex, new_line):
+                break
+        call_lines.reverse()
+        lineno = call_frame.lineno - len(call_lines) + 1
+
+        original_code = code = dedent(''.join(call_lines))
+        func_ast = None
+        tail_index = call_frame.index
+        try:
+            func_ast = ast.parse(code, filename=filename).body[0].value
+        except SyntaxError as e1:
+            # if the trailing bracket(s) of the function is/are on a new line eg.
+            # debug(
+            #     foo, bar,
+            # )
+            # inspect ignores it when setting index and we have to add it back
+            for extra in range(2, 6):
+                extra_lines = call_frame.code_context[tail_index + 1:tail_index + extra]
+                code = dedent(''.join(call_lines + extra_lines))
+                try:
+                    func_ast = ast.parse(code).body[0].value
+                except SyntaxError:
+                    pass
+                else:
+                    break
+
+            if not func_ast:
+                warnings.warn('error passing code:\n"{}"\nError: {}'.format(original_code, e1), SyntaxWarning)
+                return None, None, lineno
+
+        code_lines = [l for l in code.split('\n') if l]
+        # this removes the trailing bracket from the lines of code meaning it doesn't appear in the
+        # representation of the last argument
+        code_lines[-1] = code_lines[-1][:-1]
+        return func_ast, code_lines, lineno
 
     @classmethod
     def _get_offsets(cls, func_ast):

@@ -77,6 +77,7 @@ def test_kwargs():
 
 
 def test_kwargs_orderless():
+    # for python3.5
     a = 'variable'
     v = debug.format(first=a, second='literal')
     s = re.sub(':\d{2,}', ':<line no>', str(v))
@@ -87,11 +88,38 @@ def test_kwargs_orderless():
     }
 
 
+def test_simple_vars():
+    v = debug.format('test', 1, 2)
+    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    assert s == (
+        'tests/test_main.py:<line no> test_simple_vars\n'
+        '  "test" (str) len=4\n'
+        '  1 (int)\n'
+        '  2 (int)'
+    )
+    r = re.sub(':\d{2,}', ':<line no>', repr(v))
+    assert r == (
+        '<DebugOutput tests/test_main.py:<line no> test_simple_vars arguments: "test" (str) len=4 1 (int) 2 (int)>'
+    )
+
+
 def test_eval():
     with pytest.warns(RuntimeWarning):
         v = eval('debug.format(1)')
 
     assert str(v) == '<string>:1 <module>: 1 (int)'
+
+
+@pytest.mark.skipif(sys.version_info < (3, 6), reason='kwarg order is not guaranteed for 3.5')
+def test_eval_kwargs():
+    with pytest.warns(RuntimeWarning):
+        v = eval('debug.format(1, apple="pear")')
+
+    assert str(v) == (
+        '<string>:1 <module>\n'
+        '  1 (int)\n'
+        '  apple = "pear" (str) len=4'
+    )
 
 
 def test_exec(capsys):

@@ -5,6 +5,13 @@ python devtools
 
 Dev tools for python. **WIP**
 
+Install
+-------
+
+Just::
+
+    pip install python-devtools
+
 Usage
 -----
 
@@ -14,6 +21,10 @@ Usage
 
    whatever = [1, 2, 3]
    debug(whatever)
+
+Outputs::
+
+   test.py:4 <module>: whatever = [1, 2, 3] (list)
 
 Usage without Import
 --------------------

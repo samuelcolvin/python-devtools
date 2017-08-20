@@ -9,7 +9,7 @@ long_description = THIS_DIR.joinpath('README.rst').read_text()
 version = SourceFileLoader('version', 'devtools/version.py').load_module()
 
 setup(
-    name='devtools',
+    name='python-devtools',
     version=str(version.VERSION),
     description='Dev tools for python',
     long_description=long_description,

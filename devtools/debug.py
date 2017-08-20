@@ -152,7 +152,7 @@ class Debug:
 
     def _parse_code(self, call_frame, func_regex, filename) -> Tuple[Optional[ast.AST], Optional[List[str]], int]:
         call_lines = []
-        for line in range(call_frame.index, 0, -1):
+        for line in range(call_frame.index, -1, -1):
             new_line = call_frame.code_context[line]
             call_lines.append(new_line)
             if re.search(func_regex, new_line):

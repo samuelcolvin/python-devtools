@@ -64,6 +64,8 @@ class DebugOutput:
 
 class Debug:
     output_class = DebugOutput
+    # 50 lines should be enough to make sure we always get the entire function definition
+    frame_context_length = 50
 
     def __call__(self, *args, **kwargs):
         print(self._process(args, kwargs, r'debug *\('), flush=True)
@@ -73,7 +75,7 @@ class Debug:
 
     def _process(self, args, kwargs, func_regex):
         curframe = inspect.currentframe()
-        frames = inspect.getouterframes(curframe, context=20)
+        frames = inspect.getouterframes(curframe, context=self.frame_context_length)
         # BEWARE: this must be call by a method which in turn is called "directly" for the frame to be correct
         call_frame = frames[2]
 
@@ -87,24 +89,63 @@ class Debug:
                 pass
 
         call_lines = []
-        for line in range(call_frame.index, 0, -1):
-            new_line = call_frame.code_context[line]
-            call_lines.append(new_line)
-            if re.search(func_regex, new_line):
-                break
-        call_lines.reverse()
+        # print(call_frame)
+        # from pprint import pprint
+        # pprint(call_frame.code_context)
+        if call_frame.code_context:
+            for line in range(call_frame.index, 0, -1):
+                new_line = call_frame.code_context[line]
+                call_lines.append(new_line)
+                if re.search(func_regex, new_line):
+                    break
+            call_lines.reverse()
+            lineno = call_frame.lineno - len(call_lines) + 1
+        else:
+            lineno = call_frame.lineno - len(call_lines)
 
         return self.output_class(
             filename=filename,
-            lineno=call_frame.lineno - len(call_lines) + 1,
+            lineno=lineno,
             frame=call_frame.function,
-            arguments=list(self._process_args(call_lines, args, kwargs))
+            arguments=list(self._process_args(call_lines, args, kwargs, call_frame))
         )
 
-    def _process_args(self, call_lines, args, kwargs) -> Generator[DebugArgument, None, None]:  # noqa: C901
+    def _args_inspection_failed(self, args, kwargs):
+        for arg in args:
+            yield self.output_class.arg_class(arg)
+        for name, value in kwargs.items():
+            yield self.output_class.arg_class(value, name=name)
+
+    def _process_args(self, call_lines, args, kwargs, call_frame) -> Generator[DebugArgument, None, None]:  # noqa: C901
+        if not call_lines:
+            warnings.warn('no code context for debug call, code inspection impossible', RuntimeWarning)
+            yield from self._args_inspection_failed(args, kwargs)
+            return
+
         code = dedent(''.join(call_lines))
         # print(code)
-        func_ast = ast.parse(code).body[0].value
+        try:
+            func_ast = ast.parse(code).body[0].value
+        except SyntaxError as e1:
+            # if the trailing bracket of the function is on a new line eg.
+            # debug(
+            #     foo, bar,
+            # )
+            # inspect ignores it with index and we have to add it back
+            code2 = code + call_frame.code_context[call_frame.index + 1]
+            try:
+                func_ast = ast.parse(code2).body[0].value
+            except SyntaxError:
+                warnings.warn('error passing code:\n"{}"\nError: {}'.format(code, e1), SyntaxWarning)
+                yield from self._args_inspection_failed(args, kwargs)
+                return
+            else:
+                code = code2
+
+        code_lines = [l for l in code.split('\n') if l]
+        # this removes the trailing bracket from the lines of code meaning it doesn't appear in the
+        # representation of the last argument
+        code_lines[-1] = code_lines[-1][:-1]
 
         arg_offsets = list(self._get_offsets(func_ast))
         for arg, ast_node, i in zip(args, func_ast.args, range(1000)):
@@ -114,17 +155,22 @@ class Debug:
                 yield self.output_class.arg_class(arg)
             elif isinstance(ast_node, (ast.Call, ast.Compare)):
                 # TODO replace this hack with astor when it get's round to a new release
-                end = -2
-                try:
-                    next_line, next_offset = arg_offsets[i + 1]
-                    if next_line == ast_node.lineno:
-                        end = next_offset
-                except IndexError:
-                    pass
-                name = call_lines[ast_node.lineno - 1][ast_node.col_offset:end]
-                yield self.output_class.arg_class(arg, name=name.strip(' ,'))
+                start_line, start_col = ast_node.lineno - 1, ast_node.col_offset
+                end_line, end_col = len(code_lines) - 1, None
+
+                if i < len(arg_offsets) - 1:
+                    end_line, end_col = arg_offsets[i + 1]
+
+                name_lines = []
+                for l in range(start_line, end_line + 1):
+                    start_ = start_col if l == start_line else 0
+                    end_ = end_col if l == end_line else None
+                    name_lines.append(
+                        code_lines[l][start_:end_].strip(' ')
+                    )
+                yield self.output_class.arg_class(arg, name=' '.join(name_lines).strip(' ,'))
             else:
-                warnings.warn('Unknown type: {}'.format(ast.dump(ast_node)), category=RuntimeError)
+                warnings.warn('Unknown type: {}'.format(ast.dump(ast_node)), RuntimeWarning)
                 yield self.output_class.arg_class(arg)
 
         kw_arg_names = {}
@@ -137,9 +183,9 @@ class Debug:
     @classmethod
     def _get_offsets(cls, func_ast):
         for arg in func_ast.args:
-            yield arg.lineno, arg.col_offset
+            yield arg.lineno - 1, arg.col_offset
         for kw in func_ast.keywords:
-            yield kw.value.lineno, kw.value.col_offset - len(kw.arg) - 1
+            yield kw.value.lineno - 1, kw.value.col_offset - len(kw.arg) - 1
 
 
 debug = Debug()

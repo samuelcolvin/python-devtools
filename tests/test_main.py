@@ -3,6 +3,8 @@ import sys
 from pathlib import Path
 from subprocess import PIPE, run
 
+import pytest
+
 from devtools import debug
 
 
@@ -61,13 +63,49 @@ print('debug run.')
     )
 
 
+@pytest.mark.skipif(sys.version_info < (3, 6), reason='kwarg order is not guaranteed for 3.5')
 def test_kwargs():
     a = 'variable'
     v = debug.format(first=a, second='literal')
     s = re.sub(':\d{2,}', ':<line no>', str(v))
-    # print(s)
+    print(s)
     assert s == (
         'tests/test_main.py:<line no> test_kwargs\n'
         '  first = "variable" (str) len=8 variable=a\n'
         '  second = "literal" (str) len=7'
     )
+
+
+def test_kwargs_orderless():
+    a = 'variable'
+    v = debug.format(first=a, second='literal')
+    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    assert set(s.split('\n')) == {
+        'tests/test_main.py:<line no> test_kwargs_orderless',
+        '  first = "variable" (str) len=8 variable=a',
+        '  second = "literal" (str) len=7',
+    }
+
+
+def test_eval():
+    with pytest.warns(RuntimeWarning):
+        v = eval('debug.format(1)')
+
+    assert str(v) == '<string>:1 <module>: 1 (int)'
+
+
+def test_exec(capsys):
+    with pytest.warns(RuntimeWarning):
+        exec(
+            'a = 1\n'
+            'b = 2\n'
+            'debug(b, a + b)'
+        )
+
+    stdout, stderr = capsys.readouterr()
+    assert stdout == (
+        '<string>:3 <module>\n'
+        '  2 (int)\n'
+        '  3 (int)\n'
+    )
+    assert stderr == ''

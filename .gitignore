@@ -12,3 +12,4 @@ test.py
 htmlcov/
 benchmarks/*.json
 docs/_build/
+old-version/

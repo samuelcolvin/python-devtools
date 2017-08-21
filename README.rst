@@ -10,7 +10,7 @@ Install
 
 Just::
 
-    pip install python-devtools
+    pip install devtools
 
 Usage
 -----
@@ -41,5 +41,5 @@ modify ``/usr/lib/python3.6/sitecustomize.py`` making ``debug`` available in any
    :target: https://travis-ci.org/samuelcolvin/python-devtools
 .. |Coverage| image:: https://codecov.io/gh/samuelcolvin/python-devtools/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/samuelcolvin/python-devtools
-.. |pypi| image:: https://img.shields.io/pypi/v/python-devtools.svg
-   :target: https://pypi.python.org/pypi/python-devtools
+.. |pypi| image:: https://img.shields.io/pypi/v/devtools.svg
+   :target: https://pypi.org/project/devtools

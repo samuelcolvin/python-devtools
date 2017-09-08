@@ -103,6 +103,18 @@ def test_simple_vars():
     )
 
 
+def test_attributes():
+    class Foo:
+        x = 1
+
+    class Bar:
+        y = Foo()
+
+    b = Bar()
+    v = debug.format(b.y.x)
+    assert 'test_attributes: b.y.x = 1 (int)' in str(v)
+
+
 def test_eval():
     with pytest.warns(RuntimeWarning):
         v = eval('debug.format(1)')

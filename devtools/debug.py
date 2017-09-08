@@ -67,7 +67,7 @@ class Debug:
     # 50 lines should be enough to make sure we always get the entire function definition
     frame_context_length = 50
     complex_nodes = (
-        ast.Call,
+        ast.Call, ast.Attribute,
         ast.IfExp, ast.BoolOp, ast.BinOp, ast.Compare,
         ast.DictComp, ast.ListComp, ast.SetComp, ast.GeneratorExp
     )

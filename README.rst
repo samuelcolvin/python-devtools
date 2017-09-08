@@ -33,9 +33,13 @@ modify ``/usr/lib/python3.6/sitecustomize.py`` making ``debug`` available in any
 
 .. code:: python
 
-   from devtools import debug
-   __builtins__['debug'] = debug
-
+   # add devtools debug to builtins
+   try:
+       from devtools import debug
+   except ImportError:
+       pass
+   else:
+       __builtins__['debug'] = debug
 
 .. |BuildStatus| image:: https://travis-ci.org/samuelcolvin/python-devtools.svg?branch=master
    :target: https://travis-ci.org/samuelcolvin/python-devtools

@@ -55,7 +55,8 @@ print('debug run.')
     assert p.returncode == 0, (p.stderr, p.stdout)
     assert p.stdout.replace(str(f), '/path/to/test.py') == (
         'running debug...\n'
-        '/path/to/test.py:8 <module>: foobar = "hello world" (str) len=11\n'
+        '/path/to/test.py:8 <module>\n'
+        '  foobar = "hello world" (str) len=11\n'
         '/path/to/test.py:4 test_func\n'
         '  "in test func" (str) len=12\n'
         '  v = 42 (int)\n'
@@ -68,7 +69,7 @@ def test_odd_path(mocker):
     mocked_relative_to = mocker.patch('pathlib.Path.relative_to')
     mocked_relative_to.side_effect = ValueError()
     v = debug.format('test')
-    assert re.search('/.*?/test_main.py:\d{2,} test_odd_path: "test" \(str\) len=4', str(v)), v
+    assert re.search('/.*?/test_main.py:\d{2,} test_odd_path\n  "test" \(str\) len=4', str(v)), v
 
 
 def test_small_call_frame():
@@ -151,23 +152,23 @@ def test_attributes():
 
     b = Bar()
     v = debug.format(b.y.x)
-    assert 'test_attributes: b.y.x = 1 (int)' in str(v)
+    assert 'test_attributes\n  b.y.x = 1 (int)' in str(v)
 
 
 def test_eval():
     with pytest.warns(RuntimeWarning):
         v = eval('debug.format(1)')
 
-    assert str(v) == '<string>:1 <module>: 1 (int)'
+    assert str(v) == '<string>:1 <module>\n  1 (int)'
 
 
 def test_warnings_disabled():
     debug_ = Debug(warnings=False)
     with pytest.warns(None) as warnings:
         v1 = eval('debug_.format(1)')
-        assert str(v1) == '<string>:1 <module>: 1 (int)'
+        assert str(v1) == '<string>:1 <module>\n  1 (int)'
         v2 = debug_.format(1)
-        assert 'test_warnings_disabled: 1 (int)' in str(v2)
+        assert 'test_warnings_disabled\n  1 (int)' in str(v2)
     assert len(warnings) == 0
 
 

@@ -16,7 +16,8 @@ def test_simple():
     s = re.sub(':\d{2,}', ':<line no>', str(v))
     # print(s)
     assert (
-        'tests/test_expr_render.py:<line no> test_simple: len(a) = 3 (int)'
+        'tests/test_expr_render.py:<line no> test_simple\n'
+        '  len(a) = 3 (int)'
     ) == s
 
 
@@ -59,7 +60,8 @@ def test_newline():
     s = re.sub(':\d{2,}', ':<line no>', str(v))
     # print(s)
     assert (
-        'tests/test_expr_render.py:<line no> test_newline: foobar(1, 2, 3) = 6 (int)'
+        'tests/test_expr_render.py:<line no> test_newline\n'
+        '  foobar(1, 2, 3) = 6 (int)'
     ) == s
 
 
@@ -70,7 +72,8 @@ def test_trailing_bracket():
     s = re.sub(':\d{2,}', ':<line no>', str(v))
     # print(s)
     assert (
-        'tests/test_expr_render.py:<line no> test_trailing_bracket: foobar(1, 2, 3) = 6 (int)'
+        'tests/test_expr_render.py:<line no> test_trailing_bracket\n'
+        '  foobar(1, 2, 3) = 6 (int)'
     ) == s
 
 
@@ -83,7 +86,8 @@ def test_multiline():
     s = re.sub(':\d{2,}', ':<line no>', str(v))
     # print(s)
     assert (
-        'tests/test_expr_render.py:<line no> test_multiline: foobar(1, 2, 3) = 6 (int)'
+        'tests/test_expr_render.py:<line no> test_multiline\n'
+        '  foobar(1, 2, 3) = 6 (int)'
     ) == s
 
 
@@ -94,7 +98,8 @@ def test_multiline_trailing_bracket():
     s = re.sub(':\d{2,}', ':<line no>', str(v))
     # print(s)
     assert (
-        'tests/test_expr_render.py:<line no> test_multiline_trailing_bracket: foobar(1, 2, 3 ) = 6 (int)'
+        'tests/test_expr_render.py:<line no> test_multiline_trailing_bracket\n'
+        '  foobar(1, 2, 3 ) = 6 (int)'
     ) == s
 
 
@@ -139,7 +144,7 @@ def test_multiple_trailing_lines():
     )
     s = re.sub(':\d{2,}', ':<line no>', str(v))
     assert (
-        'tests/test_expr_render.py:<line no> test_multiple_trailing_lines: foobar( 1, 2, 3 ) = 6 (int)'
+        'tests/test_expr_render.py:<line no> test_multiple_trailing_lines\n  foobar( 1, 2, 3 ) = 6 (int)'
     ) == s
 
 
@@ -165,7 +170,7 @@ def test_syntax_warning():
     assert '-1\n"' in str(warning.message)
     s = re.sub(':\d{2,}', ':<line no>', str(v))
     assert (
-        'tests/test_expr_render.py:<line no> test_syntax_warning: 1 (int)'
+        'tests/test_expr_render.py:<line no> test_syntax_warning\n  1 (int)'
     ) == s
 
 
@@ -184,5 +189,5 @@ def test_no_syntax_warning():
                 )
             )
         )
-        assert 'test_no_syntax_warning: 1 (int)' in str(v)
+        assert 'test_no_syntax_warning\n  1 (int)' in str(v)
     assert len(warning_checker) == 0

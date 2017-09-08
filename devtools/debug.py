@@ -57,10 +57,11 @@ class DebugOutput:
 
     def __str__(self) -> str:
         template = '{s.filename}:{s.lineno} {s.frame}'
-        if len(self.arguments) == 1:
-            return (template + ': {a}').format(s=self, a=self.arguments[0])
-        else:
-            return (template + '\n  {a}').format(s=self, a='\n  '.join(str(a) for a in self.arguments))
+        # turns out single line output is ugly
+        # if len(self.arguments) == 1:
+        #     return (template + ': {a}').format(s=self, a=self.arguments[0])
+        # else:
+        return (template + '\n  {a}').format(s=self, a='\n  '.join(str(a) for a in self.arguments))
 
     def __repr__(self) -> str:
         arguments = ' '.join(str(a) for a in self.arguments)
@@ -75,7 +76,9 @@ class Debug:
         ast.DictComp, ast.ListComp, ast.SetComp, ast.GeneratorExp
     )
 
-    def __init__(self, *, warnings: Optional[bool]=None, frame_context_length: int=50):
+    def __init__(self, *,
+                 warnings: Optional[bool]=None,
+                 frame_context_length: int=50):
         if warnings is None:
             self._warnings = env_true('PY_DEVTOOLS_WARNINGS', 'TRUE')
         else:

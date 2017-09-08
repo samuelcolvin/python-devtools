@@ -12,3 +12,4 @@ pytest-isort==0.1.0
 pytest-mock==1.6.0
 pytest-sugar==0.8.0
 pytest-toolbox==0.2
+numpy  # pyup: ignore

@@ -24,16 +24,15 @@ class PrettyFormat:
                  indent_step=4,
                  indent_char=' ',
                  repr_strings=False,
-                 simple_cuttoff=10,
+                 simple_cutoff=10,
                  max_width=120,
                  yield_from_generators=True):
-        # TODO colours
         self._colorize = colorize
         self._indent_step = indent_step
         self._c = indent_char
         self._repr_strings = repr_strings
         self._repr_generators = not yield_from_generators
-        self._simple_cuttoff = simple_cuttoff
+        self._simple_cutoff = simple_cutoff
         self._max_width = max_width
         self._type_lookup = [
             (dict, self._format_dict),
@@ -56,7 +55,7 @@ class PrettyFormat:
             self._stream.write(indent_current * self._c)
 
         value_repr = repr(value)
-        if len(value_repr) <= self._simple_cuttoff and not isinstance(value, collections.Generator):
+        if len(value_repr) <= self._simple_cutoff and not isinstance(value, collections.Generator):
             self._stream.write(value_repr)
         else:
             indent_new = indent_current + self._indent_step

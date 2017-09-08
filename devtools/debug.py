@@ -1,5 +1,6 @@
 import ast
 import inspect
+import os
 import re
 import warnings
 from pathlib import Path
@@ -8,6 +9,10 @@ from typing import Generator, List, Optional, Tuple
 
 __all__ = ['Debug', 'debug']
 CWD = Path('.').resolve()
+
+
+def env_true(var_name, alt='FALSE'):
+    return os.getenv(var_name, alt).upper() in {'1', 'TRUE'}
 
 
 class DebugArgument:
@@ -64,13 +69,19 @@ class DebugOutput:
 
 class Debug:
     output_class = DebugOutput
-    # 50 lines should be enough to make sure we always get the entire function definition
-    frame_context_length = 50
     complex_nodes = (
         ast.Call, ast.Attribute,
         ast.IfExp, ast.BoolOp, ast.BinOp, ast.Compare,
         ast.DictComp, ast.ListComp, ast.SetComp, ast.GeneratorExp
     )
+
+    def __init__(self, *, warnings: Optional[bool]=None, frame_context_length: int=50):
+        if warnings is None:
+            self._warnings = env_true('PY_DEVTOOLS_WARNINGS', 'TRUE')
+        else:
+            self._warnings = warnings
+        # 50 lines should be enough to make sure we always get the entire function definition
+        self._frame_context_length = frame_context_length
 
     def __call__(self, *args, **kwargs):
         print(self._process(args, kwargs, r'debug *\('), flush=True)
@@ -80,7 +91,7 @@ class Debug:
 
     def _process(self, args, kwargs, func_regex):
         curframe = inspect.currentframe()
-        frames = inspect.getouterframes(curframe, context=self.frame_context_length)
+        frames = inspect.getouterframes(curframe, context=self._frame_context_length)
         # BEWARE: this must be call by a method which in turn is called "directly" for the frame to be correct
         call_frame = frames[2]
 
@@ -102,7 +113,8 @@ class Debug:
                 arguments = list(self._args_inspection_failed(args, kwargs))
         else:
             lineno = call_frame.lineno
-            warnings.warn('no code context for debug call, code inspection impossible', RuntimeWarning)
+            if self._warnings:
+                warnings.warn('no code context for debug call, code inspection impossible', RuntimeWarning)
             arguments = list(self._args_inspection_failed(args, kwargs))
 
         return self.output_class(
@@ -182,8 +194,14 @@ class Debug:
                     break
 
             if not func_ast:
-                warnings.warn('error passing code:\n"{}"\nError: {}'.format(original_code, e1), SyntaxWarning)
+                if self._warnings:
+                    warnings.warn('error passing code:\n"{}"\nError: {}'.format(original_code, e1), SyntaxWarning)
                 return None, None, lineno
+
+        if not isinstance(func_ast, ast.Call):
+            if self._warnings:
+                warnings.warn('error passing code, found {} not Call'.format(func_ast.__class__), SyntaxWarning)
+            return None, None, lineno
 
         code_lines = [l for l in code.split('\n') if l]
         # this removes the trailing bracket from the lines of code meaning it doesn't appear in the

@@ -5,7 +5,7 @@ from subprocess import PIPE, run
 
 import pytest
 
-from devtools import debug
+from devtools import Debug, debug
 
 
 def test_print(capsys):
@@ -60,6 +60,45 @@ print('debug run.')
         '  "in test func" (str) len=12\n'
         '  v = 42 (int)\n'
         'debug run.\n'
+    )
+
+
+def test_odd_path(mocker):
+    # all valid calls
+    mocked_relative_to = mocker.patch('pathlib.Path.relative_to')
+    mocked_relative_to.side_effect = ValueError()
+    v = debug.format('test')
+    assert re.search('/.*?/test_main.py:\d{2,} test_odd_path: "test" \(str\) len=4', str(v)), v
+
+
+def test_small_call_frame():
+    debug_ = Debug(warnings=False, frame_context_length=2)
+    v = debug_.format(
+        1,
+        2,
+        3,
+    )
+    assert re.sub(':\d{2,}', ':<line no>', str(v)) == (
+        'tests/test_main.py:<line no> test_small_call_frame\n'
+        '  1 (int)\n'
+        '  2 (int)\n'
+        '  3 (int)'
+    )
+
+
+def test_small_call_frame_warning():
+    debug_ = Debug(frame_context_length=2)
+    with pytest.warns(SyntaxWarning):
+        v = debug_.format(
+            1,
+            2,
+            3,
+        )
+    assert re.sub(':\d{2,}', ':<line no>', str(v)) == (
+        'tests/test_main.py:<line no> test_small_call_frame_warning\n'
+        '  1 (int)\n'
+        '  2 (int)\n'
+        '  3 (int)'
     )
 
 
@@ -120,6 +159,16 @@ def test_eval():
         v = eval('debug.format(1)')
 
     assert str(v) == '<string>:1 <module>: 1 (int)'
+
+
+def test_warnings_disabled():
+    debug_ = Debug(warnings=False)
+    with pytest.warns(None) as warnings:
+        v1 = eval('debug_.format(1)')
+        assert str(v1) == '<string>:1 <module>: 1 (int)'
+        v2 = debug_.format(1)
+        assert 'test_warnings_disabled: 1 (int)' in str(v2)
+    assert len(warnings) == 0
 
 
 @pytest.mark.skipif(sys.version_info < (3, 6), reason='kwarg order is not guaranteed for 3.5')

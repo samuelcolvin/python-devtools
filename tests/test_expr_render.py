@@ -3,7 +3,7 @@ import sys
 
 import pytest
 
-from devtools import debug
+from devtools import Debug, debug
 
 
 def foobar(a, b, c):
@@ -167,3 +167,22 @@ def test_syntax_warning():
     assert (
         'tests/test_expr_render.py:<line no> test_syntax_warning: 1 (int)'
     ) == s
+
+
+def test_no_syntax_warning():
+    # exceed the 4 extra lines which are normally checked
+    debug_ = Debug(warnings=False)
+    with pytest.warns(None) as warning_checker:
+        v = debug_.format(
+            abs(
+                abs(
+                    abs(
+                        abs(
+                            -1
+                        )
+                    )
+                )
+            )
+        )
+        assert 'test_no_syntax_warning: 1 (int)' in str(v)
+    assert len(warning_checker) == 0

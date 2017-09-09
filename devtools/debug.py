@@ -56,12 +56,8 @@ class DebugOutput:
         self.arguments = arguments
 
     def __str__(self) -> str:
-        template = '{s.filename}:{s.lineno} {s.frame}'
-        # turns out single line output is ugly
-        # if len(self.arguments) == 1:
-        #     return (template + ': {a}').format(s=self, a=self.arguments[0])
-        # else:
-        return (template + '\n  {a}').format(s=self, a='\n  '.join(str(a) for a in self.arguments))
+        template = '{s.filename}:{s.lineno} {s.frame}\n  {a}'
+        return template.format(s=self, a='\n  '.join(str(a) for a in self.arguments))
 
     def __repr__(self) -> str:
         arguments = ' '.join(str(a) for a in self.arguments)
@@ -78,13 +74,19 @@ class Debug:
 
     def __init__(self, *,
                  warnings: Optional[bool]=None,
+                 colours: Optional[bool]=None,
                  frame_context_length: int=50):
-        if warnings is None:
-            self._warnings = env_true('PY_DEVTOOLS_WARNINGS', 'TRUE')
-        else:
-            self._warnings = warnings
+        self._warnings = self._env_bool(warnings, 'PY_DEVTOOLS_WARNINGS')
+        self._colours = self._env_bool(colours, 'PY_DEVTOOLS_COLOURS')
         # 50 lines should be enough to make sure we always get the entire function definition
         self._frame_context_length = frame_context_length
+
+    @classmethod
+    def _env_bool(cls, value, env_name, env_default='TRUE'):
+        if value is None:
+            return env_true(env_name, env_default)
+        else:
+            return value
 
     def __call__(self, *args, **kwargs):
         print(self._process(args, kwargs, r'debug *\('), flush=True)

@@ -1,13 +1,21 @@
+import sys
 from enum import IntEnum
 
 _ansi_template = '\033[{}m'
+
+
+def isatty(stream):
+    try:
+        return stream.isatty()
+    except Exception:
+        return False
 
 
 class Style(IntEnum):
     """
     Heavily borrowed from https://github.com/pallets/click/blob/6.7/click/termui.py
 
-    Italic added and generally modernised improved.
+    Italic added, multiple ansi codes condensed into one block and generally modernised.
     """
     reset = 0
 
@@ -85,18 +93,23 @@ class Style(IntEnum):
                       string which means that styles do not carry over.  This
                       can be disabled to compose styles.
         """
-        parts = []
+        codes = []
         for s in styles:
             if not isinstance(s, self.__class__):
                 try:
                     s = self.styles[s]
                 except KeyError:
                     raise ValueError('invalid style "{}"'.format(s))
-            parts.append(_ansi_template.format(s))
-        parts.append(text)
+            codes.append(str(s.value))
+
+        if codes:
+            r = _ansi_template.format(';'.join(codes)) + text
+        else:
+            r = text
+
         if reset:
-            parts.append(_ansi_template.format(self.reset))
-        return ''.join(parts)
+            r += _ansi_template.format(self.reset)
+        return r
 
     @property
     def styles(self):
@@ -118,5 +131,7 @@ class Style(IntEnum):
 style = Style(-1)
 
 
-def sprint(text, *styles, reset=True, flush=True, **print_kwargs):
-    print(style(text, *styles, reset=reset), flush=flush, **print_kwargs)
+def sprint(text, *styles, reset=True, flush=True, file=None, **print_kwargs):
+    if isatty(file or sys.stdout):
+        text = style(text, *styles, reset=reset)
+    print(text, flush=flush, file=file, **print_kwargs)

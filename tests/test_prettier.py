@@ -28,11 +28,10 @@ def test_print(capsys):
 
 
 def test_colours():
-    pformat_ = PrettyFormat(colours=True)
-    v = pformat_({1: 2, 3: 4})
+    v = pformat({1: 2, 3: 4}, highlight=True)
     assert v.startswith('\x1b'), repr(v)
     v2 = strip_ansi(v)
-    assert v2.rstrip('\n') == pformat({1: 2, 3: 4}), repr(v2)
+    assert v2 == pformat({1: 2, 3: 4}), repr(v2)
 
 
 def test_list():
@@ -89,7 +88,7 @@ def test_generator_no_yield():
 
 
 def test_str():
-    pformat_ = PrettyFormat(max_width=12)
+    pformat_ = PrettyFormat(width=12)
     v = pformat_(string.ascii_lowercase + '\n' + string.digits)
     assert v == (
         "(\n"
@@ -105,7 +104,7 @@ def test_str_repr():
 
 
 def test_bytes():
-    pformat_ = PrettyFormat(max_width=12)
+    pformat_ = PrettyFormat(width=12)
     v = pformat_(string.ascii_lowercase.encode())
     assert v == """(
     b'abcde'

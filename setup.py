@@ -36,5 +36,8 @@ setup(
     license='MIT',
     packages=['devtools'],
     python_requires='>=3.5',
+    extras_require={
+        'pygments': ['Pygments>=2.2.0'],
+    },
     zip_safe=True,
 )

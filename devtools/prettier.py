@@ -6,7 +6,7 @@ from typing import Any, Generator, Union
 from .ansi import isatty
 
 try:
-    from pygments import highlight
+    import pygments
     from pygments.lexers import PythonLexer
     from pygments.formatters import Terminal256Formatter
 except ImportError:  # pragma: no cover
@@ -23,20 +23,18 @@ __all__ = ['PrettyFormat', 'pformat', 'pprint']
 
 class PrettyFormat:
     def __init__(self,
-                 colours=False,
                  indent_step=4,
                  indent_char=' ',
                  repr_strings=False,
                  simple_cutoff=10,
-                 max_width=120,
+                 width=120,
                  yield_from_generators=True):
-        self._colours = colours
         self._indent_step = indent_step
         self._c = indent_char
         self._repr_strings = repr_strings
         self._repr_generators = not yield_from_generators
         self._simple_cutoff = simple_cutoff
-        self._max_width = max_width
+        self._width = width
         self._type_lookup = [
             (dict, self._format_dict),
             ((tuple, list, set), self._format_list_like),
@@ -45,12 +43,13 @@ class PrettyFormat:
             (collections.Generator, self._format_generators),
         ]
 
-    def __call__(self, value: Any, *, indent: int=0, indent_first: bool=False):
+    def __call__(self, value: Any, *, indent: int=0, indent_first: bool=False, highlight: bool=False):
         self._stream = io.StringIO()
         self._format(value, indent_current=indent, indent_first=indent_first)
         s = self._stream.getvalue()
-        if self._colours and pyg_lexer:
-            s = highlight(s, lexer=pyg_lexer, formatter=pyg_formatter)
+        if highlight and pyg_lexer:
+            # apparently highlight adds a trailing new line we don't want
+            s = pygments.highlight(s, lexer=pyg_lexer, formatter=pyg_formatter).rstrip('\n')
         return s
 
     def _format(self, value: Any, indent_current: int, indent_first: bool):
@@ -105,7 +104,7 @@ class PrettyFormat:
                 self._stream.write(value_repr)
 
     def _format_bytes(self, value: bytes, value_repr: str, indent_current: int, indent_new: int):
-        wrap = self._max_width - indent_new - 3
+        wrap = self._width - indent_new - 3
         if len(value) < wrap:
             self._stream.write(value_repr)
         else:
@@ -131,9 +130,9 @@ class PrettyFormat:
 
     def _format_raw(self, value: Any, value_repr: str, indent_current: int, indent_new: int):
         lines = value_repr.splitlines(True)
-        if len(lines) > 1 or (len(value_repr) + indent_current) >= self._max_width:
+        if len(lines) > 1 or (len(value_repr) + indent_current) >= self._width:
             self._stream.write('(\n')
-            wrap_at = self._max_width - indent_new
+            wrap_at = self._width - indent_new
             prefix = indent_new * self._c
             for line in lines:
                 sub_lines = textwrap.wrap(line, wrap_at)
@@ -145,8 +144,7 @@ class PrettyFormat:
 
 
 pformat = PrettyFormat()
-_ppformat = PrettyFormat(colours=isatty())
 
 
-def pprint(s):
-    print(_ppformat(s), flush=True)
+def pprint(s, file=None):
+    print(pformat(s, highlight=isatty(file)), file=file, flush=True)

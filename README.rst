@@ -10,7 +10,9 @@ Install
 
 Just::
 
-    pip install devtools
+    pip install devtools[pygments]
+
+(``pygments`` is not required but if it's available output will be highlighted and easier to read.)
 
 Usage
 -----
@@ -24,7 +26,28 @@ Usage
 
 Outputs::
 
-   test.py:4 <module>: whatever = [1, 2, 3] (list)
+   test.py:4 <module>:
+     whatever: [1, 2, 3] (list)
+
+
+That's only the tip of the iceberg, for example `demo.py </demo.py>`_:
+
+.. code:: python
+
+   import numpy as np
+
+   data = {
+       'foo': np.array(range(20)),
+       'bar': {'apple', 'banana', 'carrot', 'grapefruit'},
+       'spam': [{'a': i, 'b': (i for i in range(3))} for i in range(3)],
+       'sentence': 'this is just a boring sentence.\n' * 4
+   }
+
+   debug(data)
+
+outputs:
+
+.. image:: ./demo.py.png
 
 Usage without Import
 --------------------

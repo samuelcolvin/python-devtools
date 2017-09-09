@@ -3,7 +3,7 @@ python devtools
 
 |BuildStatus| |Coverage| |pypi|
 
-Dev tools for python. **WIP**
+Dev tools for python.
 
 Install
 -------
@@ -30,7 +30,7 @@ Outputs::
      whatever: [1, 2, 3] (list)
 
 
-That's only the tip of the iceberg, for example `demo.py </demo.py>`_:
+That's only the tip of the iceberg, for example:
 
 .. code:: python
 
@@ -47,7 +47,7 @@ That's only the tip of the iceberg, for example `demo.py </demo.py>`_:
 
 outputs:
 
-.. image:: ./demo.py.png
+.. image:: https://raw.githubusercontent.com/samuelcolvin/python-devtools/master/demo.py.png
     :align: center
 
 Usage without Import

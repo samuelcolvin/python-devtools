@@ -40,17 +40,25 @@ def test_exotic_types():
     print(s)
     # list and generator comprehensions are wrong because ast is wrong, see https://bugs.python.org/issue31241
     assert (
-        'tests/test_expr_render.py:<line no> test_exotic_types\n'
-        '  sum(aa) = 6 (int)\n'
-        '  1 == 2 = False (bool)\n'
-        '  1 < 2 = True (bool)\n'
-        '  1 << 2 = 4 (int)\n'
-        '  \'t\' if True else \'f\' = "t" (str) len=1\n'
-        '  1 or 2 = 1 (int)\n'
-        '  [a for a in aa] = [1, 2, 3] (list)\n'
-        '  {a for a in aa} = {1, 2, 3} (set)\n'
-        '  {a: a + 1 for a in aa} = {1: 2, 2: 3, 3: 4} (dict)\n'
-        '  (a for a in aa) = <generator object test_exotic_types.<locals>.<genexpr> at 0x<hash>> (generator)'
+        "tests/test_expr_render.py:<line no> test_exotic_types\n"
+        "  sum(aa) = 6 (int)\n"
+        "  1 == 2 = False (bool)\n"
+        "  1 < 2 = True (bool)\n"
+        "  1 << 2 = 4 (int)\n"
+        "  't' if True else 'f' = 't' (str) len=1\n"
+        "  1 or 2 = 1 (int)\n"
+        "  [a for a in aa] = [1, 2, 3] (list)\n"
+        "  {a for a in aa} = {1, 2, 3} (set)\n"
+        "  {a: a + 1 for a in aa} = {\n"
+        "      1: 2,\n"
+        "      2: 3,\n"
+        "      3: 4,\n"
+        "  } (dict)\n"
+        "  (a for a in aa) = (\n"
+        "      1,\n"
+        "      2,\n"
+        "      3,\n"
+        "  ) (generator)"
     ) == s
 
 

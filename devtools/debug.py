@@ -7,8 +7,12 @@ from pathlib import Path
 from textwrap import dedent
 from typing import Generator, List, Optional, Tuple
 
+from .ansi import isatty, sformat
+from .prettier import PrettyFormat
+
 __all__ = ['Debug', 'debug']
 CWD = Path('.').resolve()
+pformat = PrettyFormat()
 
 
 def env_true(var_name, alt='FALSE'):
@@ -26,18 +30,13 @@ class DebugArgument:
             self.extra.append(('len', len(value)))
         self.extra += [(k, v) for k, v in extra.items() if v is not None]
 
-    def value_str(self):
-        if isinstance(self.value, str):
-            return '"{}"'.format(self.value)
-        return str(self.value)
-
     def __str__(self) -> str:
         template = '{value} ({self.value.__class__.__name__}) {extra}'
         if self.name:
             template = '{self.name} = ' + template
         return template.format(
             self=self,
-            value=self.value_str(),
+            value=pformat(self.value, indent=2),
             extra=' '.join('{}={}'.format(k, v) for k, v in self.extra)
         ).rstrip(' ')  # trailing space if extra is empty
 
@@ -55,9 +54,19 @@ class DebugOutput:
         self.frame = frame
         self.arguments = arguments
 
+    def str(self, colours=False) -> str:
+        if colours:
+            prefix = '{}:{} {}\n  '.format(
+                sformat(self.filename, sformat.magenta),
+                sformat(self.lineno, sformat.green),
+                sformat(self.frame, sformat.green, sformat.italic)
+            )
+        else:
+            prefix = '{0.filename}:{0.lineno} {0.frame}\n  '.format(self)
+        return prefix + '\n  '.join(str(a) for a in self.arguments)
+
     def __str__(self) -> str:
-        template = '{s.filename}:{s.lineno} {s.frame}\n  {a}'
-        return template.format(s=self, a='\n  '.join(str(a) for a in self.arguments))
+        return self.str()
 
     def __repr__(self) -> str:
         arguments = ' '.join(str(a) for a in self.arguments)
@@ -88,13 +97,15 @@ class Debug:
         else:
             return value
 
-    def __call__(self, *args, **kwargs):
-        print(self._process(args, kwargs, r'debug *\('), flush=True)
+    def __call__(self, *args, file_=None, flush_=True, **kwargs) -> None:
+        d_out = self._process(args, kwargs, r'debug *\(')
+        s = d_out.str(isatty(file_))
+        print(s, file=file_, flush=flush_)
 
-    def format(self, *args, **kwargs):
+    def format(self, *args, **kwargs) -> DebugOutput:
         return self._process(args, kwargs, r'debug.format *\(')
 
-    def _process(self, args, kwargs, func_regex):
+    def _process(self, args, kwargs, func_regex) -> DebugOutput:
         curframe = inspect.currentframe()
         frames = inspect.getouterframes(curframe, context=self._frame_context_length)
         # BEWARE: this must be call by a method which in turn is called "directly" for the frame to be correct

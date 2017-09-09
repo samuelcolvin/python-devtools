@@ -2,6 +2,7 @@ import string
 
 import numpy
 
+from devtools.ansi import strip_ansi
 from devtools.prettier import PrettyFormat, pformat, pprint
 
 
@@ -18,8 +19,20 @@ def test_dict():
 def test_print(capsys):
     pprint({1: 2, 3: 4})
     stdout, stderr = capsys.readouterr()
-    assert stdout.startswith('\x1b')
+    assert stdout == (
+        '{\n'
+        '    1: 2,\n'
+        '    3: 4,\n'
+        '}\n')
     assert stderr == ''
+
+
+def test_colours():
+    pformat_ = PrettyFormat(colorize=True)
+    v = pformat_({1: 2, 3: 4})
+    assert v.startswith('\x1b'), repr(v)
+    v2 = strip_ansi(v)
+    assert v2.rstrip('\n') == pformat({1: 2, 3: 4}), repr(v2)
 
 
 def test_list():

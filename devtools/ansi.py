@@ -1,14 +1,24 @@
+import re
 import sys
 from enum import IntEnum
+from typing import Any
 
 _ansi_template = '\033[{}m'
+_ansi_re = re.compile('\033\[((?:\d|;)*)([a-zA-Z])')
+
+__all__ = ['sformat', 'sprint']
 
 
-def isatty(stream):
+def isatty(stream=None):
+    stream = stream or sys.stdout
     try:
         return stream.isatty()
     except Exception:
         return False
+
+
+def strip_ansi(value):
+    return _ansi_re.sub('', value)
 
 
 class Style(IntEnum):
@@ -62,7 +72,7 @@ class Style(IntEnum):
     # this is a meta value used for the "Style" instance which is the "style" function
     function = -1
 
-    def __call__(self, text: str, *styles, reset: bool=True):
+    def __call__(self, text: Any, *styles, reset: bool=True):
         """
         Styles a text with ANSI styles and returns the new string.
 
@@ -103,9 +113,9 @@ class Style(IntEnum):
             codes.append(str(s.value))
 
         if codes:
-            r = _ansi_template.format(';'.join(codes)) + text
+            r = _ansi_template.format(';'.join(codes)) + str(text)
         else:
-            r = text
+            r = str(text)
 
         if reset:
             r += _ansi_template.format(self.reset)
@@ -128,10 +138,10 @@ class Style(IntEnum):
             return super().__str__()
 
 
-style = Style(-1)
+sformat = Style(-1)
 
 
 def sprint(text, *styles, reset=True, flush=True, file=None, **print_kwargs):
-    if isatty(file or sys.stdout):
-        text = style(text, *styles, reset=reset)
+    if isatty(file):
+        text = sformat(text, *styles, reset=reset)
     print(text, flush=flush, file=file, **print_kwargs)

@@ -3,6 +3,8 @@ import io
 import textwrap
 from typing import Any, Generator, Union
 
+from .ansi import isatty
+
 try:
     from pygments import highlight
     from pygments.lexers import PythonLexer
@@ -16,6 +18,7 @@ PARENTHESES_LOOKUP = [
     (list, '[', ']'),
     (set, '{', '}'),
 ]
+__all__ = ['PrettyFormat', 'pformat', 'pprint']
 
 
 class PrettyFormat:
@@ -42,9 +45,9 @@ class PrettyFormat:
             (collections.Generator, self._format_generators),
         ]
 
-    def __call__(self, value: Any, *, indent_current: int=0):
+    def __call__(self, value: Any, *, indent: int=0, indent_first: bool=False):
         self._stream = io.StringIO()
-        self._format(value, indent_current=indent_current, indent_first=True)
+        self._format(value, indent_current=indent, indent_first=indent_first)
         s = self._stream.getvalue()
         if self._colorize and pyg_lexer:
             s = highlight(s, lexer=pyg_lexer, formatter=pyg_formatter)
@@ -142,7 +145,7 @@ class PrettyFormat:
 
 
 pformat = PrettyFormat()
-_ppformat = PrettyFormat(colorize=True)
+_ppformat = PrettyFormat(colorize=isatty())
 
 
 def pprint(s):

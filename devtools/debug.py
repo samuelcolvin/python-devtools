@@ -33,7 +33,7 @@ class DebugArgument:
     def str(self, colours=False) -> str:
         s = ''
         if self.name:
-            s = sformat(self.name, sformat.blue, apply=colours) + ' = '
+            s = sformat(self.name, sformat.blue, apply=colours) + ': '
         s += pformat(self.value, indent=2)
         suffix = (
             ' ({0.value.__class__.__name__}) {1}'

@@ -17,8 +17,8 @@ def test_print(capsys):
     print(stdout)
     assert re.sub(':\d{2,}', ':<line no>', stdout) == (
         'tests/test_main.py:<line no> test_print\n'
-        '  a = 1 (int)\n'
-        '  b = 2 (int)\n'
+        '  a: 1 (int)\n'
+        '  b: 2 (int)\n'
     )
     assert stderr == ''
 
@@ -31,8 +31,8 @@ def test_format():
     print(repr(s))
     assert s == (
         "tests/test_main.py:<line no> test_format\n"
-        "  a = b'i might bite' (bytes) len=12\n"
-        "  b = 'hello this is a test' (str) len=20"
+        "  a: b'i might bite' (bytes) len=12\n"
+        "  b: 'hello this is a test' (str) len=20"
     )
 
 
@@ -57,10 +57,10 @@ print('debug run.')
     assert p.stdout.replace(str(f), '/path/to/test.py') == (
         "running debug...\n"
         "/path/to/test.py:8 <module>\n"
-        "  foobar = 'hello world' (str) len=11\n"
+        "  foobar: 'hello world' (str) len=11\n"
         "/path/to/test.py:4 test_func\n"
         "  'in test func' (str) len=12\n"
-        "  v = 42 (int)\n"
+        "  v: 42 (int)\n"
         "debug run.\n"
     )
 
@@ -112,8 +112,8 @@ def test_kwargs():
     print(s)
     assert s == (
         "tests/test_main.py:<line no> test_kwargs\n"
-        "  first = 'variable' (str) len=8 variable=a\n"
-        "  second = 'literal' (str) len=7"
+        "  first: 'variable' (str) len=8 variable=a\n"
+        "  second: 'literal' (str) len=7"
     )
 
 
@@ -124,8 +124,8 @@ def test_kwargs_orderless():
     s = re.sub(':\d{2,}', ':<line no>', str(v))
     assert set(s.split('\n')) == {
         "tests/test_main.py:<line no> test_kwargs_orderless",
-        "  first = 'variable' (str) len=8 variable=a",
-        "  second = 'literal' (str) len=7",
+        "  first: 'variable' (str) len=8 variable=a",
+        "  second: 'literal' (str) len=7",
     }
 
 
@@ -153,7 +153,7 @@ def test_attributes():
 
     b = Bar()
     v = debug.format(b.y.x)
-    assert 'test_attributes\n  b.y.x = 1 (int)' in str(v)
+    assert 'test_attributes\n  b.y.x: 1 (int)' in str(v)
 
 
 def test_eval():
@@ -181,7 +181,7 @@ def test_eval_kwargs():
     assert str(v) == (
         "<string>:1 <module>\n"
         "  1 (int)\n"
-        "  apple = 'pear' (str) len=4"
+        "  apple: 'pear' (str) len=4"
     )
 
 

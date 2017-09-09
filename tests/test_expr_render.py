@@ -17,7 +17,7 @@ def test_simple():
     # print(s)
     assert (
         'tests/test_expr_render.py:<line no> test_simple\n'
-        '  len(a) = 3 (int)'
+        '  len(a): 3 (int)'
     ) == s
 
 
@@ -41,20 +41,20 @@ def test_exotic_types():
     # list and generator comprehensions are wrong because ast is wrong, see https://bugs.python.org/issue31241
     assert (
         "tests/test_expr_render.py:<line no> test_exotic_types\n"
-        "  sum(aa) = 6 (int)\n"
-        "  1 == 2 = False (bool)\n"
-        "  1 < 2 = True (bool)\n"
-        "  1 << 2 = 4 (int)\n"
-        "  't' if True else 'f' = 't' (str) len=1\n"
-        "  1 or 2 = 1 (int)\n"
-        "  [a for a in aa] = [1, 2, 3] (list)\n"
-        "  {a for a in aa} = {1, 2, 3} (set)\n"
-        "  {a: a + 1 for a in aa} = {\n"
+        "  sum(aa): 6 (int)\n"
+        "  1 == 2: False (bool)\n"
+        "  1 < 2: True (bool)\n"
+        "  1 << 2: 4 (int)\n"
+        "  't' if True else 'f': 't' (str) len=1\n"
+        "  1 or 2: 1 (int)\n"
+        "  [a for a in aa]: [1, 2, 3] (list)\n"
+        "  {a for a in aa}: {1, 2, 3} (set)\n"
+        "  {a: a + 1 for a in aa}: {\n"
         "      1: 2,\n"
         "      2: 3,\n"
         "      3: 4,\n"
         "  } (dict)\n"
-        "  (a for a in aa) = (\n"
+        "  (a for a in aa): (\n"
         "      1,\n"
         "      2,\n"
         "      3,\n"
@@ -69,7 +69,7 @@ def test_newline():
     # print(s)
     assert (
         'tests/test_expr_render.py:<line no> test_newline\n'
-        '  foobar(1, 2, 3) = 6 (int)'
+        '  foobar(1, 2, 3): 6 (int)'
     ) == s
 
 
@@ -81,7 +81,7 @@ def test_trailing_bracket():
     # print(s)
     assert (
         'tests/test_expr_render.py:<line no> test_trailing_bracket\n'
-        '  foobar(1, 2, 3) = 6 (int)'
+        '  foobar(1, 2, 3): 6 (int)'
     ) == s
 
 
@@ -95,7 +95,7 @@ def test_multiline():
     # print(s)
     assert (
         'tests/test_expr_render.py:<line no> test_multiline\n'
-        '  foobar(1, 2, 3) = 6 (int)'
+        '  foobar(1, 2, 3): 6 (int)'
     ) == s
 
 
@@ -107,7 +107,7 @@ def test_multiline_trailing_bracket():
     # print(s)
     assert (
         'tests/test_expr_render.py:<line no> test_multiline_trailing_bracket\n'
-        '  foobar(1, 2, 3 ) = 6 (int)'
+        '  foobar(1, 2, 3 ): 6 (int)'
     ) == s
 
 
@@ -121,9 +121,9 @@ def test_kwargs():
     s = re.sub(':\d{2,}', ':<line no>', str(v))
     assert (
         'tests/test_expr_render.py:<line no> test_kwargs\n'
-        '  foobar(1, 2, 3) = 6 (int)\n'
-        '  a = 6 (int)\n'
-        '  b = 7 (int)'
+        '  foobar(1, 2, 3): 6 (int)\n'
+        '  a: 6 (int)\n'
+        '  b: 7 (int)'
     ) == s
 
 
@@ -138,9 +138,9 @@ def test_kwargs_multiline():
     s = re.sub(':\d{2,}', ':<line no>', str(v))
     assert (
         'tests/test_expr_render.py:<line no> test_kwargs_multiline\n'
-        '  foobar(1, 2, 3) = 6 (int)\n'
-        '  a = 6 (int)\n'
-        '  b = 7 (int)'
+        '  foobar(1, 2, 3): 6 (int)\n'
+        '  a: 6 (int)\n'
+        '  b: 7 (int)'
     ) == s
 
 
@@ -152,7 +152,7 @@ def test_multiple_trailing_lines():
     )
     s = re.sub(':\d{2,}', ':<line no>', str(v))
     assert (
-        'tests/test_expr_render.py:<line no> test_multiple_trailing_lines\n  foobar( 1, 2, 3 ) = 6 (int)'
+        'tests/test_expr_render.py:<line no> test_multiple_trailing_lines\n  foobar( 1, 2, 3 ): 6 (int)'
     ) == s
 
 

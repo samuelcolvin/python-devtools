@@ -22,30 +22,28 @@ def strip_ansi(value):
 
 
 class Style(IntEnum):
-    """
-    Heavily borrowed from https://github.com/pallets/click/blob/6.7/click/termui.py
-
-    Italic added, multiple ansi codes condensed into one block and generally modernised.
-    """
     reset = 0
 
     bold = 1
-    un_bold = 22
+    not_bold = 22
 
     dim = 2
-    un_dim = 22
+    not_dim = 22
 
     italic = 3
-    un_italic = 23
+    not_italic = 23
 
     underline = 4
-    un_underline = 24
+    not_underline = 24
 
     blink = 5
-    un_blink = 25
+    not_blink = 25
 
     reverse = 7
-    un_reverse = 27
+    not_reverse = 27
+
+    strike_through = 9
+    not_strike_through = 29
 
     # foreground colours
     black = 30
@@ -56,7 +54,6 @@ class Style(IntEnum):
     magenta = 35
     cyan = 36
     white = 37
-    fg_reset = 38
 
     # background colours
     bg_black = 40
@@ -67,45 +64,35 @@ class Style(IntEnum):
     bg_magenta = 45
     bg_cyan = 46
     bg_white = 47
-    bg_reset = 48
 
     # this is a meta value used for the "Style" instance which is the "style" function
     function = -1
 
-    def __call__(self, text: Any, *styles, reset: bool=True):
+    def __call__(self, input: Any, *styles, reset: bool=True, apply: bool=True):
         """
-        Styles a text with ANSI styles and returns the new string.
+        Styles text with ANSI styles and returns the new string.
 
         By default the styling is cleared at the end of the string, this can be prevented with``reset=False``.
 
         Examples::
 
-            print(style('Hello World!', style.green))
-            print(style('ATTENTION!', style.bg_magenta))
-            print(style('Some things', style.reverse, style.bold))
+            print(sformat('Hello World!', sformat.green))
+            print(sformat('ATTENTION!', sformat.bg_magenta))
+            print(sformat('Some things', sformat.reverse, sformat.bold))
 
-        Supported color names:
-
-        * ``black`` (might be a gray)
-        * ``red``
-        * ``green``
-        * ``yellow`` (might be an orange)
-        * ``blue``
-        * ``magenta``
-        * ``cyan``
-        * ``white`` (might be light gray)
-        * ``reset`` (reset the color code only)
-
-        :param text: the string to style with ansi codes.
+        :param input: the object to style with ansi codes.
         :param *styles: zero or more styles to apply to the text, should be either style instances or strings
                         matching style names.
-        :param reset: by default a reset-all code is added at the end of the
-                      string which means that styles do not carry over.  This
-                      can be disabled to compose styles.
+        :param reset: if False the ansi reset code is not appended to the end of the string
+        :param: apply: if False no ansi codes are applied
         """
+        text = str(input)
+        if not apply:
+            return text
         codes = []
         for s in styles:
-            if not isinstance(s, self.__class__):
+            # raw ints are allowed
+            if not isinstance(s, self.__class__) and not isinstance(s, int):
                 try:
                     s = self.styles[s]
                 except KeyError:
@@ -113,9 +100,9 @@ class Style(IntEnum):
             codes.append(str(s.value))
 
         if codes:
-            r = _ansi_template.format(';'.join(codes)) + str(text)
+            r = _ansi_template.format(';'.join(codes)) + text
         else:
-            r = str(text)
+            r = text
 
         if reset:
             r += _ansi_template.format(self.reset)
@@ -127,7 +114,7 @@ class Style(IntEnum):
 
     def __repr__(self):
         if self == self.function:
-            return '<pseudo function style(text, *styles)>'
+            return '<pseudo function sformat(text, *styles)>'
         else:
             return super().__repr__()
 
@@ -141,7 +128,20 @@ class Style(IntEnum):
 sformat = Style(-1)
 
 
-def sprint(text, *styles, reset=True, flush=True, file=None, **print_kwargs):
-    if isatty(file):
-        text = sformat(text, *styles, reset=reset)
-    print(text, flush=flush, file=file, **print_kwargs)
+class StylePrint:
+    """
+    Annoyingly enums do not allow inheritance, this is a lazy design mistake, this is an ugly work around
+    for that mistake.
+    """
+    def __call__(self, input, *styles, reset=True, flush=True, file=None, **print_kwargs):
+        text = sformat(input, *styles, reset=reset, apply=isatty(file))
+        print(text, flush=flush, file=file, **print_kwargs)
+
+    def __getattr__(self, item):
+        return getattr(sformat, item)
+
+    def __repr__(self):
+        return '<pseudo function sprint(text, *styles)>'
+
+
+sprint = StylePrint()

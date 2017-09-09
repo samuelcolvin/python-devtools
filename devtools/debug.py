@@ -30,15 +30,21 @@ class DebugArgument:
             self.extra.append(('len', len(value)))
         self.extra += [(k, v) for k, v in extra.items() if v is not None]
 
-    def __str__(self) -> str:
-        template = '{value} ({self.value.__class__.__name__}) {extra}'
+    def str(self, colours=False) -> str:
+        s = ''
         if self.name:
-            template = '{self.name} = ' + template
-        return template.format(
-            self=self,
-            value=pformat(self.value, indent=2),
-            extra=' '.join('{}={}'.format(k, v) for k, v in self.extra)
-        ).rstrip(' ')  # trailing space if extra is empty
+            s = sformat(self.name, sformat.blue, apply=colours) + ' = '
+        s += pformat(self.value, indent=2)
+        suffix = (
+            ' ({0.value.__class__.__name__}) {1}'
+            .format(self, ' '.join('{}={}'.format(k, v) for k, v in self.extra))
+            .rstrip(' ')  # trailing space if extra is empty
+        )
+        s += sformat(suffix, sformat.dim, apply=colours)
+        return s
+
+    def __str__(self) -> str:
+        return self.str()
 
 
 class DebugOutput:
@@ -63,7 +69,7 @@ class DebugOutput:
             )
         else:
             prefix = '{0.filename}:{0.lineno} {0.frame}\n  '.format(self)
-        return prefix + '\n  '.join(str(a) for a in self.arguments)
+        return prefix + '\n  '.join(a.str(colours) for a in self.arguments)
 
     def __str__(self) -> str:
         return self.str()
@@ -99,7 +105,8 @@ class Debug:
 
     def __call__(self, *args, file_=None, flush_=True, **kwargs) -> None:
         d_out = self._process(args, kwargs, r'debug *\(')
-        s = d_out.str(isatty(file_))
+        colours_possible = isatty(file_)
+        s = d_out.str(self._colours and colours_possible)
         print(s, file=file_, flush=flush_)
 
     def format(self, *args, **kwargs) -> DebugOutput:

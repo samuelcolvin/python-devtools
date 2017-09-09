@@ -23,14 +23,14 @@ __all__ = ['PrettyFormat', 'pformat', 'pprint']
 
 class PrettyFormat:
     def __init__(self,
-                 colorize=False,
+                 colours=False,
                  indent_step=4,
                  indent_char=' ',
                  repr_strings=False,
                  simple_cutoff=10,
                  max_width=120,
                  yield_from_generators=True):
-        self._colorize = colorize
+        self._colours = colours
         self._indent_step = indent_step
         self._c = indent_char
         self._repr_strings = repr_strings
@@ -49,7 +49,7 @@ class PrettyFormat:
         self._stream = io.StringIO()
         self._format(value, indent_current=indent, indent_first=indent_first)
         s = self._stream.getvalue()
-        if self._colorize and pyg_lexer:
+        if self._colours and pyg_lexer:
             s = highlight(s, lexer=pyg_lexer, formatter=pyg_formatter)
         return s
 
@@ -145,7 +145,7 @@ class PrettyFormat:
 
 
 pformat = PrettyFormat()
-_ppformat = PrettyFormat(colorize=isatty())
+_ppformat = PrettyFormat(colours=isatty())
 
 
 def pprint(s):

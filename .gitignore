@@ -13,3 +13,4 @@ htmlcov/
 benchmarks/*.json
 docs/_build/
 old-version/
+*.swp

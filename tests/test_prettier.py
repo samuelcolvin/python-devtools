@@ -28,7 +28,7 @@ def test_print(capsys):
 
 
 def test_colours():
-    pformat_ = PrettyFormat(colorize=True)
+    pformat_ = PrettyFormat(colours=True)
     v = pformat_({1: 2, 3: 4})
     assert v.startswith('\x1b'), repr(v)
     v2 = strip_ansi(v)

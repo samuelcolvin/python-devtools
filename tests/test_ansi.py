@@ -5,7 +5,7 @@ import pytest
 from devtools.ansi import sformat, sprint
 
 
-def test_colorize():
+def test_colours():
     v = sformat('hello', sformat.red)
     assert v == '\x1b[31mhello\x1b[0m'
 
@@ -43,7 +43,7 @@ def test_invalid_style_str():
 
 def test_print_not_tty():
     stream = io.StringIO()
-    sprint('hello', sformat.green, file=stream)
+    sprint('hello', sprint.green, file=stream)
     out = stream.getvalue()
     assert out == 'hello\n'
 
@@ -54,7 +54,7 @@ def test_print_is_tty():
             return True
 
     stream = TTYStream()
-    sprint('hello', sformat.green, file=stream)
+    sprint('hello', sprint.green, file=stream)
     out = stream.getvalue()
     assert out == '\x1b[32mhello\x1b[0m\n', repr(out)
 
@@ -72,14 +72,15 @@ def test_print_tty_error():
 
 def test_get_styles():
     assert sformat.styles['bold'] == 1
-    assert sformat.styles['un_bold'] == 22
+    assert sformat.styles['not_bold'] == 22
 
 
-def test_repr():
-    assert repr(sformat) == '<pseudo function style(text, *styles)>'
+def test_repr_str():
+    assert repr(sformat) == '<pseudo function sformat(text, *styles)>'
     assert repr(sformat.red) == '<Style.red: 31>'
 
-
-def test_str():
-    assert str(sformat) == '<pseudo function style(text, *styles)>'
+    assert str(sformat) == '<pseudo function sformat(text, *styles)>'
     assert str(sformat.red) == 'Style.red'
+
+    assert repr(sprint) == '<pseudo function sprint(text, *styles)>'
+    assert str(sprint) == '<pseudo function sprint(text, *styles)>'

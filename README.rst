@@ -48,6 +48,7 @@ That's only the tip of the iceberg, for example `demo.py </demo.py>`_:
 outputs:
 
 .. image:: ./demo.py.png
+    :align: center
 
 Usage without Import
 --------------------

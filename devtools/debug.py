@@ -21,7 +21,7 @@ def env_true(var_name, alt='FALSE'):
 pformat = PrettyFormat(
     indent_step=int(os.getenv('PY_DEVTOOLS_INDENT', 4)),
     simple_cutoff=int(os.getenv('PY_DEVTOOLS_SIMPLE_CUTOFF', 10)),
-    width=int(os.getenv('PY_DEVTOOLS_SIMPLE_TERM_WIDTH', 80)),
+    width=int(os.getenv('PY_DEVTOOLS_SIMPLE_TERM_WIDTH', 120)),
     yield_from_generators=env_true('PY_DEVTOOLS_YIELD_FROM_GEN', 'TRUE'),
 )
 

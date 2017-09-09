@@ -6,6 +6,7 @@ from subprocess import PIPE, run
 import pytest
 
 from devtools import Debug, debug
+from devtools.ansi import strip_ansi
 
 
 def test_print(capsys):
@@ -16,8 +17,8 @@ def test_print(capsys):
     print(stdout)
     assert re.sub(':\d{2,}', ':<line no>', stdout) == (
         'tests/test_main.py:<line no> test_print\n'
-        '  a = 1 (int)\n'
-        '  b = 2 (int)\n'
+        '  a: 1 (int)\n'
+        '  b: 2 (int)\n'
     )
     assert stderr == ''
 
@@ -29,9 +30,9 @@ def test_format():
     s = re.sub(':\d{2,}', ':<line no>', str(v))
     print(repr(s))
     assert s == (
-        'tests/test_main.py:<line no> test_format\n'
-        '  a = b\'i might bite\' (bytes) len=12\n'
-        '  b = "hello this is a test" (str) len=20'
+        "tests/test_main.py:<line no> test_format\n"
+        "  a: b'i might bite' (bytes) len=12\n"
+        "  b: 'hello this is a test' (str) len=20"
     )
 
 
@@ -54,13 +55,13 @@ print('debug run.')
     assert p.stderr == ''
     assert p.returncode == 0, (p.stderr, p.stdout)
     assert p.stdout.replace(str(f), '/path/to/test.py') == (
-        'running debug...\n'
-        '/path/to/test.py:8 <module>\n'
-        '  foobar = "hello world" (str) len=11\n'
-        '/path/to/test.py:4 test_func\n'
-        '  "in test func" (str) len=12\n'
-        '  v = 42 (int)\n'
-        'debug run.\n'
+        "running debug...\n"
+        "/path/to/test.py:8 <module>\n"
+        "  foobar: 'hello world' (str) len=11\n"
+        "/path/to/test.py:4 test_func\n"
+        "  'in test func' (str) len=12\n"
+        "  v: 42 (int)\n"
+        "debug run.\n"
     )
 
 
@@ -69,7 +70,7 @@ def test_odd_path(mocker):
     mocked_relative_to = mocker.patch('pathlib.Path.relative_to')
     mocked_relative_to.side_effect = ValueError()
     v = debug.format('test')
-    assert re.search('/.*?/test_main.py:\d{2,} test_odd_path\n  "test" \(str\) len=4', str(v)), v
+    assert re.search("/.*?/test_main.py:\d{2,} test_odd_path\n  'test' \(str\) len=4", str(v)), v
 
 
 def test_small_call_frame():
@@ -110,9 +111,9 @@ def test_kwargs():
     s = re.sub(':\d{2,}', ':<line no>', str(v))
     print(s)
     assert s == (
-        'tests/test_main.py:<line no> test_kwargs\n'
-        '  first = "variable" (str) len=8 variable=a\n'
-        '  second = "literal" (str) len=7'
+        "tests/test_main.py:<line no> test_kwargs\n"
+        "  first: 'variable' (str) len=8 variable=a\n"
+        "  second: 'literal' (str) len=7"
     )
 
 
@@ -122,9 +123,9 @@ def test_kwargs_orderless():
     v = debug.format(first=a, second='literal')
     s = re.sub(':\d{2,}', ':<line no>', str(v))
     assert set(s.split('\n')) == {
-        'tests/test_main.py:<line no> test_kwargs_orderless',
-        '  first = "variable" (str) len=8 variable=a',
-        '  second = "literal" (str) len=7',
+        "tests/test_main.py:<line no> test_kwargs_orderless",
+        "  first: 'variable' (str) len=8 variable=a",
+        "  second: 'literal' (str) len=7",
     }
 
 
@@ -132,14 +133,14 @@ def test_simple_vars():
     v = debug.format('test', 1, 2)
     s = re.sub(':\d{2,}', ':<line no>', str(v))
     assert s == (
-        'tests/test_main.py:<line no> test_simple_vars\n'
-        '  "test" (str) len=4\n'
-        '  1 (int)\n'
-        '  2 (int)'
+        "tests/test_main.py:<line no> test_simple_vars\n"
+        "  'test' (str) len=4\n"
+        "  1 (int)\n"
+        "  2 (int)"
     )
     r = re.sub(':\d{2,}', ':<line no>', repr(v))
     assert r == (
-        '<DebugOutput tests/test_main.py:<line no> test_simple_vars arguments: "test" (str) len=4 1 (int) 2 (int)>'
+        "<DebugOutput tests/test_main.py:<line no> test_simple_vars arguments: 'test' (str) len=4 1 (int) 2 (int)>"
     )
 
 
@@ -152,7 +153,7 @@ def test_attributes():
 
     b = Bar()
     v = debug.format(b.y.x)
-    assert 'test_attributes\n  b.y.x = 1 (int)' in str(v)
+    assert 'test_attributes\n  b.y.x: 1 (int)' in str(v)
 
 
 def test_eval():
@@ -178,9 +179,9 @@ def test_eval_kwargs():
         v = eval('debug.format(1, apple="pear")')
 
     assert str(v) == (
-        '<string>:1 <module>\n'
-        '  1 (int)\n'
-        '  apple = "pear" (str) len=4'
+        "<string>:1 <module>\n"
+        "  1 (int)\n"
+        "  apple: 'pear' (str) len=4"
     )
 
 
@@ -199,3 +200,11 @@ def test_exec(capsys):
         '  3 (int)\n'
     )
     assert stderr == ''
+
+
+def test_colours():
+    v = debug.format(range(6))
+    s = re.sub(':\d{2,}', ':<line no>', v.str(True))
+    assert s.startswith('\x1b[35mtests'), repr(s)
+    s2 = strip_ansi(s)
+    assert s2 == v.str(), repr(s2)

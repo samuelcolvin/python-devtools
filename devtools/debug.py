@@ -7,8 +7,12 @@ from pathlib import Path
 from textwrap import dedent
 from typing import Generator, List, Optional, Tuple
 
+from .ansi import isatty, sformat
+from .prettier import PrettyFormat
+
 __all__ = ['Debug', 'debug']
 CWD = Path('.').resolve()
+pformat = PrettyFormat()
 
 
 def env_true(var_name, alt='FALSE'):
@@ -26,20 +30,21 @@ class DebugArgument:
             self.extra.append(('len', len(value)))
         self.extra += [(k, v) for k, v in extra.items() if v is not None]
 
-    def value_str(self):
-        if isinstance(self.value, str):
-            return '"{}"'.format(self.value)
-        return str(self.value)
+    def str(self, colours=False) -> str:
+        s = ''
+        if self.name:
+            s = sformat(self.name, sformat.blue, apply=colours) + ': '
+        s += pformat(self.value, indent=2)
+        suffix = (
+            ' ({0.value.__class__.__name__}) {1}'
+            .format(self, ' '.join('{}={}'.format(k, v) for k, v in self.extra))
+            .rstrip(' ')  # trailing space if extra is empty
+        )
+        s += sformat(suffix, sformat.dim, apply=colours)
+        return s
 
     def __str__(self) -> str:
-        template = '{value} ({self.value.__class__.__name__}) {extra}'
-        if self.name:
-            template = '{self.name} = ' + template
-        return template.format(
-            self=self,
-            value=self.value_str(),
-            extra=' '.join('{}={}'.format(k, v) for k, v in self.extra)
-        ).rstrip(' ')  # trailing space if extra is empty
+        return self.str()
 
 
 class DebugOutput:
@@ -55,13 +60,19 @@ class DebugOutput:
         self.frame = frame
         self.arguments = arguments
 
+    def str(self, colours=False) -> str:
+        if colours:
+            prefix = '{}:{} {}\n  '.format(
+                sformat(self.filename, sformat.magenta),
+                sformat(self.lineno, sformat.green),
+                sformat(self.frame, sformat.green, sformat.italic)
+            )
+        else:
+            prefix = '{0.filename}:{0.lineno} {0.frame}\n  '.format(self)
+        return prefix + '\n  '.join(a.str(colours) for a in self.arguments)
+
     def __str__(self) -> str:
-        template = '{s.filename}:{s.lineno} {s.frame}'
-        # turns out single line output is ugly
-        # if len(self.arguments) == 1:
-        #     return (template + ': {a}').format(s=self, a=self.arguments[0])
-        # else:
-        return (template + '\n  {a}').format(s=self, a='\n  '.join(str(a) for a in self.arguments))
+        return self.str()
 
     def __repr__(self) -> str:
         arguments = ' '.join(str(a) for a in self.arguments)
@@ -78,21 +89,30 @@ class Debug:
 
     def __init__(self, *,
                  warnings: Optional[bool]=None,
+                 colours: Optional[bool]=None,
                  frame_context_length: int=50):
-        if warnings is None:
-            self._warnings = env_true('PY_DEVTOOLS_WARNINGS', 'TRUE')
-        else:
-            self._warnings = warnings
+        self._warnings = self._env_bool(warnings, 'PY_DEVTOOLS_WARNINGS')
+        self._colours = self._env_bool(colours, 'PY_DEVTOOLS_COLOURS')
         # 50 lines should be enough to make sure we always get the entire function definition
         self._frame_context_length = frame_context_length
 
-    def __call__(self, *args, **kwargs):
-        print(self._process(args, kwargs, r'debug *\('), flush=True)
+    @classmethod
+    def _env_bool(cls, value, env_name, env_default='TRUE'):
+        if value is None:
+            return env_true(env_name, env_default)
+        else:
+            return value
 
-    def format(self, *args, **kwargs):
+    def __call__(self, *args, file_=None, flush_=True, **kwargs) -> None:
+        d_out = self._process(args, kwargs, r'debug *\(')
+        colours_possible = isatty(file_)
+        s = d_out.str(self._colours and colours_possible)
+        print(s, file=file_, flush=flush_)
+
+    def format(self, *args, **kwargs) -> DebugOutput:
         return self._process(args, kwargs, r'debug.format *\(')
 
-    def _process(self, args, kwargs, func_regex):
+    def _process(self, args, kwargs, func_regex) -> DebugOutput:
         curframe = inspect.currentframe()
         frames = inspect.getouterframes(curframe, context=self._frame_context_length)
         # BEWARE: this must be call by a method which in turn is called "directly" for the frame to be correct

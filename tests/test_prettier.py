@@ -1,4 +1,5 @@
 import string
+from collections import OrderedDict
 
 import numpy
 
@@ -135,3 +136,25 @@ def test_indent_numpy_short():
     assert v == """{
     'numpy test': array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
 }"""
+
+
+def test_ordered_dict():
+    v = pformat(OrderedDict([(1, 2), (3, 4), (5, 6)]))
+    print(v)
+    assert v == """\
+OrderedDict([
+    (1, 2),
+    (3, 4),
+    (5, 6),
+])"""
+
+
+def test_frozenset():
+    v = pformat(frozenset(range(3)))
+    print(v)
+    assert v == """\
+frozenset({
+    0,
+    1,
+    2,
+})"""

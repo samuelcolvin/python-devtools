@@ -17,6 +17,7 @@ else:
 PARENTHESES_LOOKUP = [
     (list, '[', ']'),
     (set, '{', '}'),
+    (frozenset, 'frozenset({', '})'),
 ]
 __all__ = ['PrettyFormat', 'pformat', 'pprint']
 
@@ -37,9 +38,9 @@ class PrettyFormat:
         self._width = width
         self._type_lookup = [
             (dict, self._format_dict),
-            ((tuple, list, set), self._format_list_like),
             (str, self._format_str),
             (bytes, self._format_bytes),
+            ((tuple, list, set, frozenset), self._format_list_like),
             (collections.Generator, self._format_generators),
         ]
 
@@ -68,13 +69,18 @@ class PrettyFormat:
             self._format_raw(value, value_repr, indent_current, indent_new)
 
     def _format_dict(self, value: dict, value_repr: str, indent_current: int, indent_new: int):
-        self._stream.write('{\n')
+        open_, before_, split_, after_, close_ = '{\n', indent_new * self._c, ': ', ',\n', '}'
+        if isinstance(value, collections.OrderedDict):
+            open_, split_, after_, close_ = 'OrderedDict([\n', ', ', '),\n', '])'
+            before_ += '('
+        self._stream.write(open_)
         for k, v in value.items():
-            self._format(k, indent_new, True)
-            self._stream.write(': ')
+            self._stream.write(before_)
+            self._format(k, indent_new, False)
+            self._stream.write(split_)
             self._format(v, indent_new, False)
-            self._stream.write(',\n')
-        self._stream.write(indent_current * self._c + '}')
+            self._stream.write(after_)
+        self._stream.write(indent_current * self._c + close_)
 
     def _format_list_like(self, value: Union[list, tuple, set], value_repr: str, indent_current: int, indent_new: int):
         open_, close_ = '(', ')'

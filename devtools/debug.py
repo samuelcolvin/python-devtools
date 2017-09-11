@@ -1,11 +1,12 @@
 import ast
 import inspect
 import os
+import pdb
 import re
 import warnings
 from pathlib import Path
 from textwrap import dedent
-from typing import Generator, List, Optional, Tuple
+from typing import Generator, List, Optional, Tuple, Type
 
 from .ansi import isatty, sformat
 from .prettier import PrettyFormat
@@ -99,7 +100,7 @@ class Debug:
                  colour: Optional[bool]=None,
                  highlight: Optional[bool]=None,
                  frame_context_length: int=50):
-        self._warnings = self._env_bool(warnings, 'PY_DEVTOOLS_WARNINGS')
+        self._show_warnings = self._env_bool(warnings, 'PY_DEVTOOLS_WARNINGS')
         self._colour = self._env_bool(colour, 'PY_DEVTOOLS_COLOUR')
         self._highlight = self._env_bool(highlight, 'PY_DEVTOOLS_HIGHLIGHT')
         # 50 lines should be enough to make sure we always get the entire function definition
@@ -121,10 +122,24 @@ class Debug:
     def format(self, *args, **kwargs) -> DebugOutput:
         return self._process(args, kwargs, r'debug.format *\(')
 
+    def breakpoint(self):
+        pdb.Pdb(skip=['devtools.*']).set_trace()
+
     def _process(self, args, kwargs, func_regex) -> DebugOutput:
         curframe = inspect.currentframe()
-        frames = inspect.getouterframes(curframe, context=self._frame_context_length)
-        # BEWARE: this must be call by a method which in turn is called "directly" for the frame to be correct
+        try:
+            frames = inspect.getouterframes(curframe, context=self._frame_context_length)
+        except IndexError as e:
+            # NOTICE: we should really catch all conceivable errors here, if you find one please report.
+            # IndexError happens in odd situations such as code called from within jinja templates
+            self._warn('error parsing code, {0.__class__.__name__}: {0}'.format(e), SyntaxWarning)
+            return self.output_class(
+                filename='<unknown>',
+                lineno=0,
+                frame='',
+                arguments=list(self._args_inspection_failed(args, kwargs))
+            )
+        # BEWARE: this must be called by a method which in turn is called "directly" for the frame to be correct
         call_frame = frames[2]
 
         filename = call_frame.filename
@@ -145,8 +160,7 @@ class Debug:
                 arguments = list(self._args_inspection_failed(args, kwargs))
         else:
             lineno = call_frame.lineno
-            if self._warnings:
-                warnings.warn('no code context for debug call, code inspection impossible', RuntimeWarning)
+            self._warn('no code context for debug call, code inspection impossible')
             arguments = list(self._args_inspection_failed(args, kwargs))
 
         return self.output_class(
@@ -226,13 +240,11 @@ class Debug:
                     break
 
             if not func_ast:
-                if self._warnings:
-                    warnings.warn('error passing code:\n"{}"\nError: {}'.format(original_code, e1), SyntaxWarning)
+                self._warn('error passing code:\n"{}"\nError: {}'.format(original_code, e1), SyntaxWarning)
                 return None, None, lineno
 
         if not isinstance(func_ast, ast.Call):
-            if self._warnings:
-                warnings.warn('error passing code, found {} not Call'.format(func_ast.__class__), SyntaxWarning)
+            self._warn('error passing code, found {} not Call'.format(func_ast.__class__), SyntaxWarning)
             return None, None, lineno
 
         code_lines = [l for l in code.split('\n') if l]
@@ -252,6 +264,10 @@ class Debug:
             yield start_line, start_col
         for kw in func_ast.keywords:
             yield kw.value.lineno - 1, kw.value.col_offset - len(kw.arg) - 1
+
+    def _warn(self, msg, category: Type[Warning]=RuntimeWarning):
+        if self._show_warnings:
+            warnings.warn(msg, category)
 
 
 debug = Debug()

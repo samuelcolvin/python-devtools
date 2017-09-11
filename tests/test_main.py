@@ -208,3 +208,18 @@ def test_colours():
     assert s.startswith('\x1b[35mtests'), repr(s)
     s2 = strip_ansi(s)
     assert s2 == v.str(), repr(s2)
+
+
+def test_inspect_error(mocker):
+    mocked_getouterframes = mocker.patch('inspect.getouterframes')
+    mocked_getouterframes.side_effect = IndexError()
+    with pytest.warns(SyntaxWarning):
+        v = debug.format('x')
+    assert str(v) == "<unknown>:0 \n  'x' (str) len=1"
+
+
+def test_breakpoint(mocker):
+    # not much else we can do here
+    mocked_set_trace = mocker.patch('pdb.Pdb.set_trace')
+    debug.breakpoint()
+    assert mocked_set_trace.called

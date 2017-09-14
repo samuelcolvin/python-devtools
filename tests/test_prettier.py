@@ -1,5 +1,6 @@
 import string
 from collections import OrderedDict
+from typing import Any, NamedTuple
 
 import numpy
 
@@ -82,6 +83,19 @@ def test_generator():
         ')')
 
 
+def test_named_tuple():
+    class TestNT(NamedTuple):
+        foo: str
+        bar: str
+        spam: int
+    v = pformat(TestNT('x', 'y', 1))
+    assert v == ("TestNT(\n"
+                 "    foo='x',\n"
+                 "    bar='y',\n"
+                 "    spam=1,\n"
+                 ")")
+
+
 def test_generator_no_yield():
     pformat_ = PrettyFormat(yield_from_generators=False)
     v = pformat_((i for i in range(3)))
@@ -158,3 +172,47 @@ frozenset({
     1,
     2,
 })"""
+
+
+def test_deep_objects():
+    class TestNT(NamedTuple):
+        foo: str
+        bar: str
+        spam: Any
+    v = pformat((
+        {
+            'a': TestNT('x', 'y', OrderedDict([(1, 2), (3, 4), (5, 6)])),
+            'b': frozenset(range(3)),
+            'c': [1, 2, {1: 2, 3: 4}]
+        },
+        {1, 2, 3}
+    ))
+    print(v)
+    assert v == """\
+(
+    {
+        'a': TestNT(
+            foo='x',
+            bar='y',
+            spam=OrderedDict([
+                (1, 2),
+                (3, 4),
+                (5, 6),
+            ]),
+        ),
+        'b': frozenset({
+            0,
+            1,
+            2,
+        }),
+        'c': [
+            1,
+            2,
+            {
+                1: 2,
+                3: 4,
+            },
+        ],
+    },
+    {1, 2, 3},
+)"""

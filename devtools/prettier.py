@@ -40,7 +40,8 @@ class PrettyFormat:
             (dict, self._format_dict),
             (str, self._format_str),
             (bytes, self._format_bytes),
-            ((tuple, list, set, frozenset), self._format_list_like),
+            (tuple, self._format_tuples),
+            ((list, set, frozenset), self._format_list_like),
             (collections.Generator, self._format_generators),
         ]
 
@@ -94,6 +95,22 @@ class PrettyFormat:
             self._format(v, indent_new, True)
             self._stream.write(',\n')
         self._stream.write(indent_current * self._c + close_)
+
+    def _format_tuples(self, value: tuple, value_repr: str, indent_current: int, indent_new: int):
+        fields = getattr(value, '_fields', None)
+        if fields:
+            # named tuple
+            self._stream.write(value.__class__.__name__ + '(\n')
+            for field, v in zip(fields, value):
+                self._stream.write(indent_new * self._c)
+                self._stream.write(field)
+                self._stream.write('=')
+                self._format(v, indent_new, False)
+                self._stream.write(',\n')
+            self._stream.write(indent_current * self._c + ')')
+        else:
+            # normal tuples are just like other similar iterables
+            return self._format_list_like(value, value_repr, indent_current, indent_new)
 
     def _format_str(self, value: str, value_repr: str, indent_current: int, indent_new: int):
         if self._repr_strings:

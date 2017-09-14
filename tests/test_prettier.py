@@ -1,6 +1,5 @@
 import string
-from collections import OrderedDict
-from typing import Any, NamedTuple
+from collections import OrderedDict, namedtuple
 
 import numpy
 
@@ -84,12 +83,9 @@ def test_generator():
 
 
 def test_named_tuple():
-    class TestNT(NamedTuple):
-        foo: str
-        bar: str
-        spam: int
-    v = pformat(TestNT('x', 'y', 1))
-    assert v == ("TestNT(\n"
+    f = namedtuple('Foobar', ['foo', 'bar', 'spam'])
+    v = pformat(f('x', 'y', 1))
+    assert v == ("Foobar(\n"
                  "    foo='x',\n"
                  "    bar='y',\n"
                  "    spam=1,\n"
@@ -175,23 +171,20 @@ frozenset({
 
 
 def test_deep_objects():
-    class TestNT(NamedTuple):
-        foo: str
-        bar: str
-        spam: Any
+    f = namedtuple('Foobar', ['foo', 'bar', 'spam'])
     v = pformat((
-        {
-            'a': TestNT('x', 'y', OrderedDict([(1, 2), (3, 4), (5, 6)])),
-            'b': frozenset(range(3)),
-            'c': [1, 2, {1: 2, 3: 4}]
-        },
+        (
+            f('x', 'y', OrderedDict([(1, 2), (3, 4), (5, 6)])),
+            frozenset(range(3)),
+            [1, 2, {1: 2}]
+        ),
         {1, 2, 3}
     ))
     print(v)
     assert v == """\
 (
-    {
-        'a': TestNT(
+    (
+        Foobar(
             foo='x',
             bar='y',
             spam=OrderedDict([
@@ -200,19 +193,16 @@ def test_deep_objects():
                 (5, 6),
             ]),
         ),
-        'b': frozenset({
+        frozenset({
             0,
             1,
             2,
         }),
-        'c': [
+        [
             1,
             2,
-            {
-                1: 2,
-                3: 4,
-            },
+            {1: 2},
         ],
-    },
+    ),
     {1, 2, 3},
 )"""

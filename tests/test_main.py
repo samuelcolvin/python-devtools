@@ -173,16 +173,15 @@ def test_warnings_disabled():
     assert len(warnings) == 0
 
 
-@pytest.mark.skipif(sys.version_info < (3, 6), reason='kwarg order is not guaranteed for 3.5')
 def test_eval_kwargs():
     with pytest.warns(RuntimeWarning):
         v = eval('debug.format(1, apple="pear")')
 
-    assert str(v) == (
-        "<string>:1 <module>\n"
-        "    1 (int)\n"
-        "    apple: 'pear' (str) len=4"
-    )
+    assert set(str(v).split('\n')) == {
+        "<string>:1 <module>",
+        "    1 (int)",
+        "    apple: 'pear' (str) len=4",
+    }
 
 
 def test_exec(capsys):

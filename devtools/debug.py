@@ -42,7 +42,7 @@ class DebugArgument:
         s = ''
         if self.name:
             s = sformat(self.name, sformat.blue, apply=colour) + ': '
-        s += pformat(self.value, indent=2, highlight=highlight)
+        s += pformat(self.value, indent=4, highlight=highlight)
         suffix = (
             ' ({0.value.__class__.__name__}) {1}'
             .format(self, ' '.join('{}={}'.format(k, v) for k, v in self.extra))
@@ -70,14 +70,14 @@ class DebugOutput:
 
     def str(self, colour=False, highlight=False) -> str:
         if colour:
-            prefix = '{}:{} {}\n  '.format(
+            prefix = '{}:{} {}'.format(
                 sformat(self.filename, sformat.magenta),
                 sformat(self.lineno, sformat.green),
                 sformat(self.frame, sformat.green, sformat.italic)
             )
         else:
-            prefix = '{0.filename}:{0.lineno} {0.frame}\n  '.format(self)
-        return prefix + '\n  '.join(a.str(colour, highlight) for a in self.arguments)
+            prefix = '{0.filename}:{0.lineno} {0.frame}'.format(self)
+        return prefix + '\n    ' + '\n    '.join(a.str(colour, highlight) for a in self.arguments)
 
     def __str__(self) -> str:
         return self.str()

@@ -1,12 +1,12 @@
 .DEFAULT_GOAL := all
 
-.PHONY: install
+.PHONY: install-dev
 install-dev:
 	pip install -U setuptools pip
 	pip install -r dev-requirements.txt
-	pip install -U .
+	pip install -U -e .[pygments]
 
-.PHONY: install
+.PHONY: install-test
 install-test:
 	pip install -U setuptools pip
 	pip install -r tests/requirements.txt

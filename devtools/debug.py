@@ -5,7 +5,7 @@ import pdb
 import re
 import warnings
 from pathlib import Path
-from textwrap import dedent
+from textwrap import dedent, indent
 from typing import Generator, List, Optional, Tuple, Type
 
 from .ansi import isatty, sformat
@@ -222,7 +222,7 @@ class Debug:
         func_ast = None
         tail_index = call_frame.index
         try:
-            func_ast = ast.parse(code, filename=filename).body[0].value
+            func_ast = self._wrap_parse(code, filename)
         except SyntaxError as e1:
             # if the trailing bracket(s) of the function is/are on a new line eg.
             # debug(
@@ -233,7 +233,7 @@ class Debug:
                 extra_lines = call_frame.code_context[tail_index + 1:tail_index + extra]
                 code = dedent(''.join(call_lines + extra_lines))
                 try:
-                    func_ast = ast.parse(code).body[0].value
+                    func_ast = self._wrap_parse(code, filename)
                 except SyntaxError:
                     pass
                 else:
@@ -253,17 +253,25 @@ class Debug:
         code_lines[-1] = code_lines[-1][:-1]
         return func_ast, code_lines, lineno
 
-    @classmethod
-    def _get_offsets(cls, func_ast):
+    @staticmethod
+    def _wrap_parse(code, filename):
+        """
+        async wrapper is required to avoid await calls raising a SyntaxError
+        """
+        code = 'async def wrapper():\n' + indent(code, ' ')
+        return ast.parse(code, filename=filename).body[0].body[0].value
+
+    @staticmethod
+    def _get_offsets(func_ast):
         for arg in func_ast.args:
-            start_line, start_col = arg.lineno - 1, arg.col_offset
+            start_line, start_col = arg.lineno - 2, arg.col_offset - 1
 
             # horrible hack for http://bugs.python.org/issue31241
             if isinstance(arg, (ast.ListComp, ast.GeneratorExp)):
                 start_col -= 1
             yield start_line, start_col
         for kw in func_ast.keywords:
-            yield kw.value.lineno - 1, kw.value.col_offset - len(kw.arg) - 1
+            yield kw.value.lineno - 2, kw.value.col_offset - len(kw.arg) - 2
 
     def _warn(self, msg, category: Type[Warning]=RuntimeWarning):
         if self._show_warnings:

@@ -1,4 +1,5 @@
 .idea/
+env/
 env35/
 env36/
 *.py[cod]

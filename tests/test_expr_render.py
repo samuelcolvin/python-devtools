@@ -1,3 +1,4 @@
+import asyncio
 import re
 import sys
 
@@ -199,3 +200,19 @@ def test_no_syntax_warning():
         )
         assert 'test_no_syntax_warning\n    1 (int)' in str(v)
     assert len(warning_checker) == 0
+
+
+def test_await():
+    async def foo():
+        return 1
+
+    async def bar():
+        return debug.format(await foo())
+
+    loop = asyncio.get_event_loop()
+    v = loop.run_until_complete(bar())
+    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    assert (
+        'tests/test_expr_render.py:<line no> bar\n'
+        '    1 (int)'
+    ) == s

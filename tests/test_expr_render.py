@@ -22,6 +22,16 @@ def test_simple():
     ) == s
 
 
+def test_subscription():
+    a = {1: 2}
+    v = debug.format(a[1])
+    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    assert (
+        'tests/test_expr_render.py:<line no> test_subscription\n'
+        '    a[1]: 2 (int)'
+    ) == s
+
+
 def test_exotic_types():
     aa = [1, 2, 3]
     v = debug.format(

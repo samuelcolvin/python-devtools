@@ -90,7 +90,7 @@ class DebugOutput:
 class Debug:
     output_class = DebugOutput
     complex_nodes = (
-        ast.Call, ast.Attribute,
+        ast.Call, ast.Attribute, ast.Subscript,
         ast.IfExp, ast.BoolOp, ast.BinOp, ast.Compare,
         ast.DictComp, ast.ListComp, ast.SetComp, ast.GeneratorExp
     )

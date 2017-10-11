@@ -4,7 +4,6 @@
 install-dev:
 	pip install -U setuptools pip
 	pip install -r dev-requirements.txt
-	pip install -U -e .[pygments]
 
 .PHONY: install-test
 install-test:

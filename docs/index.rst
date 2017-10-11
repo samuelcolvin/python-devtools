@@ -117,7 +117,7 @@ For more details on ansi colours, see
 
 .. include:: ../HISTORY.rst
 
-.. |pypi| image:: https://img.shields.io/pypi/v/python-devtools.svg
-   :target: https://pypi.python.org/pypi/python-devtools
-.. |license| image:: https://img.shields.io/pypi/l/python-devtools.svg
+.. |pypi| image:: https://img.shields.io/pypi/v/devtools.svg
+   :target: https://pypi.python.org/pypi/devtools
+.. |license| image:: https://img.shields.io/pypi/l/devtools.svg
    :target: https://github.com/samuelcolvin/python-devtools

@@ -12,14 +12,11 @@ os.environ.update(
 )
 conv = Ansi2HTMLConverter()
 
-
-def gen_html(name):
-    p = subprocess.run((sys.executable, str(EX_DIR / '{}.py'.format(name))), stdout=subprocess.PIPE, check=True)
+for f in EX_DIR.iterdir():
+    if f.suffix != '.py' or f.name == 'sitecustomize.py':
+        continue
+    print('generating output for: {}'.format(f))
+    p = subprocess.run((sys.executable, str(f)), stdout=subprocess.PIPE, check=True)
     html = conv.convert(p.stdout.decode(), full=False).strip('\r\n')
     html = '<pre class="ansi2html-content">\n{}\n</pre>'.format(html)
-    (EX_DIR / '{}.html'.format(name)).write_text(html)
-
-
-gen_html('example1')
-gen_html('example2')
-gen_html('prettier')
+    (EX_DIR / '{}.html'.format(f.stem)).write_text(html)

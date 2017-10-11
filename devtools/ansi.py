@@ -6,7 +6,7 @@ from typing import Any
 _ansi_template = '\033[{}m'
 _ansi_re = re.compile('\033\[((?:\d|;)*)([a-zA-Z])')
 
-__all__ = ['sformat', 'sprint']
+__all__ = 'sformat', 'sprint'
 
 
 def isatty(stream=None):

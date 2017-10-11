@@ -15,12 +15,13 @@ except ImportError:  # pragma: no cover
 else:
     pyg_lexer, pyg_formatter = PythonLexer(), Terminal256Formatter(style='vim')
 
+__all__ = 'PrettyFormat', 'pformat', 'pprint'
+
 PARENTHESES_LOOKUP = [
     (list, '[', ']'),
     (set, '{', '}'),
     (frozenset, 'frozenset({', '})'),
 ]
-__all__ = ['PrettyFormat', 'pformat', 'pprint']
 DEFAULT_WIDTH = int(os.getenv('PY_DEVTOOLS_WIDTH', 120))
 
 

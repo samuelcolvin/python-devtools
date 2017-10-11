@@ -130,7 +130,7 @@ sformat = Style(-1)
 
 class StylePrint:
     """
-    Annoyingly enums do not allow inheritance, this is a lazy design mistake, this is an ugly work around
+    Annoyingly enums do not allow inheritance, a lazy design mistake, this is an ugly work around
     for that mistake.
     """
     def __call__(self, input, *styles, reset=True, flush=True, file=None, **print_kwargs):

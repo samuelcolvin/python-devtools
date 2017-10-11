@@ -55,6 +55,8 @@ clean:
 docs:
 	make -C docs html
 
-.PHONY: docs-lint
-docs-lint:
-	make -C docs lint
+.PHONY: publish
+publish: docs
+	cd docs/_build/ && cp -r html site && zip -r site.zip site
+	@curl -H "Content-Type: application/zip" -H "Authorization: Bearer ${NETLIFY}" \
+	      --data-binary "@docs/_build/site.zip" https://api.netlify.com/api/v1/sites/pydantic-docs.netlify.com/deploys

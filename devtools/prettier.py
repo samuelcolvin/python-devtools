@@ -103,7 +103,7 @@ class PrettyFormat:
             self._stream.write(value.__class__.__name__ + '(\n')
             for field, v in zip(fields, value):
                 self._stream.write(indent_new * self._c)
-                if field:  # field is falsy for odd things like call_args
+                if field:  # field is falsy sometimes for odd things like call_args
                     self._stream.write(str(field))
                     self._stream.write('=')
                 self._format(v, indent_new, False)

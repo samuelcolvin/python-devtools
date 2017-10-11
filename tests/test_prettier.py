@@ -1,8 +1,10 @@
 import string
+import sys
 from collections import OrderedDict, namedtuple
 from unittest.mock import MagicMock
 
 import numpy
+import pytest
 
 from devtools.ansi import strip_ansi
 from devtools.prettier import PrettyFormat, pformat, pprint
@@ -209,7 +211,8 @@ def test_deep_objects():
 )"""
 
 
-def test_call_args():
+@pytest.mark.skipif(sys.version_info >= (3, 6), reason='like this only for 3.5')
+def test_call_args_py35():
     m = MagicMock()
     m(1, 2, 3, a=4)
     v = pformat(m.call_args)
@@ -217,5 +220,18 @@ def test_call_args():
     assert v == """\
 _Call(
     (1, 2, 3),
+    {'a': 4},
+)"""
+
+
+@pytest.mark.skipif(sys.version_info < (3, 6), reason='different for 3.5')
+def test_call_args_py36():
+    m = MagicMock()
+    m(1, 2, 3, a=4)
+    v = pformat(m.call_args)
+
+    assert v == """\
+_Call(
+    _fields=(1, 2, 3),
     {'a': 4},
 )"""

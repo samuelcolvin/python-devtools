@@ -31,14 +31,14 @@ and readable way to print stuff during development. (If you know why this is, I'
 
 The wait is over:
 
-.. literalinclude:: examples/ex1.py
+.. literalinclude:: examples/example1.py
 
 .. rst-class:: divider
 
 🡣
 
 .. raw:: html
-   :file: ./examples/ex1.html
+   :file: ./examples/example1.html
 
 ``debug`` is like ``print`` on steroids, and coffee, and some orange pills
 you found down the back of a chair on the tube:
@@ -46,21 +46,21 @@ you found down the back of a chair on the tube:
 * each output is prefixed with the file, line number and function where ``debug`` was called
 * the variable name or expression being printed is shown
 * each argument is printed "pretty" on a new line
-* if ``pygments`` is installed the output will be highlighted
+* if ``pygments`` is installed the output is highlighted
 
 Complex usage
 .............
 
 a more complex example of ``debug`` shows more of what it can do.
 
-.. literalinclude:: examples/ex2.py
+.. literalinclude:: examples/example2.py
 
 .. rst-class:: divider
 
 🡣
 
 .. raw:: html
-   :file: ./examples/ex2.html
+   :file: ./examples/example2.html
 
 Usage without import
 ....................

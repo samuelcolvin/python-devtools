@@ -10,6 +10,7 @@ install-dev:
 install-test:
 	pip install -U setuptools pip
 	pip install -r tests/requirements.txt
+	pip install -r docs/requirements.txt
 	pip install -U .
 
 .PHONY: isort

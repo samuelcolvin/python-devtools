@@ -21,6 +21,7 @@ PARENTHESES_LOOKUP = [
     (frozenset, 'frozenset({', '})'),
 ]
 __all__ = ['PrettyFormat', 'pformat', 'pprint']
+DEFAULT_WIDTH = int(os.getenv('PY_DEVTOOLS_WIDTH', 120))
 
 
 def env_true(var_name, alt=None):

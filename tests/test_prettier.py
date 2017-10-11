@@ -1,5 +1,6 @@
 import string
 from collections import OrderedDict, namedtuple
+from unittest.mock import MagicMock
 
 import numpy
 
@@ -205,4 +206,16 @@ def test_deep_objects():
         ],
     ),
     {1, 2, 3},
+)"""
+
+
+def test_call_args():
+    m = MagicMock()
+    m(1, 2, 3, a=4)
+    v = pformat(m.call_args)
+
+    assert v == """\
+_Call(
+    (1, 2, 3),
+    {'a': 4},
 )"""

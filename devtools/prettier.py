@@ -1,5 +1,6 @@
 import collections
 import io
+import os
 import textwrap
 from typing import Any, Generator, Union
 
@@ -20,6 +21,14 @@ PARENTHESES_LOOKUP = [
     (frozenset, 'frozenset({', '})'),
 ]
 __all__ = ['PrettyFormat', 'pformat', 'pprint']
+
+
+def env_true(var_name, alt=None):
+    env = os.getenv(var_name, None)
+    if env:
+        return env.upper() in {'1', 'TRUE'}
+    else:
+        return alt
 
 
 class PrettyFormat:
@@ -168,7 +177,9 @@ class PrettyFormat:
 
 
 pformat = PrettyFormat()
+force_highlight = env_true('PY_DEVTOOLS_HIGHLIGHT', None)
 
 
 def pprint(s, file=None):
-    print(pformat(s, highlight=isatty(file)), file=file, flush=True)
+    highlight = isatty(file) if force_highlight is None else force_highlight
+    print(pformat(s, highlight=highlight), file=file, flush=True)

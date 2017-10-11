@@ -15,12 +15,7 @@ clean:
 
 .PHONY: doc-examples
 doc-examples:
-	@( echo '<pre class="ansi2html-content">'; \
-	PY_DEVTOOLS_HIGHLIGHT=true python examples/1_input.py | ansi2html -p; \
-	echo '</pre>' ) > examples/1_output.html
-	@( echo '<pre class="ansi2html-content">'; \
-	PY_DEVTOOLS_HIGHLIGHT=true python examples/2_input.py | ansi2html -p; \
-	echo '</pre>' ) > examples/2_output.html
+	./gen_html.py
 
 .PHONY: html
 html: clean doc-examples

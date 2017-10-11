@@ -31,17 +31,19 @@ and readable way to print stuff during development. (If you know why this is, I'
 
 The wait is over:
 
-.. literalinclude:: examples/1_input.py
+.. literalinclude:: examples/ex1.py
 
-Will output:
+.. rst-class:: divider
+
+🡣
 
 .. raw:: html
-   :file: ./examples/1_output.html
+   :file: ./examples/ex1.html
 
 ``debug`` is like ``print`` on steroids, and coffee, and some orange pills
 you found down the back of a chair on the tube:
 
-* Each output it prefixed with the file, line number and function where ``debug`` was called
+* each output is prefixed with the file, line number and function where ``debug`` was called
 * the variable name or expression being printed is shown
 * each argument is printed "pretty" on a new line
 * if ``pygments`` is installed the output will be highlighted
@@ -51,14 +53,14 @@ Complex usage
 
 a more complex example of ``debug`` shows more of what it can do.
 
-.. literalinclude:: examples/2_input.py
+.. literalinclude:: examples/ex2.py
 
-Will output:
+.. rst-class:: divider
+
+🡣
 
 .. raw:: html
-   :file: ./examples/2_output.html
-
-
+   :file: ./examples/ex2.html
 
 Usage without import
 ....................
@@ -94,6 +96,13 @@ To get round this *devtools* comes with prettier print, my take on pretty printi
 in ``debug()``, but it can also be used directly:
 
 .. literalinclude:: examples/prettier.py
+
+.. rst-class:: divider
+
+🡣
+
+.. raw:: html
+   :file: ./examples/prettier.html
 
 For more details on prettier printing, see
 `prettier.py <https://github.com/samuelcolvin/python-devtools/blob/master/devtools/prettier.py>`_.

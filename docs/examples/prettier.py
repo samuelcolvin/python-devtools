@@ -6,28 +6,12 @@ v = {
     'generator': (i * 2 for i in [1, 2, 3]),
 }
 
+# pretty print of v
 pprint(v)
-# > with colours:
-"""
-{
-    'foo': {
-        'whatever': [3, 2, 1],
-    },
-    'sentence': (
-        'hello\n'
-        'world'
-    ),
-    'generator': (
-        2,
-        4,
-        6,
-    ),
-}
-"""
 
+# as above without colours, the generator will also be empty as it's already been evaluated
 s = pformat(v, highlight=False)
 print(s)
-# > as above without colours, the generator will also be empty as it's already been evaluated
 
 pp = PrettyFormat(
      indent_step=2,  # default: 4
@@ -38,18 +22,4 @@ pp = PrettyFormat(
      yield_from_generators=False  # default: True (whether to evaluate generators)
 )
 
-print(pp(v))
-# >
-"""
-{
-__'foo': {
-____'whatever': [
-______'apple',
-______123,
-______45.67,
-____],
-__},
-__'sentence': 'hello\nworld',
-__'generator': <generator object <genexpr> at 0x7f448b7cebf8>,
-}
-"""
+print(pp(v, highlight=True))

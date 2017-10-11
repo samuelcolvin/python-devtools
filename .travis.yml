@@ -18,6 +18,7 @@ install:
 script:
 - make lint
 - make test
+- make docs
 - ./tests/check_tag.py
 
 after_success:

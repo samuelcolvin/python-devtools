@@ -9,18 +9,10 @@ from textwrap import dedent, indent
 from typing import Generator, List, Optional, Tuple, Type
 
 from .ansi import isatty, sformat
-from .prettier import PrettyFormat
+from .prettier import PrettyFormat, env_true
 
 __all__ = ['Debug', 'debug']
 CWD = Path('.').resolve()
-
-
-def env_true(var_name, alt=None):
-    env = os.getenv(var_name, None)
-    if env:
-        return env.upper() in {'1', 'TRUE'}
-    else:
-        return alt
 
 
 pformat = PrettyFormat(

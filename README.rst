@@ -5,6 +5,10 @@ python devtools
 
 Dev tools for python.
 
+The debug print command python never had (and other things).
+
+For more information, see `documentation <https://python-devtools.helpmanual.io/>`_
+
 Install
 -------
 

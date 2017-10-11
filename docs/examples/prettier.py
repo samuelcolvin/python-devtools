@@ -1,9 +1,14 @@
 from devtools import PrettyFormat, pprint, pformat
+import numpy as np
 
 v = {
     'foo': {'whatever': [3, 2, 1]},
     'sentence': 'hello\nworld',
     'generator': (i * 2 for i in [1, 2, 3]),
+    'matrix': np.matrix([[1, 2, 3, 4],
+                         [50, 60, 70, 80],
+                         [900, 1000, 1100, 1200],
+                         [13000, 14000, 15000, 16000]])
 }
 
 # pretty print of v
@@ -15,7 +20,7 @@ print(s)
 
 pp = PrettyFormat(
      indent_step=2,  # default: 4
-     indent_char='_',  # default: space
+     indent_char='.',  # default: space
      repr_strings=True,  # default: False
      simple_cutoff=2,  # default: 10 (if repr is below this length it'll be shown on one line)
      width=80,  # default: 120

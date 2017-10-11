@@ -82,6 +82,25 @@ This approach has another advantage: if you forget to remove ``debug(...)`` call
 (which won't have devtools installed) should fail both on execution and linting, meaning you don't end up with
 extraneous debug calls in production code.
 
+Other debug tools
+.................
+
+The debug namespace includes a number of other useful functions:
+
+* ``format()`` same as calling ``debug()`` but returns a ``DebugOutput`` rather than printing the output
+* ``timer()`` returns an instance of *devtool's* ``Timer`` class suitable for timing code execution
+* ``breakpoint()`` introduces a breakpoint using ``pdb``
+
+
+.. literalinclude:: examples/more_debug.py
+
+.. rst-class:: divider
+
+🡣
+
+.. raw:: html
+   :file: ./examples/more_debug.html
+
 Other Tools
 -----------
 

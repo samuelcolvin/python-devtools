@@ -15,15 +15,19 @@ __all__ = ['Debug', 'debug']
 CWD = Path('.').resolve()
 
 
-def env_true(var_name, alt='FALSE'):
-    return os.getenv(var_name, alt).upper() in {'1', 'TRUE'}
+def env_true(var_name, alt=None):
+    env = os.getenv(var_name, None)
+    if env:
+        return env.upper() in {'1', 'TRUE'}
+    else:
+        return alt
 
 
 pformat = PrettyFormat(
     indent_step=int(os.getenv('PY_DEVTOOLS_INDENT', 4)),
     simple_cutoff=int(os.getenv('PY_DEVTOOLS_SIMPLE_CUTOFF', 10)),
     width=int(os.getenv('PY_DEVTOOLS_SIMPLE_TERM_WIDTH', 120)),
-    yield_from_generators=env_true('PY_DEVTOOLS_YIELD_FROM_GEN', 'TRUE'),
+    yield_from_generators=env_true('PY_DEVTOOLS_YIELD_FROM_GEN', True),
 )
 
 
@@ -38,17 +42,17 @@ class DebugArgument:
             self.extra.append(('len', len(value)))
         self.extra += [(k, v) for k, v in extra.items() if v is not None]
 
-    def str(self, colour=False, highlight=False) -> str:
+    def str(self, highlight=False) -> str:
         s = ''
         if self.name:
-            s = sformat(self.name, sformat.blue, apply=colour) + ': '
+            s = sformat(self.name, sformat.blue, apply=highlight) + ': '
         s += pformat(self.value, indent=4, highlight=highlight)
         suffix = (
             ' ({0.value.__class__.__name__}) {1}'
             .format(self, ' '.join('{}={}'.format(k, v) for k, v in self.extra))
             .rstrip(' ')  # trailing space if extra is empty
         )
-        s += sformat(suffix, sformat.dim, apply=colour)
+        s += sformat(suffix, sformat.dim, apply=highlight)
         return s
 
     def __str__(self) -> str:
@@ -68,8 +72,8 @@ class DebugOutput:
         self.frame = frame
         self.arguments = arguments
 
-    def str(self, colour=False, highlight=False) -> str:
-        if colour:
+    def str(self, highlight=False) -> str:
+        if highlight:
             prefix = '{}:{} {}'.format(
                 sformat(self.filename, sformat.magenta),
                 sformat(self.lineno, sformat.green),
@@ -77,7 +81,7 @@ class DebugOutput:
             )
         else:
             prefix = '{0.filename}:{0.lineno} {0.frame}'.format(self)
-        return prefix + '\n    ' + '\n    '.join(a.str(colour, highlight) for a in self.arguments)
+        return prefix + '\n    ' + '\n    '.join(a.str(highlight) for a in self.arguments)
 
     def __str__(self) -> str:
         return self.str()
@@ -97,17 +101,15 @@ class Debug:
 
     def __init__(self, *,
                  warnings: Optional[bool]=None,
-                 colour: Optional[bool]=None,
                  highlight: Optional[bool]=None,
                  frame_context_length: int=50):
-        self._show_warnings = self._env_bool(warnings, 'PY_DEVTOOLS_WARNINGS')
-        self._colour = self._env_bool(colour, 'PY_DEVTOOLS_COLOUR')
-        self._highlight = self._env_bool(highlight, 'PY_DEVTOOLS_HIGHLIGHT')
+        self._show_warnings = self._env_bool(warnings, 'PY_DEVTOOLS_WARNINGS', True)
+        self._highlight = self._env_bool(highlight, 'PY_DEVTOOLS_HIGHLIGHT', None)
         # 50 lines should be enough to make sure we always get the entire function definition
         self._frame_context_length = frame_context_length
 
     @classmethod
-    def _env_bool(cls, value, env_name, env_default='TRUE'):
+    def _env_bool(cls, value, env_name, env_default):
         if value is None:
             return env_true(env_name, env_default)
         else:
@@ -115,8 +117,8 @@ class Debug:
 
     def __call__(self, *args, file_=None, flush_=True, **kwargs) -> None:
         d_out = self._process(args, kwargs, r'debug *\(')
-        colours_possible = isatty(file_)
-        s = d_out.str(self._colour and colours_possible, self._highlight and colours_possible)
+        highlight = isatty(file_) if self._highlight is None else self._highlight
+        s = d_out.str(highlight)
         print(s, file=file_, flush=flush_)
 
     def format(self, *args, **kwargs) -> DebugOutput:

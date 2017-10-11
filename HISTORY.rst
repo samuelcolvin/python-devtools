@@ -3,7 +3,7 @@
 History
 -------
 
-v0.3.0 (2017-10-XX)
+v0.3.0 (2017-10-11)
 ...................
 * allow ``async/await`` arguments
 * fix subscript

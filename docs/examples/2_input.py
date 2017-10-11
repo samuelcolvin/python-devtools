@@ -8,4 +8,4 @@ foo = {
 }
 bar = {1: 2}
 
-debug(foo, bar[1], spam='hello')
+debug(foo, bar[1], other='hello')

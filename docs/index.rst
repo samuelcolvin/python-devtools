@@ -10,7 +10,7 @@ Current Version: |version|
 
 Dev tools for python.
 
-The debug print command python never had (and some other handy tools).
+The debug print command python never had (and other things).
 
 Install
 -------
@@ -26,8 +26,8 @@ with *devtools* via ``pip install devtools[pygments]``.
 Debug print
 -----------
 
-Somehow in the 26 years (and counting) of activity development of python, no one thought to add a simple
-and readable way to print stuff during development. (If you know why this is, I'd love to hear an explanation).
+Somehow in the 26 years (and counting) of active development of python, no one thought to add a simple
+and readable way to print stuff during development. (If you know why this is, I'd love to hear).
 
 The wait is over:
 
@@ -35,7 +35,8 @@ The wait is over:
 
 Will output:
 
-.. image:: examples/1_output.png
+.. raw:: html
+   :file: ./examples/1_output.html
 
 ``debug`` is like ``print`` on steroids, and coffee, and some orange pills
 you found down the back of a chair on the tube:
@@ -54,7 +55,9 @@ a more complex example of ``debug`` shows more of what it can do.
 
 Will output:
 
-.. image:: examples/2_output.png
+.. raw:: html
+   :file: ./examples/2_output.html
+
 
 
 Usage without import

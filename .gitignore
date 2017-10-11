@@ -13,5 +13,6 @@ test.py
 htmlcov/
 benchmarks/*.json
 docs/_build/
+docs/examples/*.html
 old-version/
 *.swp

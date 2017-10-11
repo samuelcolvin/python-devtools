@@ -10,6 +10,8 @@ Current Version: |version|
 
 Dev tools for python.
 
+The debug print command python never had (and some other handy tools).
+
 Install
 -------
 
@@ -17,16 +19,17 @@ Assuming you have **python 3.5+** and pip installed, just::
 
     pip install devtools
 
-If ``pygments`` is installed *devtools* will colourise output to make it even more readable. The
-chances are you already have pygments installed if you're using ipython, otherwise it can be installed along
+If ``pygments`` is installed *devtools* will colourise output to make it even more readable.
+Chances are you already have pygments installed if you're using ipython, otherwise it can be installed along
 with *devtools* via ``pip install devtools[pygments]``.
-
-*python-devtools* has no requirements beyond python and optionally pygments.
 
 Debug print
 -----------
 
-Example:
+Somehow in the 26 years (and counting) of activity development of python, no one thought to add a simple
+and readable way to print stuff during development. (If you know why this is, I'd love to hear an explanation).
+
+The wait is over:
 
 .. literalinclude:: examples/1_input.py
 
@@ -39,7 +42,7 @@ you found down the back of a chair on the tube:
 
 * Each output it prefixed with the file, line number and function where ``debug`` was called
 * the variable name or expression being printed is shown
-* each argument is printed "pretty" on a new line with
+* each argument is printed "pretty" on a new line
 * if ``pygments`` is installed the output will be highlighted
 
 Complex usage
@@ -85,7 +88,7 @@ it's not that pretty, it also doesn't cope well with non standard python objects
 django querysets) which have their own pretty print functionality.
 
 To get round this *devtools* comes with prettier print, my take on pretty printing. You can see it in use above
-in ``debug()``, but you can also call it directly:
+in ``debug()``, but it can also be used directly:
 
 .. literalinclude:: examples/prettier.py
 

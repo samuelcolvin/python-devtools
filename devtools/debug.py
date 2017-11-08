@@ -189,11 +189,11 @@ class Debug:
                     end_line, end_col = len(code_lines) - 1, None
 
                 name_lines = []
-                for l in range(start_line, end_line + 1):
-                    start_ = start_col if l == start_line else 0
-                    end_ = end_col if l == end_line else None
+                for l_ in range(start_line, end_line + 1):
+                    start_ = start_col if l_ == start_line else 0
+                    end_ = end_col if l_ == end_line else None
                     name_lines.append(
-                        code_lines[l][start_:end_].strip(' ')
+                        code_lines[l_][start_:end_].strip(' ')
                     )
                 yield self.output_class.arg_class(arg, name=' '.join(name_lines).strip(' ,'))
             else:

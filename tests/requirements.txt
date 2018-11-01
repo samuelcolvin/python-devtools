@@ -8,7 +8,7 @@ Pygments==2.2.0
 pytest==3.9.3
 pytest-cov==2.6.0
 pytest-isort==0.2.1
-pytest-mock==1.6.3
+pytest-mock==1.10.0
 pytest-sugar==0.9.0
 pytest-toolbox==0.2
 numpy  # pyup: ignore

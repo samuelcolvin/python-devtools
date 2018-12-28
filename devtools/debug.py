@@ -238,7 +238,7 @@ class Debug:
         tail_index = call_frame.index
         try:
             func_ast = self._wrap_parse(code, filename)
-        except SyntaxError as e1:
+        except (SyntaxError, AttributeError) as e1:
             # if the trailing bracket(s) of the function is/are on a new line eg.
             # debug(
             #     foo, bar,
@@ -249,13 +249,13 @@ class Debug:
                 code = dedent(''.join(call_lines + extra_lines))
                 try:
                     func_ast = self._wrap_parse(code, filename)
-                except SyntaxError:
+                except (SyntaxError, AttributeError):
                     pass
                 else:
                     break
 
             if not func_ast:
-                return None, None, lineno, 'error passing code. Error: {}'.format(e1)
+                return None, None, lineno, 'error passing code, {0.__class__.__name__}: {0}'.format(e1)
 
         if not isinstance(func_ast, ast.Call):
             return None, None, lineno, 'error passing code, found {} not Call'.format(func_ast.__class__)

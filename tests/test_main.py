@@ -234,8 +234,8 @@ def test_starred_kwargs():
     v = {'foo': 1, 'bar': 2}
     v = debug.format(**v)
     s = re.sub(r':\d{2,}', ':<line no>', v.str())
-    assert s == (
-        'tests/test_main.py:<line no> test_starred_kwargs\n'
-        '    foo: 1 (int)\n'
-        '    bar: 2 (int)'
-    )
+    assert set(s.split('\n')) == {
+        'tests/test_main.py:<line no> test_starred_kwargs',
+        '    foo: 1 (int)',
+        '    bar: 2 (int)',
+    }

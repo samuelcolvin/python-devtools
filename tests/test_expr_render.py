@@ -182,8 +182,8 @@ def test_syntax_warning():
     )
     # check only the original code is included in the warning
     s = re.sub(r':\d{2,}', ':<line no>', str(v))
-    assert s.startswith('tests/test_expr_render.py:<line no> test_syntax_warning (error passing code. '
-                        'Error: unexpected EOF while')
+    assert s.startswith('tests/test_expr_render.py:<line no> test_syntax_warning (error passing code, '
+                        'SyntaxError: unexpected EOF')
 
 
 def test_no_syntax_warning():

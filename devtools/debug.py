@@ -277,7 +277,7 @@ class Debug:
                 start_col -= 1
             yield start_line, start_col
         for kw in func_ast.keywords:
-            yield kw.value.lineno - 2, kw.value.col_offset - len(kw.arg) - 2
+            yield kw.value.lineno - 2, kw.value.col_offset - 2 - (len(kw.arg) if kw.arg else 0)
 
 
 debug = Debug()

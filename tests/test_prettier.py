@@ -211,7 +211,7 @@ def test_deep_objects():
 )"""
 
 
-@pytest.mark.skipif(sys.version_info >= (3, 6), reason='like this only for 3.5')
+@pytest.mark.skipif(sys.version_info > (3, 5, 3), reason='like this only for old 3.5')
 def test_call_args_py35():
     m = MagicMock()
     m(1, 2, 3, a=4)
@@ -224,7 +224,7 @@ _Call(
 )"""
 
 
-@pytest.mark.skipif(sys.version_info < (3, 6), reason='different for 3.5')
+@pytest.mark.skipif(sys.version_info <= (3, 5, 3), reason='different for old 3.5')
 def test_call_args_py36():
     m = MagicMock()
     m(1, 2, 3, a=4)

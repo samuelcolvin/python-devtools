@@ -5,7 +5,8 @@ cache: pip
 python:
 - '3.5'
 - '3.6'
-- 'nightly'  # currently 3.7
+- '3.7'
+- 'nightly'  # currently 3.8
 
 matrix:
   allow_failures:

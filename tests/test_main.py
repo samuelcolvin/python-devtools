@@ -206,11 +206,21 @@ def test_colours():
     assert s2 == v.str(), repr(s2)
 
 
+def test_colours_warnings(mocker):
+    mocked_getouterframes = mocker.patch('inspect.getouterframes')
+    mocked_getouterframes.side_effect = IndexError()
+    v = debug.format('x')
+    s = re.sub(r':\d{2,}', ':<line no>', v.str(True))
+    assert s.startswith('\x1b[35m<unknown>'), repr(s)
+    s2 = strip_ansi(s)
+    assert s2 == v.str(), repr(s2)
+
+
 def test_inspect_error(mocker):
     mocked_getouterframes = mocker.patch('inspect.getouterframes')
     mocked_getouterframes.side_effect = IndexError()
     v = debug.format('x')
-    assert str(v) == "<unknown>:0  (error parsing code, IndexError: )\n    'x' (str) len=1"
+    assert str(v) == "<unknown>:0  (error parsing code, IndexError)\n    'x' (str) len=1"
 
 
 def test_breakpoint(mocker):

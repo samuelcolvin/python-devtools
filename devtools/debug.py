@@ -131,7 +131,7 @@ class Debug:
         curframe = inspect.currentframe()
         try:
             frames = inspect.getouterframes(curframe, context=self._frame_context_length)
-        except IndexError as e:
+        except IndexError:
             # NOTICE: we should really catch all conceivable errors here, if you find one please report.
             # IndexError happens in odd situations such as code called from within jinja templates
             return self.output_class(
@@ -139,7 +139,7 @@ class Debug:
                 lineno=0,
                 frame='',
                 arguments=list(self._args_inspection_failed(args, kwargs)),
-                warning=self._show_warnings and 'error parsing code, {0.__class__.__name__}: {0}'.format(e),
+                warning=self._show_warnings and 'error parsing code, IndexError',
             )
         # BEWARE: this must be called by a method which in turn is called "directly" for the frame to be correct
         call_frame = frames[2]
@@ -218,7 +218,7 @@ class Debug:
         for line in range(call_frame.index, -1, -1):
             try:
                 new_line = call_frame.code_context[line]
-            except IndexError:
+            except IndexError:  # pragma: no cover
                 return None, None, line, 'error passing code. line not found'
             call_lines.append(new_line)
             if re.search(func_regex, new_line):

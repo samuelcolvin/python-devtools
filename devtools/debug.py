@@ -181,7 +181,14 @@ class Debug:
 
     def _process_args(self, func_ast, code_lines, args, kwargs) -> Generator[DebugArgument, None, None]:  # noqa: C901
         arg_offsets = list(self._get_offsets(func_ast))
-        for arg, ast_node, i in zip(args, func_ast.args, range(1000)):
+        for i, arg in enumerate(args):
+            try:
+                ast_node = func_ast.args[i]
+            except IndexError:  # pragma: no cover
+                # happens when code has been commented out and there are fewer func_ast args than real args
+                yield self.output_class.arg_class(arg)
+                continue
+
             if isinstance(ast_node, ast.Name):
                 yield self.output_class.arg_class(arg, name=ast_node.id)
             elif isinstance(ast_node, self.complex_nodes):

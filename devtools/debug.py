@@ -93,9 +93,9 @@ class Debug:
     )
 
     def __init__(self, *,
-                 warnings: Optional[bool]=None,
-                 highlight: Optional[bool]=None,
-                 frame_context_length: int=50):
+                 warnings: Optional[bool] = None,
+                 highlight: Optional[bool] = None,
+                 frame_context_length: int = 50):
         self._show_warnings = self._env_bool(warnings, 'PY_DEVTOOLS_WARNINGS', True)
         self._highlight = self._env_bool(highlight, 'PY_DEVTOOLS_HIGHLIGHT', None)
         # 50 lines should be enough to make sure we always get the entire function definition
@@ -271,7 +271,7 @@ class Debug:
         for kw in func_ast.keywords:
             yield kw.value.lineno - 2, kw.value.col_offset - len(kw.arg) - 2
 
-    def _warn(self, msg, category: Type[Warning]=RuntimeWarning):
+    def _warn(self, msg, category: Type[Warning] = RuntimeWarning):
         if self._show_warnings:
             warnings.warn(msg, category)
 

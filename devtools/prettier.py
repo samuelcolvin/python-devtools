@@ -1,8 +1,9 @@
-import collections
 import io
 import os
 import textwrap
-from typing import Any, Generator, Union
+from collections import OrderedDict
+from collections.abc import Generator
+from typing import Any, Union
 
 from .ansi import isatty
 
@@ -53,10 +54,10 @@ class PrettyFormat:
             (bytes, self._format_bytes),
             (tuple, self._format_tuples),
             ((list, set, frozenset), self._format_list_like),
-            (collections.Generator, self._format_generators),
+            (Generator, self._format_generators),
         ]
 
-    def __call__(self, value: Any, *, indent: int=0, indent_first: bool=False, highlight: bool=False):
+    def __call__(self, value: Any, *, indent: int = 0, indent_first: bool = False, highlight: bool = False):
         self._stream = io.StringIO()
         self._format(value, indent_current=indent, indent_first=indent_first)
         s = self._stream.getvalue()
@@ -70,7 +71,7 @@ class PrettyFormat:
             self._stream.write(indent_current * self._c)
 
         value_repr = repr(value)
-        if len(value_repr) <= self._simple_cutoff and not isinstance(value, collections.Generator):
+        if len(value_repr) <= self._simple_cutoff and not isinstance(value, Generator):
             self._stream.write(value_repr)
         else:
             indent_new = indent_current + self._indent_step
@@ -82,7 +83,7 @@ class PrettyFormat:
 
     def _format_dict(self, value: dict, value_repr: str, indent_current: int, indent_new: int):
         open_, before_, split_, after_, close_ = '{\n', indent_new * self._c, ': ', ',\n', '}'
-        if isinstance(value, collections.OrderedDict):
+        if isinstance(value, OrderedDict):
             open_, split_, after_, close_ = 'OrderedDict([\n', ', ', '),\n', '])'
             before_ += '('
         self._stream.write(open_)

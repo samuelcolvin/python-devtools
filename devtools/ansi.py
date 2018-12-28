@@ -4,7 +4,7 @@ from enum import IntEnum
 from typing import Any
 
 _ansi_template = '\033[{}m'
-_ansi_re = re.compile('\033\[((?:\d|;)*)([a-zA-Z])')
+_ansi_re = re.compile('\033\\[((?:\\d|;)*)([a-zA-Z])')
 
 __all__ = 'sformat', 'sprint'
 
@@ -68,7 +68,7 @@ class Style(IntEnum):
     # this is a meta value used for the "Style" instance which is the "style" function
     function = -1
 
-    def __call__(self, input: Any, *styles, reset: bool=True, apply: bool=True):
+    def __call__(self, input: Any, *styles, reset: bool = True, apply: bool = True):
         """
         Styles text with ANSI styles and returns the new string.
 

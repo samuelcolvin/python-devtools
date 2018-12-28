@@ -200,7 +200,7 @@ def test_no_syntax_warning():
             )
         )
     )
-    assert '(error passing code. Error: unindent does not match' in str(v)
+    assert '(error passing code' not in str(v)
     assert 'test_no_syntax_warning' in str(v)
 
 

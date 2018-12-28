@@ -5,7 +5,7 @@ import pdb
 import re
 from pathlib import Path
 from textwrap import dedent, indent
-from typing import Generator, List, Optional, Tuple, Type
+from typing import Generator, List, Optional, Tuple
 
 from .ansi import isatty, sformat
 from .prettier import PrettyFormat, env_true
@@ -223,7 +223,7 @@ class Debug:
         call_lines.reverse()
         lineno = call_frame.lineno - len(call_lines) + 1
 
-        original_code = code = dedent(''.join(call_lines))
+        code = dedent(''.join(call_lines))
         func_ast = None
         tail_index = call_frame.index
         try:

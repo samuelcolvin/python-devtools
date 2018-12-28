@@ -2,6 +2,7 @@
 env/
 env35/
 env36/
+env37/
 *.py[cod]
 *.egg-info/
 build/

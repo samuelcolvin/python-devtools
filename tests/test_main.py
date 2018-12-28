@@ -15,7 +15,7 @@ def test_print(capsys):
     debug(a, b)
     stdout, stderr = capsys.readouterr()
     print(stdout)
-    assert re.sub(':\d{2,}', ':<line no>', stdout) == (
+    assert re.sub(r':\d{2,}', ':<line no>', stdout) == (
         'tests/test_main.py:<line no> test_print\n'
         '    a: 1 (int)\n'
         '    b: 2 (int)\n'
@@ -27,7 +27,7 @@ def test_format():
     a = b'i might bite'
     b = "hello this is a test"
     v = debug.format(a, b)
-    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
     print(repr(s))
     assert s == (
         "tests/test_main.py:<line no> test_format\n"
@@ -70,7 +70,7 @@ def test_odd_path(mocker):
     mocked_relative_to = mocker.patch('pathlib.Path.relative_to')
     mocked_relative_to.side_effect = ValueError()
     v = debug.format('test')
-    assert re.search("/.*?/test_main.py:\d{2,} test_odd_path\n    'test' \(str\) len=4", str(v)), v
+    assert re.search(r"/.*?/test_main.py:\d{2,} test_odd_path\n    'test' \(str\) len=4", str(v)), v
 
 
 def test_small_call_frame():
@@ -80,7 +80,7 @@ def test_small_call_frame():
         2,
         3,
     )
-    assert re.sub(':\d{2,}', ':<line no>', str(v)) == (
+    assert re.sub(r':\d{2,}', ':<line no>', str(v)) == (
         'tests/test_main.py:<line no> test_small_call_frame\n'
         '    1 (int)\n'
         '    2 (int)\n'
@@ -96,7 +96,7 @@ def test_small_call_frame_warning():
             2,
             3,
         )
-    assert re.sub(':\d{2,}', ':<line no>', str(v)) == (
+    assert re.sub(r':\d{2,}', ':<line no>', str(v)) == (
         'tests/test_main.py:<line no> test_small_call_frame_warning\n'
         '    1 (int)\n'
         '    2 (int)\n'
@@ -108,7 +108,7 @@ def test_small_call_frame_warning():
 def test_kwargs():
     a = 'variable'
     v = debug.format(first=a, second='literal')
-    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
     print(s)
     assert s == (
         "tests/test_main.py:<line no> test_kwargs\n"
@@ -121,7 +121,7 @@ def test_kwargs_orderless():
     # for python3.5
     a = 'variable'
     v = debug.format(first=a, second='literal')
-    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
     assert set(s.split('\n')) == {
         "tests/test_main.py:<line no> test_kwargs_orderless",
         "    first: 'variable' (str) len=8 variable=a",
@@ -131,14 +131,14 @@ def test_kwargs_orderless():
 
 def test_simple_vars():
     v = debug.format('test', 1, 2)
-    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
     assert s == (
         "tests/test_main.py:<line no> test_simple_vars\n"
         "    'test' (str) len=4\n"
         "    1 (int)\n"
         "    2 (int)"
     )
-    r = re.sub(':\d{2,}', ':<line no>', repr(v))
+    r = re.sub(r':\d{2,}', ':<line no>', repr(v))
     assert r == (
         "<DebugOutput tests/test_main.py:<line no> test_simple_vars arguments: 'test' (str) len=4 1 (int) 2 (int)>"
     )
@@ -203,7 +203,7 @@ def test_exec(capsys):
 
 def test_colours():
     v = debug.format(range(6))
-    s = re.sub(':\d{2,}', ':<line no>', v.str(True))
+    s = re.sub(r':\d{2,}', ':<line no>', v.str(True))
     assert s.startswith('\x1b[35mtests'), repr(s)
     s2 = strip_ansi(s)
     assert s2 == v.str(), repr(s2)

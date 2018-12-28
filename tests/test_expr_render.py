@@ -14,7 +14,7 @@ def foobar(a, b, c):
 def test_simple():
     a = [1, 2, 3]
     v = debug.format(len(a))
-    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
     # print(s)
     assert (
         'tests/test_expr_render.py:<line no> test_simple\n'
@@ -25,7 +25,7 @@ def test_simple():
 def test_subscription():
     a = {1: 2}
     v = debug.format(a[1])
-    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
     assert (
         'tests/test_expr_render.py:<line no> test_subscription\n'
         '    a[1]: 2 (int)'
@@ -76,7 +76,7 @@ def test_exotic_types():
 def test_newline():
     v = debug.format(
         foobar(1, 2, 3))
-    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
     # print(s)
     assert (
         'tests/test_expr_render.py:<line no> test_newline\n'
@@ -88,7 +88,7 @@ def test_trailing_bracket():
     v = debug.format(
         foobar(1, 2, 3)
     )
-    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
     # print(s)
     assert (
         'tests/test_expr_render.py:<line no> test_trailing_bracket\n'
@@ -102,7 +102,7 @@ def test_multiline():
                2,
                3)
     )
-    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
     # print(s)
     assert (
         'tests/test_expr_render.py:<line no> test_multiline\n'
@@ -114,7 +114,7 @@ def test_multiline_trailing_bracket():
     v = debug.format(
         foobar(1, 2, 3
                ))
-    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
     # print(s)
     assert (
         'tests/test_expr_render.py:<line no> test_multiline_trailing_bracket\n'
@@ -129,7 +129,7 @@ def test_kwargs():
         a=6,
         b=7
     )
-    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
     assert (
         'tests/test_expr_render.py:<line no> test_kwargs\n'
         '    foobar(1, 2, 3): 6 (int)\n'
@@ -146,7 +146,7 @@ def test_kwargs_multiline():
         a=6,
         b=7
     )
-    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
     assert (
         'tests/test_expr_render.py:<line no> test_kwargs_multiline\n'
         '    foobar(1, 2, 3): 6 (int)\n'
@@ -161,7 +161,7 @@ def test_multiple_trailing_lines():
             1, 2, 3
         ),
     )
-    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
     assert (
         'tests/test_expr_render.py:<line no> test_multiple_trailing_lines\n    foobar( 1, 2, 3 ): 6 (int)'
     ) == s
@@ -187,7 +187,7 @@ def test_syntax_warning():
     assert 'Error: unexpected EOF while parsing (test_expr_render.py' in str(warning.message)
     # check only the original code is included in the warning
     assert '-1\n"' in str(warning.message)
-    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
     assert (
         'tests/test_expr_render.py:<line no> test_syntax_warning\n    1 (int)'
     ) == s
@@ -221,7 +221,7 @@ def test_await():
 
     loop = asyncio.get_event_loop()
     v = loop.run_until_complete(bar())
-    s = re.sub(':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
     assert (
         'tests/test_expr_render.py:<line no> bar\n'
         '    1 (int)'

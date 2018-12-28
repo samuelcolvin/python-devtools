@@ -3,10 +3,9 @@ import inspect
 import os
 import pdb
 import re
-import warnings
 from pathlib import Path
 from textwrap import dedent, indent
-from typing import Generator, List, Optional, Tuple, Type
+from typing import Generator, List, Optional, Tuple
 
 from .ansi import isatty, sformat
 from .prettier import PrettyFormat, env_true
@@ -57,13 +56,14 @@ class DebugOutput:
     Represents the output of a debug command.
     """
     arg_class = DebugArgument
-    __slots__ = 'filename', 'lineno', 'frame', 'arguments'
+    __slots__ = 'filename', 'lineno', 'frame', 'arguments', 'warning'
 
-    def __init__(self, *, filename: str, lineno: int, frame: str, arguments: List[DebugArgument]):
+    def __init__(self, *, filename: str, lineno: int, frame: str, arguments: List[DebugArgument], warning=None):
         self.filename = filename
         self.lineno = lineno
         self.frame = frame
         self.arguments = arguments
+        self.warning = warning
 
     def str(self, highlight=False) -> str:
         if highlight:
@@ -72,8 +72,12 @@ class DebugOutput:
                 sformat(self.lineno, sformat.green),
                 sformat(self.frame, sformat.green, sformat.italic)
             )
+            if self.warning:
+                prefix += sformat(' ({})'.format(self.warning), sformat.dim)
         else:
             prefix = '{0.filename}:{0.lineno} {0.frame}'.format(self)
+            if self.warning:
+                prefix += ' ({})'.format(self.warning)
         return prefix + '\n    ' + '\n    '.join(a.str(highlight) for a in self.arguments)
 
     def __str__(self) -> str:
@@ -127,15 +131,15 @@ class Debug:
         curframe = inspect.currentframe()
         try:
             frames = inspect.getouterframes(curframe, context=self._frame_context_length)
-        except IndexError as e:
+        except IndexError:
             # NOTICE: we should really catch all conceivable errors here, if you find one please report.
             # IndexError happens in odd situations such as code called from within jinja templates
-            self._warn('error parsing code, {0.__class__.__name__}: {0}'.format(e), SyntaxWarning)
             return self.output_class(
                 filename='<unknown>',
                 lineno=0,
                 frame='',
-                arguments=list(self._args_inspection_failed(args, kwargs))
+                arguments=list(self._args_inspection_failed(args, kwargs)),
+                warning=self._show_warnings and 'error parsing code, IndexError',
             )
         # BEWARE: this must be called by a method which in turn is called "directly" for the frame to be correct
         call_frame = frames[2]
@@ -150,7 +154,7 @@ class Debug:
                 pass
 
         if call_frame.code_context:
-            func_ast, code_lines, lineno = self._parse_code(call_frame, func_regex, filename)
+            func_ast, code_lines, lineno, warning = self._parse_code(call_frame, func_regex, filename)
             if func_ast:
                 arguments = list(self._process_args(func_ast, code_lines, args, kwargs))
             else:
@@ -158,14 +162,15 @@ class Debug:
                 arguments = list(self._args_inspection_failed(args, kwargs))
         else:
             lineno = call_frame.lineno
-            self._warn('no code context for debug call, code inspection impossible')
+            warning = 'no code context for debug call, code inspection impossible'
             arguments = list(self._args_inspection_failed(args, kwargs))
 
         return self.output_class(
             filename=filename,
             lineno=lineno,
             frame=call_frame.function,
-            arguments=arguments
+            arguments=arguments,
+            warning=self._show_warnings and warning,
         )
 
     def _args_inspection_failed(self, args, kwargs):
@@ -206,17 +211,22 @@ class Debug:
         for name, value in kwargs.items():
             yield self.output_class.arg_class(value, name=name, variable=kw_arg_names.get(name))
 
-    def _parse_code(self, call_frame, func_regex, filename) -> Tuple[Optional[ast.AST], Optional[List[str]], int]:
+    def _parse_code(
+        self, call_frame, func_regex, filename
+    ) -> Tuple[Optional[ast.AST], Optional[List[str]], int, Optional[str]]:
         call_lines = []
         for line in range(call_frame.index, -1, -1):
-            new_line = call_frame.code_context[line]
+            try:
+                new_line = call_frame.code_context[line]
+            except IndexError:  # pragma: no cover
+                return None, None, line, 'error passing code. line not found'
             call_lines.append(new_line)
             if re.search(func_regex, new_line):
                 break
         call_lines.reverse()
         lineno = call_frame.lineno - len(call_lines) + 1
 
-        original_code = code = dedent(''.join(call_lines))
+        code = dedent(''.join(call_lines))
         func_ast = None
         tail_index = call_frame.index
         try:
@@ -238,18 +248,16 @@ class Debug:
                     break
 
             if not func_ast:
-                self._warn('error passing code:\n"{}"\nError: {}'.format(original_code, e1), SyntaxWarning)
-                return None, None, lineno
+                return None, None, lineno, 'error passing code. Error: {}'.format(e1)
 
         if not isinstance(func_ast, ast.Call):
-            self._warn('error passing code, found {} not Call'.format(func_ast.__class__), SyntaxWarning)
-            return None, None, lineno
+            return None, None, lineno, 'error passing code, found {} not Call'.format(func_ast.__class__)
 
         code_lines = [l for l in code.split('\n') if l]
         # this removes the trailing bracket from the lines of code meaning it doesn't appear in the
         # representation of the last argument
         code_lines[-1] = code_lines[-1][:-1]
-        return func_ast, code_lines, lineno
+        return func_ast, code_lines, lineno, None
 
     @staticmethod
     def _wrap_parse(code, filename):
@@ -270,10 +278,6 @@ class Debug:
             yield start_line, start_col
         for kw in func_ast.keywords:
             yield kw.value.lineno - 2, kw.value.col_offset - len(kw.arg) - 2
-
-    def _warn(self, msg, category: Type[Warning] = RuntimeWarning):
-        if self._show_warnings:
-            warnings.warn(msg, category)
 
 
 debug = Debug()

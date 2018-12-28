@@ -90,17 +90,17 @@ def test_small_call_frame():
 
 def test_small_call_frame_warning():
     debug_ = Debug(frame_context_length=2)
-    with pytest.warns(SyntaxWarning):
-        v = debug_.format(
-            1,
-            2,
-            3,
-        )
+    v = debug_.format(
+        1,
+        2,
+        3,
+    )
     assert re.sub(r':\d{2,}', ':<line no>', str(v)) == (
-        'tests/test_main.py:<line no> test_small_call_frame_warning\n'
-        '    1 (int)\n'
-        '    2 (int)\n'
-        '    3 (int)'
+        "tests/test_main.py:<line no> test_small_call_frame_warning "
+        "(error passing code, found <class '_ast.Tuple'> not Call)\n"
+        "    1 (int)\n"
+        "    2 (int)\n"
+        "    3 (int)"
     )
 
 
@@ -157,10 +157,9 @@ def test_attributes():
 
 
 def test_eval():
-    with pytest.warns(RuntimeWarning):
-        v = eval('debug.format(1)')
+    v = eval('debug.format(1)')
 
-    assert str(v) == '<string>:1 <module>\n    1 (int)'
+    assert str(v) == '<string>:1 <module> (no code context for debug call, code inspection impossible)\n    1 (int)'
 
 
 def test_warnings_disabled():
@@ -174,27 +173,25 @@ def test_warnings_disabled():
 
 
 def test_eval_kwargs():
-    with pytest.warns(RuntimeWarning):
-        v = eval('debug.format(1, apple="pear")')
+    v = eval('debug.format(1, apple="pear")')
 
     assert set(str(v).split('\n')) == {
-        "<string>:1 <module>",
+        "<string>:1 <module> (no code context for debug call, code inspection impossible)",
         "    1 (int)",
         "    apple: 'pear' (str) len=4",
     }
 
 
 def test_exec(capsys):
-    with pytest.warns(RuntimeWarning):
-        exec(
-            'a = 1\n'
-            'b = 2\n'
-            'debug(b, a + b)'
-        )
+    exec(
+        'a = 1\n'
+        'b = 2\n'
+        'debug(b, a + b)'
+    )
 
     stdout, stderr = capsys.readouterr()
     assert stdout == (
-        '<string>:3 <module>\n'
+        '<string>:3 <module> (no code context for debug call, code inspection impossible)\n'
         '    2 (int)\n'
         '    3 (int)\n'
     )
@@ -209,12 +206,21 @@ def test_colours():
     assert s2 == v.str(), repr(s2)
 
 
+def test_colours_warnings(mocker):
+    mocked_getouterframes = mocker.patch('inspect.getouterframes')
+    mocked_getouterframes.side_effect = IndexError()
+    v = debug.format('x')
+    s = re.sub(r':\d{2,}', ':<line no>', v.str(True))
+    assert s.startswith('\x1b[35m<unknown>'), repr(s)
+    s2 = strip_ansi(s)
+    assert s2 == v.str(), repr(s2)
+
+
 def test_inspect_error(mocker):
     mocked_getouterframes = mocker.patch('inspect.getouterframes')
     mocked_getouterframes.side_effect = IndexError()
-    with pytest.warns(SyntaxWarning):
-        v = debug.format('x')
-    assert str(v) == "<unknown>:0 \n    'x' (str) len=1"
+    v = debug.format('x')
+    assert str(v) == "<unknown>:0  (error parsing code, IndexError)\n    'x' (str) len=1"
 
 
 def test_breakpoint(mocker):

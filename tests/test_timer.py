@@ -1,4 +1,5 @@
 import io
+import re
 from time import sleep
 
 import pytest
@@ -12,7 +13,7 @@ def test_simple():
     with t:
         sleep(0.01)
     v = f.getvalue()
-    assert v == 'foobar: 0.010s elapsed\n'
+    assert re.fullmatch(r'foobar: 0\.01[012]s elapsed\n', v)
 
 
 def test_multiple():

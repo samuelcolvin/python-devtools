@@ -169,47 +169,39 @@ def test_multiple_trailing_lines():
 
 def test_syntax_warning():
     # exceed the 4 extra lines which are normally checked
-    with pytest.warns(SyntaxWarning) as warning_checker:
-        v = debug.format(
+    v = debug.format(
+        abs(
             abs(
                 abs(
                     abs(
-                        abs(
-                            -1
-                        )
+                        -1
                     )
                 )
             )
         )
-    assert len(warning_checker) == 1
-    warning = warning_checker.list[0]
-    print(warning.message)
-    assert 'Error: unexpected EOF while parsing (test_expr_render.py' in str(warning.message)
+    )
     # check only the original code is included in the warning
-    assert '-1\n"' in str(warning.message)
     s = re.sub(r':\d{2,}', ':<line no>', str(v))
-    assert (
-        'tests/test_expr_render.py:<line no> test_syntax_warning\n    1 (int)'
-    ) == s
+    assert s.startswith('tests/test_expr_render.py:<line no> test_syntax_warning (error passing code. '
+                        'Error: unexpected EOF while')
 
 
 def test_no_syntax_warning():
     # exceed the 4 extra lines which are normally checked
     debug_ = Debug(warnings=False)
-    with pytest.warns(None) as warning_checker:
-        v = debug_.format(
+    v = debug_.format(
+        abs(
             abs(
                 abs(
                     abs(
-                        abs(
-                            -1
-                        )
+                        -1
                     )
                 )
             )
         )
-        assert 'test_no_syntax_warning\n    1 (int)' in str(v)
-    assert len(warning_checker) == 0
+    )
+    assert '(error passing code' not in str(v)
+    assert 'test_no_syntax_warning' in str(v)
 
 
 def test_await():

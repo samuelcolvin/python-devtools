@@ -216,7 +216,10 @@ class Debug:
     ) -> Tuple[Optional[ast.AST], Optional[List[str]], int, Optional[str]]:
         call_lines = []
         for line in range(call_frame.index, -1, -1):
-            new_line = call_frame.code_context[line]
+            try:
+                new_line = call_frame.code_context[line]
+            except IndexError:
+                return None, None, line, 'error passing code. line not found'
             call_lines.append(new_line)
             if re.search(func_regex, new_line):
                 break

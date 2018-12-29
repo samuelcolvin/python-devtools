@@ -30,8 +30,12 @@ class DebugArgument:
         self.value = value
         self.name = name
         self.extra = []
-        if isinstance(value, (str, bytes)):
-            self.extra.append(('len', len(value)))
+        try:
+            length = len(value)
+        except TypeError:
+            pass
+        else:
+            self.extra.append(('len', length))
         self.extra += [(k, v) for k, v in extra.items() if v is not None]
 
     def str(self, highlight=False) -> str:

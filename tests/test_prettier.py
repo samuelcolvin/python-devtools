@@ -104,11 +104,20 @@ def test_generator_no_yield():
 def test_str():
     pformat_ = PrettyFormat(width=12)
     v = pformat_(string.ascii_lowercase + '\n' + string.digits)
+    print(repr(v))
     assert v == (
         "(\n"
-        "    'abcdefghijklmnopqrstuvwxyz\\n'\n"
-        "    '0123456789'\n"
-        ")")
+        "    'abcde'\n"
+        "    'fghij'\n"
+        "    'klmno'\n"
+        "    'pqrst'\n"
+        "    'uvwxy'\n"
+        "    'z\\n"
+        "'\n"
+        "    '01234'\n"
+        "    '56789'\n"
+        ")"
+    )
 
 
 def test_str_repr():

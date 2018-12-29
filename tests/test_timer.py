@@ -24,11 +24,11 @@ def test_multiple():
             sleep(i)
     t.summary()
     v = f.getvalue()
-    assert v == (
-        '0.001: 0.001s elapsed\n'
-        '0.002: 0.002s elapsed\n'
-        '0.003: 0.003s elapsed\n'
-        '3 times: mean=0.002s stdev=0.001s min=0.001s max=0.003s\n'
+    assert re.sub(r'0\.00\d', '0.00X', v) == (
+        '0.00X: 0.00Xs elapsed\n'
+        '0.00X: 0.00Xs elapsed\n'
+        '0.00X: 0.00Xs elapsed\n'
+        '3 times: mean=0.00Xs stdev=0.00Xs min=0.00Xs max=0.00Xs\n'
     )
 
 

@@ -181,7 +181,14 @@ class Debug:
 
     def _process_args(self, func_ast, code_lines, args, kwargs) -> Generator[DebugArgument, None, None]:  # noqa: C901
         arg_offsets = list(self._get_offsets(func_ast))
-        for arg, ast_node, i in zip(args, func_ast.args, range(1000)):
+        for i, arg in enumerate(args):
+            try:
+                ast_node = func_ast.args[i]
+            except IndexError:  # pragma: no cover
+                # happens when code has been commented out and there are fewer func_ast args than real args
+                yield self.output_class.arg_class(arg)
+                continue
+
             if isinstance(ast_node, ast.Name):
                 yield self.output_class.arg_class(arg, name=ast_node.id)
             elif isinstance(ast_node, self.complex_nodes):
@@ -231,7 +238,7 @@ class Debug:
         tail_index = call_frame.index
         try:
             func_ast = self._wrap_parse(code, filename)
-        except SyntaxError as e1:
+        except (SyntaxError, AttributeError) as e1:
             # if the trailing bracket(s) of the function is/are on a new line eg.
             # debug(
             #     foo, bar,
@@ -242,13 +249,13 @@ class Debug:
                 code = dedent(''.join(call_lines + extra_lines))
                 try:
                     func_ast = self._wrap_parse(code, filename)
-                except SyntaxError:
+                except (SyntaxError, AttributeError):
                     pass
                 else:
                     break
 
             if not func_ast:
-                return None, None, lineno, 'error passing code. Error: {}'.format(e1)
+                return None, None, lineno, 'error passing code, {0.__class__.__name__}: {0}'.format(e1)
 
         if not isinstance(func_ast, ast.Call):
             return None, None, lineno, 'error passing code, found {} not Call'.format(func_ast.__class__)
@@ -277,7 +284,7 @@ class Debug:
                 start_col -= 1
             yield start_line, start_col
         for kw in func_ast.keywords:
-            yield kw.value.lineno - 2, kw.value.col_offset - len(kw.arg) - 2
+            yield kw.value.lineno - 2, kw.value.col_offset - 2 - (len(kw.arg) if kw.arg else 0)
 
 
 debug = Debug()

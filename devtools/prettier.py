@@ -50,8 +50,8 @@ class PrettyFormat:
         self._width = width
         self._type_lookup = [
             (dict, self._format_dict),
-            (str, self._format_str),
-            (bytes, self._format_bytes),
+            (str, self._format_str_bytes),
+            (bytes, self._format_str_bytes),
             (tuple, self._format_tuples),
             ((list, set, frozenset), self._format_list_like),
             (Generator, self._format_generators),
@@ -125,11 +125,11 @@ class PrettyFormat:
             # normal tuples are just like other similar iterables
             return self._format_list_like(value, value_repr, indent_current, indent_new)
 
-    def _format_str(self, value: str, value_repr: str, indent_current: int, indent_new: int):
+    def _format_str_bytes(self, value: Union[str, bytes], value_repr: str, indent_current: int, indent_new: int):
         if self._repr_strings:
             self._stream.write(value_repr)
         else:
-            lines = value.splitlines(True)
+            lines = list(self._wrap_lines(value, indent_new))
             if len(lines) > 1:
                 self._stream.write('(\n')
                 prefix = indent_new * self._c
@@ -139,20 +139,14 @@ class PrettyFormat:
             else:
                 self._stream.write(value_repr)
 
-    def _format_bytes(self, value: bytes, value_repr: str, indent_current: int, indent_new: int):
-        wrap = self._width - indent_new - 3
-        if len(value) < wrap:
-            self._stream.write(value_repr)
-        else:
-            self._stream.write('(\n')
-            prefix = indent_new * self._c
-            start, end = 0, wrap
-            while start < len(value):
-                line = value[start:end]
-                self._stream.write(prefix + repr(line) + '\n')
-                start = end
-                end += wrap
-            self._stream.write(indent_current * self._c + ')')
+    def _wrap_lines(self, s, indent_new):
+        width = self._width - indent_new - 3
+        for line in s.splitlines(True):
+            start = 0
+            for pos in range(width, len(line), width):
+                yield line[start:pos]
+                start = pos
+            yield line[start:]
 
     def _format_generators(self, value: Generator, value_repr: str, indent_current: int, indent_new: int):
         if self._repr_generators:

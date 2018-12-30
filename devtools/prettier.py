@@ -23,11 +23,6 @@ except ImportError:
 
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 
-PARENTHESES_LOOKUP = [
-    (list, '[', ']'),
-    (set, '{', '}'),
-    (frozenset, 'frozenset({', '})'),
-]
 DEFAULT_WIDTH = int(os.getenv('PY_DEVTOOLS_WIDTH', 120))
 
 
@@ -54,103 +49,70 @@ class PrettyFormat:
         self._simple_cutoff = simple_cutoff
         self._width = width
         self._type_lookup = [
-            (dict, self._format_dict),
+            (dict, format_dict),
             ((str, bytes), self._format_str_bytes),
-            (tuple, self._format_tuples),
-            ((list, set, frozenset), self._format_list_like),
+            (tuple, format_tuples),
+            ((list, set, frozenset), format_list_like),
             (Generator, self._format_generators),
         ]
 
         if MultiDict:
-            self._type_lookup.append((MultiDict, self._format_dict))
+            self._type_lookup.append((MultiDict, format_dict))
 
-    def __call__(self, value: Any, *, indent: int = 0, indent_first: bool = False, highlight: bool = False):
+    def __call__(self, value: Any, *, indent: int = 0, highlight: bool = False):
         self._stream = io.StringIO()
-        self._format(value, indent_current=indent, indent_first=indent_first)
+        self._format(value, indent=indent)
         s = self._stream.getvalue()
         if highlight and pyg_lexer:
             # apparently highlight adds a trailing new line we don't want
             s = pygments.highlight(s, lexer=pyg_lexer, formatter=pyg_formatter).rstrip('\n')
         return s
 
-    def _format(self, value: Any, indent_current: int, indent_first: bool):
-        if indent_first:
-            self._stream.write(indent_current * self._c)
-
+    def _format(self, value: Any, indent: int):
         value_repr = repr(value)
         if len(value_repr) <= self._simple_cutoff and not isinstance(value, Generator):
             self._stream.write(value_repr)
         else:
-            indent_new = indent_current + self._indent_step
             for t, func in self._type_lookup:
                 if isinstance(value, t):
-                    func(value, value_repr, indent_current, indent_new)
+                    self._render(func(value=value, value_repr=value_repr, indent=indent), indent)
                     return
-            self._format_raw(value, value_repr, indent_current, indent_new)
+            self._render(self._format_raw(value=value, value_repr=value_repr, indent=indent), indent)
 
-    def _format_dict(self, value: dict, value_repr: str, indent_current: int, indent_new: int):
-        open_, before_, split_, after_, close_ = '{\n', indent_new * self._c, ': ', ',\n', '}'
-        if isinstance(value, OrderedDict):
-            open_, split_, after_, close_ = 'OrderedDict([\n', ', ', '),\n', '])'
-            before_ += '('
-        elif MultiDict and isinstance(value, MultiDict):
-            open_, close_ = '<{}(\n'.format(value.__class__.__name__), ')>'
-
-        self._stream.write(open_)
-        for k, v in value.items():
-            self._stream.write(before_)
-            self._format(k, indent_new, False)
-            self._stream.write(split_)
-            self._format(v, indent_new, False)
-            self._stream.write(after_)
-        self._stream.write(indent_current * self._c + close_)
-
-    def _format_list_like(self, value: Union[list, tuple, set], value_repr: str, indent_current: int, indent_new: int):
-        open_, close_ = '(', ')'
-        for t, *oc in PARENTHESES_LOOKUP:
-            if isinstance(value, t):
-                open_, close_ = oc
-                break
-
-        self._stream.write(open_ + '\n')
-        for v in value:
-            self._format(v, indent_new, True)
-            self._stream.write(',\n')
-        self._stream.write(indent_current * self._c + close_)
-
-    def _format_tuples(self, value: tuple, value_repr: str, indent_current: int, indent_new: int):
-        fields = getattr(value, '_fields', None)
-        if fields:
-            # named tuple
-            self._stream.write(value.__class__.__name__ + '(\n')
-            for field, v in zip(fields, value):
-                self._stream.write(indent_new * self._c)
-                if field:  # field is falsy sometimes for odd things like call_args
-                    self._stream.write(str(field))
-                    self._stream.write('=')
-                self._format(v, indent_new, False)
-                self._stream.write(',\n')
-            self._stream.write(indent_current * self._c + ')')
-        else:
-            # normal tuples are just like other similar iterables
-            return self._format_list_like(value, value_repr, indent_current, indent_new)
-
-    def _format_str_bytes(self, value: Union[str, bytes], value_repr: str, indent_current: int, indent_new: int):
-        if self._repr_strings:
-            self._stream.write(value_repr)
-        else:
-            lines = list(self._wrap_lines(value, indent_new))
-            if len(lines) > 1:
-                self._stream.write('(\n')
-                prefix = indent_new * self._c
-                for line in lines:
-                    self._stream.write(prefix + repr(line) + '\n')
-                self._stream.write(indent_current * self._c + ')')
+    def _render(self, gen, indent: int):
+        prefix = False
+        for line in gen:
+            if isinstance(line, int):
+                indent += line
+                prefix = True
             else:
-                self._stream.write(value_repr)
+                value, fmt = line
+                if prefix:
+                    self._stream.write('\n' + self._c * indent * self._indent_step)
+                    prefix = False
+                if fmt:
+                    self._format(value, indent)
+                else:
+                    self._stream.write(value)
 
-    def _wrap_lines(self, s, indent_new):
-        width = self._width - indent_new - 3
+    def _format_str_bytes(self, value: Union[str, bytes], value_repr: str, indent: int):
+        if self._repr_strings:
+            yield value_repr, False
+            return
+        lines = list(self._wrap_lines(value, (indent + 1) * self._indent_step))
+        if len(lines) > 1:
+            yield '(', False
+            yield 1
+            for line in lines:
+                yield repr(line), False
+                yield 0
+            yield -1
+            yield ')', False
+        else:
+            yield value_repr, False
+
+    def _wrap_lines(self, s, indent):
+        width = self._width - indent - 3
         for line in s.splitlines(True):
             start = 0
             for pos in range(width, len(line), width):
@@ -158,29 +120,97 @@ class PrettyFormat:
                 start = pos
             yield line[start:]
 
-    def _format_generators(self, value: Generator, value_repr: str, indent_current: int, indent_new: int):
+    def _format_generators(self, value: Generator, value_repr, **kwargs):
         if self._repr_generators:
-            self._stream.write(value_repr)
+            yield value_repr, False
         else:
-            self._stream.write('(\n')
+            yield '(', False
+            yield 1
             for v in value:
-                self._format(v, indent_new, True)
-                self._stream.write(',\n')
-            self._stream.write(indent_current * self._c + ')')
+                yield v, True
+                yield ',', False
+                yield 0
+            yield -1
+            yield ')', False
 
-    def _format_raw(self, value: Any, value_repr: str, indent_current: int, indent_new: int):
+    def _format_raw(self, value: Any, value_repr: str, indent: int):
         lines = value_repr.splitlines(True)
-        if len(lines) > 1 or (len(value_repr) + indent_current) >= self._width:
-            self._stream.write('(\n')
-            wrap_at = self._width - indent_new
-            prefix = indent_new * self._c
+        if len(lines) > 1 or (len(value_repr) + indent * self._indent_step) >= self._width:
+            yield '(', False
+            yield 1
+            wrap_at = self._width - (indent + 1) * self._indent_step
             for line in lines:
                 sub_lines = textwrap.wrap(line, wrap_at)
                 for sline in sub_lines:
-                    self._stream.write(prefix + sline + '\n')
-            self._stream.write(indent_current * self._c + ')')
+                    yield sline, False
+                    yield 0
+            yield -1
+            yield ')', False
         else:
-            self._stream.write(value_repr)
+            yield value_repr, False
+
+
+def format_dict(value, **kwargs):
+    open_, before_, split_, after_, close_ = '{', '', ': ', ',', '}'
+    if isinstance(value, OrderedDict):
+        open_, before_, split_, after_, close_ = 'OrderedDict([', '(', ', ', '),', '])'
+    elif MultiDict and isinstance(value, MultiDict):
+        open_, close_ = '<{}('.format(value.__class__.__name__), ')>'
+
+    yield open_, False
+    yield 1
+    for k, v in value.items():
+        yield before_, False
+        yield k, True
+        yield split_, False
+        yield v, True
+        yield after_, False
+        yield 0
+    yield -1
+    yield close_, False
+
+
+PARENTHESES_LOOKUP = [
+    (list, '[', ']'),
+    (set, '{', '}'),
+    (frozenset, 'frozenset({', '})'),
+]
+
+
+def format_list_like(value: Union[list, tuple, set], **kwargs):
+    open_, close_ = '(', ')'
+    for t, *oc in PARENTHESES_LOOKUP:
+        if isinstance(value, t):
+            open_, close_ = oc
+            break
+
+    yield open_, False
+    yield 1
+    for v in value:
+        yield v, True
+        yield ',', False
+        yield 0
+    yield -1
+    yield close_, False
+
+
+def format_tuples(value: tuple, **kwargs):
+    fields = getattr(value, '_fields', None)
+    if fields:
+        # named tuple
+        yield value.__class__.__name__ + '(', False
+        yield 1
+        for field, v in zip(fields, value):
+            if field:  # field is falsy sometimes for odd things like call_args
+                yield '{}='.format(field), False
+            yield v, True
+            yield ',', False
+            yield 0
+        yield -1
+        yield ')', False
+    else:
+        # normal tuples are just like other similar iterables
+        yield from format_list_like(value, **kwargs)
 
 
 pformat = PrettyFormat()

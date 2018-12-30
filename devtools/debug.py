@@ -42,7 +42,7 @@ class DebugArgument:
         s = ''
         if self.name:
             s = sformat(self.name, sformat.blue, apply=highlight) + ': '
-        s += pformat(self.value, indent=4, highlight=highlight)
+        s += pformat(self.value, indent=1, highlight=highlight)
         suffix = (
             ' ({0.value.__class__.__name__}) {1}'
             .format(self, ' '.join('{}={}'.format(k, v) for k, v in self.extra))

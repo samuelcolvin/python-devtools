@@ -9,6 +9,12 @@ import pytest
 from devtools.ansi import strip_ansi
 from devtools.prettier import PrettyFormat, env_true, pformat, pprint
 
+try:
+    from multidict import CIMultiDict, MultiDict
+except ImportError:
+    CIMultiDict = None
+    MultiDict = None
+
 
 def test_dict():
     v = pformat({1: 2, 3: 4})
@@ -249,3 +255,28 @@ _Call(
 def test_env_true():
     assert env_true('PATH') is False
     assert env_true('DOES_NOT_EXIST') is None
+
+
+@pytest.mark.skipif(MultiDict is None, reason='MultiDict not installed')
+def test_multidict():
+    d = MultiDict({'a': 1, 'b': 2})
+    d.add('b', 3)
+    v = pformat(d)
+    assert set(v.split('\n')) == {
+        "<MultiDict(",
+        "    'a': 1,",
+        "    'b': 2,",
+        "    'b': 3,",
+        ")>",
+    }
+
+
+@pytest.mark.skipif(CIMultiDict is None, reason='CIMultiDict not installed')
+def test_cimultidict():
+    v = pformat(CIMultiDict({'a': 1, 'b': 2}))
+    assert set(v.split('\n')) == {
+        "<CIMultiDict(",
+        "    'a': 1,",
+        "    'b': 2,",
+        ")>",
+    }

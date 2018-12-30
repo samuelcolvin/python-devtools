@@ -16,6 +16,11 @@ except ImportError:  # pragma: no cover
 else:
     pyg_lexer, pyg_formatter = PythonLexer(), Terminal256Formatter(style='vim')
 
+try:
+    from multidict import MultiDict
+except ImportError:
+    MultiDict = None
+
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 
 PARENTHESES_LOOKUP = [
@@ -50,12 +55,14 @@ class PrettyFormat:
         self._width = width
         self._type_lookup = [
             (dict, self._format_dict),
-            (str, self._format_str_bytes),
-            (bytes, self._format_str_bytes),
+            ((str, bytes), self._format_str_bytes),
             (tuple, self._format_tuples),
             ((list, set, frozenset), self._format_list_like),
             (Generator, self._format_generators),
         ]
+
+        if MultiDict:
+            self._type_lookup.append((MultiDict, self._format_dict))
 
     def __call__(self, value: Any, *, indent: int = 0, indent_first: bool = False, highlight: bool = False):
         self._stream = io.StringIO()
@@ -86,6 +93,9 @@ class PrettyFormat:
         if isinstance(value, OrderedDict):
             open_, split_, after_, close_ = 'OrderedDict([\n', ', ', '),\n', '])'
             before_ += '('
+        elif MultiDict and isinstance(value, MultiDict):
+            open_, close_ = '<{}(\n'.format(value.__class__.__name__), ')>'
+
         self._stream.write(open_)
         for k, v in value.items():
             self._stream.write(before_)

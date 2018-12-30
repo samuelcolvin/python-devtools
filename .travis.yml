@@ -22,7 +22,11 @@ install:
 
 script:
 - make lint
-- make test
+- # test with and without optional dependencies then combine coverage
+- make test && mv .coverage .coverage.extra
+- pip uninstall -y multidict
+- make test && mv .coverage .coverage.no-extra
+- coverage combine
 - make docs
 - ./tests/check_tag.py
 

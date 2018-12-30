@@ -39,6 +39,17 @@ def env_true(var_name, alt=None):
         return alt
 
 
+class FMT:
+    __slots__ = '__prettier_formatting_value__'
+
+    def __init__(self, v):
+        self.__prettier_formatting_value__ = v
+
+
+class SkipPretty(Exception):
+    pass
+
+
 class PrettyFormat:
     def __init__(self,
                  indent_step=4,
@@ -77,6 +88,16 @@ class PrettyFormat:
         if indent_first:
             self._stream.write(indent_current * self._c)
 
+        pretty_func = getattr(value, '__pretty__', None)
+        if pretty_func:
+            try:
+                gen = pretty_func(fmt=FMT, skip_exc=SkipPretty)
+                self._render_pretty(gen, indent_current)
+            except SkipPretty:
+                pass
+            else:
+                return
+
         value_repr = repr(value)
         if len(value_repr) <= self._simple_cutoff and not isinstance(value, Generator):
             self._stream.write(value_repr)
@@ -87,6 +108,25 @@ class PrettyFormat:
                     func(value, value_repr, indent_current, indent_new)
                     return
             self._format_raw(value, value_repr, indent_current, indent_new)
+
+    def _render_pretty(self, gen, indent: int):
+        prefix = False
+        for v in gen:
+            if isinstance(v, int):
+                indent += v * self._indent_step
+                prefix = True
+            else:
+                if prefix:
+                    self._stream.write('\n' + self._c * indent)
+                    prefix = False
+
+                if hasattr(v, '__prettier_formatting_value__'):
+                    self._format(v.__prettier_formatting_value__, indent, False)
+                elif isinstance(v, str):
+                    self._stream.write(v)
+                else:
+                    # shouldn't happen but will
+                    self._stream.write(repr(v))
 
     def _format_dict(self, value: dict, value_repr: str, indent_current: int, indent_new: int):
         open_, before_, split_, after_, close_ = '{\n', indent_new * self._c, ': ', ',\n', '}'

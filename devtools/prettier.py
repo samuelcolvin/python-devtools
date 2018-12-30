@@ -24,6 +24,7 @@ except ImportError:
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 
 DEFAULT_WIDTH = int(os.getenv('PY_DEVTOOLS_WIDTH', 120))
+MISSING = object()
 
 
 def env_true(var_name, alt=None):
@@ -32,6 +33,13 @@ def env_true(var_name, alt=None):
         return env.upper() in {'1', 'TRUE'}
     else:
         return alt
+
+
+class FMT:
+    __slots__ = '__prettier_formatting_value__'
+
+    def __init__(self, v):
+        self.__prettier_formatting_value__ = v
 
 
 class PrettyFormat:
@@ -81,35 +89,38 @@ class PrettyFormat:
 
     def _render(self, gen, indent: int):
         prefix = False
-        for line in gen:
-            if isinstance(line, int):
-                indent += line
+        for v in gen:
+            if isinstance(v, int):
+                indent += v
                 prefix = True
             else:
-                value, fmt = line
                 if prefix:
                     self._stream.write('\n' + self._c * indent * self._indent_step)
                     prefix = False
-                if fmt:
-                    self._format(value, indent)
+
+                if hasattr(v, '__prettier_formatting_value__'):
+                    self._format(v.__prettier_formatting_value__, indent)
+                elif isinstance(v, str):
+                    self._stream.write(v)
                 else:
-                    self._stream.write(value)
+                    # shouldn't happen but will
+                    self._stream.write(repr(v))
 
     def _format_str_bytes(self, value: Union[str, bytes], value_repr: str, indent: int):
         if self._repr_strings:
-            yield value_repr, False
+            yield value_repr
             return
         lines = list(self._wrap_lines(value, (indent + 1) * self._indent_step))
         if len(lines) > 1:
-            yield '(', False
+            yield '('
             yield 1
             for line in lines:
-                yield repr(line), False
+                yield repr(line)
                 yield 0
             yield -1
-            yield ')', False
+            yield ')'
         else:
-            yield value_repr, False
+            yield value_repr
 
     def _wrap_lines(self, s, indent):
         width = self._width - indent - 3
@@ -122,32 +133,32 @@ class PrettyFormat:
 
     def _format_generators(self, value: Generator, value_repr, **kwargs):
         if self._repr_generators:
-            yield value_repr, False
+            yield value_repr
         else:
-            yield '(', False
+            yield '('
             yield 1
             for v in value:
-                yield v, True
-                yield ',', False
+                yield FMT(v)
+                yield ','
                 yield 0
             yield -1
-            yield ')', False
+            yield ')'
 
     def _format_raw(self, value: Any, value_repr: str, indent: int):
         lines = value_repr.splitlines(True)
         if len(lines) > 1 or (len(value_repr) + indent * self._indent_step) >= self._width:
-            yield '(', False
+            yield '('
             yield 1
             wrap_at = self._width - (indent + 1) * self._indent_step
             for line in lines:
                 sub_lines = textwrap.wrap(line, wrap_at)
                 for sline in sub_lines:
-                    yield sline, False
+                    yield sline
                     yield 0
             yield -1
-            yield ')', False
+            yield ')'
         else:
-            yield value_repr, False
+            yield value_repr
 
 
 def format_dict(value, **kwargs):
@@ -157,17 +168,17 @@ def format_dict(value, **kwargs):
     elif MultiDict and isinstance(value, MultiDict):
         open_, close_ = '<{}('.format(value.__class__.__name__), ')>'
 
-    yield open_, False
+    yield open_
     yield 1
     for k, v in value.items():
-        yield before_, False
-        yield k, True
-        yield split_, False
-        yield v, True
-        yield after_, False
+        yield before_
+        yield FMT(k)
+        yield split_
+        yield FMT(v)
+        yield after_
         yield 0
     yield -1
-    yield close_, False
+    yield close_
 
 
 PARENTHESES_LOOKUP = [
@@ -184,30 +195,30 @@ def format_list_like(value: Union[list, tuple, set], **kwargs):
             open_, close_ = oc
             break
 
-    yield open_, False
+    yield open_
     yield 1
     for v in value:
-        yield v, True
-        yield ',', False
+        yield FMT(v)
+        yield ','
         yield 0
     yield -1
-    yield close_, False
+    yield close_
 
 
 def format_tuples(value: tuple, **kwargs):
     fields = getattr(value, '_fields', None)
     if fields:
         # named tuple
-        yield value.__class__.__name__ + '(', False
+        yield value.__class__.__name__ + '('
         yield 1
         for field, v in zip(fields, value):
             if field:  # field is falsy sometimes for odd things like call_args
-                yield '{}='.format(field), False
-            yield v, True
-            yield ',', False
+                yield '{}='.format(field)
+            yield FMT(v)
+            yield ','
             yield 0
         yield -1
-        yield ')', False
+        yield ')'
     else:
         # normal tuples are just like other similar iterables
         yield from format_list_like(value, **kwargs)

@@ -12,3 +12,4 @@ pytest-mock==1.10.0
 pytest-sugar==0.9.2
 pytest-toolbox==0.4
 numpy  # pyup: ignore
+multidict  # pyup: ignore

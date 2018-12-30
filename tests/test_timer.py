@@ -40,16 +40,16 @@ def test_unfinished():
 def test_multiple_not_verbose():
     f = io.StringIO()
     t = Timer(file=f)
-    for i in [0.001, 0.002, 0.003]:
+    for i in [0.01, 0.02, 0.03]:
         with t(verbose=False):
             sleep(i)
     t.summary(True)
     v = f.getvalue()
     assert v == (
-        '    0.001s elapsed\n'
-        '    0.002s elapsed\n'
-        '    0.003s elapsed\n'
-        '3 times: mean=0.002s stdev=0.001s min=0.001s max=0.003s\n'
+        '    0.010s elapsed\n'
+        '    0.020s elapsed\n'
+        '    0.030s elapsed\n'
+        '3 times: mean=0.020s stdev=0.010s min=0.010s max=0.030s\n'
     )
 
 

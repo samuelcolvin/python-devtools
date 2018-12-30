@@ -262,21 +262,21 @@ def test_multidict():
     d = MultiDict({'a': 1, 'b': 2})
     d.add('b', 3)
     v = pformat(d)
-    assert v.split('\n') == [
+    assert set(v.split('\n')) == {
         "<MultiDict(",
         "    'a': 1,",
         "    'b': 2,",
         "    'b': 3,",
         ")>",
-    ]
+    }
 
 
 @pytest.mark.skipif(CIMultiDict is None, reason='CIMultiDict not installed')
 def test_cimultidict():
     v = pformat(CIMultiDict({'a': 1, 'b': 2}))
-    assert v.split('\n') == [
+    assert set(v.split('\n')) == {
         "<CIMultiDict(",
         "    'a': 1,",
         "    'b': 2,",
         ")>",
-    ]
+    }

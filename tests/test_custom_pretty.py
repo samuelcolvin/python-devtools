@@ -36,3 +36,14 @@ def test_skip():
     my_cls = CustomCls()
     v = pformat(my_cls)
     assert v == '<CustomCls repr>'
+
+
+def test_yield_other():
+    class CustomCls:
+        def __pretty__(self, fmt, **kwargs):
+            yield fmt('xxx')
+            yield 123
+
+    my_cls = CustomCls()
+    v = pformat(my_cls)
+    assert v == "'xxx'123"

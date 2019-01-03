@@ -44,7 +44,7 @@ def test_multiple_not_verbose():
         with t(verbose=False):
             sleep(i)
     t.summary(True)
-    v = f.getvalue()
+    v = re.sub('[123]s', '0s', f.getvalue())
     assert v == (
         '    0.010s elapsed\n'
         '    0.020s elapsed\n'

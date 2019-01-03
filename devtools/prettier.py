@@ -4,6 +4,7 @@ import textwrap
 from collections import OrderedDict
 from collections.abc import Generator
 from typing import Any, Union
+from unittest.mock import _Call as MockCall
 
 from .ansi import isatty
 
@@ -29,6 +30,8 @@ PARENTHESES_LOOKUP = [
     (frozenset, 'frozenset({', '})'),
 ]
 DEFAULT_WIDTH = int(os.getenv('PY_DEVTOOLS_WIDTH', 120))
+MISSING = object()
+PRETTY_KEY = '__prettier_formatted_value__'
 
 
 def env_true(var_name, alt=None):
@@ -37,6 +40,14 @@ def env_true(var_name, alt=None):
         return env.upper() in {'1', 'TRUE'}
     else:
         return alt
+
+
+def fmt(v):
+    return {PRETTY_KEY: v}
+
+
+class SkipPretty(Exception):
+    pass
 
 
 class PrettyFormat:
@@ -77,6 +88,16 @@ class PrettyFormat:
         if indent_first:
             self._stream.write(indent_current * self._c)
 
+        pretty_func = getattr(value, '__pretty__', None)
+        if pretty_func and not isinstance(value, MockCall):
+            try:
+                gen = pretty_func(fmt=fmt, skip_exc=SkipPretty)
+                self._render_pretty(gen, indent_current)
+            except SkipPretty:
+                pass
+            else:
+                return
+
         value_repr = repr(value)
         if len(value_repr) <= self._simple_cutoff and not isinstance(value, Generator):
             self._stream.write(value_repr)
@@ -87,6 +108,26 @@ class PrettyFormat:
                     func(value, value_repr, indent_current, indent_new)
                     return
             self._format_raw(value, value_repr, indent_current, indent_new)
+
+    def _render_pretty(self, gen, indent: int):
+        prefix = False
+        for v in gen:
+            if isinstance(v, int) and v in {-1, 0, 1}:
+                indent += v * self._indent_step
+                prefix = True
+            else:
+                if prefix:
+                    self._stream.write('\n' + self._c * indent)
+                    prefix = False
+
+                pretty_value = v.get(PRETTY_KEY, MISSING) if (isinstance(v, dict) and len(v) == 1) else MISSING
+                if pretty_value is not MISSING:
+                    self._format(pretty_value, indent, False)
+                elif isinstance(v, str):
+                    self._stream.write(v)
+                else:
+                    # shouldn't happen but will
+                    self._stream.write(repr(v))
 
     def _format_dict(self, value: dict, value_repr: str, indent_current: int, indent_new: int):
         open_, before_, split_, after_, close_ = '{\n', indent_new * self._c, ': ', ',\n', '}'

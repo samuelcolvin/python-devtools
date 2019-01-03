@@ -3,7 +3,12 @@
 History
 -------
 
-v0.4.0 (2017-12-29)
+v0.5.0 (2019-01-03)
+...................
+* support ``MultiDict``, #34
+* support ``__pretty__`` method, #36
+
+v0.4.0 (2018-12-29)
 ...................
 * remove use of ``warnings``, include in output, #30
 * fix rendering errors #31

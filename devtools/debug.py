@@ -9,7 +9,7 @@ from typing import Generator, List, Optional, Tuple
 
 from .ansi import isatty, sformat
 from .prettier import PrettyFormat, env_true
-from .timer import Timer
+from .timer import Timer, f_timer
 
 __all__ = 'Debug', 'debug'
 CWD = Path('.').resolve()
@@ -130,6 +130,9 @@ class Debug:
 
     def timer(self, name=None, *, verbose=True, file=None, dp=3) -> Timer:
         return Timer(name=name, verbose=verbose, file=file, dp=dp)
+
+    def f_timer(self, name=None, *, verbose=True, file=None, dp=3) -> Timer:
+        return f_timer(name=name, verbose=verbose, file=file, dp=dp)
 
     def _process(self, args, kwargs, func_regex) -> DebugOutput:
         curframe = inspect.currentframe()

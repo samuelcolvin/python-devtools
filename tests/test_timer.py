@@ -64,3 +64,12 @@ def test_unfinished_summary():
 def test_summary_not_started():
     with pytest.raises(RuntimeError):
         Timer().summary()
+
+
+def test_f_timer():
+    f = io.StringIO()
+    @debug.f_timer('f_timer_test', file=f)
+    def f_timer_fcn(i):
+        return [sleep(1) for s in range(i)]
+    f_timer_fcn(1)
+    assert re.match(r'f_timer_test: [0-9]*\.?[0-9]*s elapsed', f.getvalue())

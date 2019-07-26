@@ -16,6 +16,11 @@ t2 = debug.timer('sort values').start()
 sorted(values)
 t2.capture()
 
+# timer can also be added to a function or class method as a decorator
+@debug.f_timer('shuffle_values_fcn')
+def shuffle_values_fcn(values):
+    return random.shuffle(values)
+
 # if used repeatedly a summary is available
 t3 = debug.timer()
 for i in [1e4, 1e6, 1e7]:

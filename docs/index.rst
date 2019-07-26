@@ -66,6 +66,7 @@ The debug namespace includes a number of other useful functions:
 
 * ``debug.format()`` same as calling ``debug()`` but returns a ``DebugOutput`` rather than printing the output
 * ``debug.timer()`` returns an instance of *devtool's* ``Timer`` class suitable for timing code execution
+* ``debug.f_timer()`` returns an instance of *devtool's* ``Timer`` class as a decorator
 * ``debug.breakpoint()`` introduces a breakpoint using ``pdb``
 
 

@@ -90,3 +90,25 @@ class Timer:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.capture()
+
+
+def f_timer(*args, **kwargs):
+    '''
+    call timer each time a function or method is called
+    '''
+
+    def decorator(func):
+
+        def wrapper(*f_args, **f_kwargs):
+
+            t = Timer(*args, **kwargs)
+
+            with t:
+
+                result = func(*f_args, **f_kwargs)
+
+            return result
+
+        return wrapper
+
+    return decorator

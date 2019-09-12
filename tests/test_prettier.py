@@ -15,10 +15,14 @@ except ImportError:
     CIMultiDict = None
     MultiDict = None
 
+try:
+    from django.db.models import Model, QuerySet
+except ImportError:
+    QuerySet = None
+
 
 def test_dict():
     v = pformat({1: 2, 3: 4})
-    print(v)
     assert v == (
         '{\n'
         '    1: 2,\n'
@@ -279,4 +283,18 @@ def test_cimultidict():
         "    'a': 1,",
         "    'b': 2,",
         ")>",
+    }
+
+
+@pytest.mark.skipif(QuerySet is None, reason='QuerySet not installed')
+def test_queryset():
+    q = QuerySet()
+    q._result_cache = [{'a': 1}, {'b': 2}, {'c': 3}]
+    v = pformat(q)
+    assert set(v.split('\n')) == {
+        '(',
+        "    {'a': 1},",
+        "    {'b': 2},",
+        "    {'c': 3},",
+        ')',
     }

@@ -22,6 +22,12 @@ try:
 except ImportError:
     MultiDict = None
 
+try:
+    from django.db.models import QuerySet
+except ImportError:
+    QuerySet = None
+
+
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 
 PARENTHESES_LOOKUP = [
@@ -74,6 +80,8 @@ class PrettyFormat:
 
         if MultiDict:
             self._type_lookup.append((MultiDict, self._format_dict))
+        if QuerySet:
+            self._type_lookup.append((QuerySet, self._format_list_like))
 
     def __call__(self, value: Any, *, indent: int = 0, indent_first: bool = False, highlight: bool = False):
         self._stream = io.StringIO()
@@ -152,7 +160,8 @@ class PrettyFormat:
             if isinstance(value, t):
                 open_, close_ = oc
                 break
-
+        if QuerySet and isinstance(value, QuerySet):
+            open_, close_ = '<{}(\n'.format(value.__class__.__name__), ')>'
         self._stream.write(open_ + '\n')
         for v in value:
             self._format(v, indent_new, True)

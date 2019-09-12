@@ -1,4 +1,5 @@
 coverage==4.5.2
+Django==2.2.5
 docutils==0.14
 flake8==3.7.4
 isort==4.3.4

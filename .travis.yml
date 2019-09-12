@@ -24,7 +24,7 @@ script:
 - make lint
 - # test with and without optional dependencies then combine coverage
 - make test && mv .coverage .coverage.extra
-- pip uninstall -y multidict
+- pip uninstall -y multidict django
 - make test && mv .coverage .coverage.no-extra
 - coverage combine
 - make docs

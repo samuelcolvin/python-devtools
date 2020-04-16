@@ -62,12 +62,14 @@ modify ``/usr/lib/python3.6/sitecustomize.py`` making ``debug`` available in any
 .. code:: python
 
    # add devtools debug to builtins
-   try:
-       from devtools import debug
-   except ImportError:
-       pass
-   else:
-       __builtins__['debug'] = debug
+   class lazy_debug:
+
+       @property
+       def __call__(self):
+           from devtools import debug
+           return debug
+
+    __builtins__['debug'] = lazy_debug
 
 .. |BuildStatus| image:: https://travis-ci.org/samuelcolvin/python-devtools.svg?branch=master
    :target: https://travis-ci.org/samuelcolvin/python-devtools

@@ -1,4 +1,3 @@
-from statistics import mean, stdev
 from time import time
 
 __all__ = 'Timer',
@@ -72,6 +71,7 @@ class Timer:
             times.add(r.elapsed())
 
         if times:
+            from statistics import mean, stdev
             print(_SUMMARY_TEMPLATE.format(
                 count=len(times),
                 mean=mean(times),

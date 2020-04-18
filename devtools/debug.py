@@ -1,18 +1,15 @@
+from __future__ import annotations
 import ast
-import inspect
 import os
-import pdb
-import re
-from pathlib import Path
-from textwrap import dedent, indent
-from typing import Generator, List, Optional, Tuple
 
 from .ansi import isatty, sformat
 from .prettier import PrettyFormat, env_true
 from .timer import Timer
 
 __all__ = 'Debug', 'debug'
-CWD = Path('.').resolve()
+MYPY = False
+if MYPY:
+    from typing import Generator, List, Optional, Tuple
 
 
 pformat = PrettyFormat(
@@ -126,12 +123,14 @@ class Debug:
         return self._process(args, kwargs, r'debug.format *\(')
 
     def breakpoint(self):
+        import pdb
         pdb.Pdb(skip=['devtools.*']).set_trace()
 
     def timer(self, name=None, *, verbose=True, file=None, dp=3) -> Timer:
         return Timer(name=name, verbose=verbose, file=file, dp=dp)
 
     def _process(self, args, kwargs, func_regex) -> DebugOutput:
+        import inspect
         curframe = inspect.currentframe()
         try:
             frames = inspect.getouterframes(curframe, context=self._frame_context_length)
@@ -151,8 +150,10 @@ class Debug:
         filename = call_frame.filename
         if filename.startswith('/'):
             # make the path relative
+            from pathlib import Path
+            cwd = Path('.').resolve()
             try:
-                filename = str(Path(filename).relative_to(CWD))
+                filename = str(Path(filename).relative_to(cwd))
             except ValueError:
                 # happens if filename path is not within CWD
                 pass
@@ -183,7 +184,7 @@ class Debug:
         for name, value in kwargs.items():
             yield self.output_class.arg_class(value, name=name)
 
-    def _process_args(self, func_ast, code_lines, args, kwargs) -> Generator[DebugArgument, None, None]:  # noqa: C901
+    def _process_args(self, func_ast, code_lines, args, kwargs) -> 'Generator[DebugArgument, None, None]':  # noqa: C901
         arg_offsets = list(self._get_offsets(func_ast))
         for i, arg in enumerate(args):
             try:
@@ -224,7 +225,7 @@ class Debug:
 
     def _parse_code(
         self, call_frame, func_regex, filename
-    ) -> Tuple[Optional[ast.AST], Optional[List[str]], int, Optional[str]]:
+    ) -> 'Tuple[Optional[ast.AST], Optional[List[str]], int, Optional[str]]':
         call_lines = []
         for line in range(call_frame.index, -1, -1):
             try:
@@ -232,11 +233,14 @@ class Debug:
             except IndexError:  # pragma: no cover
                 return None, None, line, 'error passing code. line not found'
             call_lines.append(new_line)
+
+            import re
             if re.search(func_regex, new_line):
                 break
         call_lines.reverse()
         lineno = call_frame.lineno - len(call_lines) + 1
 
+        from textwrap import dedent
         code = dedent(''.join(call_lines))
         func_ast = None
         tail_index = call_frame.index
@@ -275,6 +279,7 @@ class Debug:
         """
         async wrapper is required to avoid await calls raising a SyntaxError
         """
+        from textwrap import indent
         code = 'async def wrapper():\n' + indent(code, ' ')
         return ast.parse(code, filename=filename).body[0].body[0].value
 

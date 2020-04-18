@@ -1,8 +1,14 @@
 ...
 
-try:
-    from devtools import debug
-except ImportError:
-    pass
-else:
-    __builtins__['debug'] = debug
+class lazy_debug:
+
+    @property
+    def __call__(self):
+        from devtools import debug
+        return debug
+
+    def __getattr__(self, key):
+        from devtools import debug
+        return getattr(debug, key)
+
+__builtins__['debug'] = lazy_debug()

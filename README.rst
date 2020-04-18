@@ -69,6 +69,10 @@ modify ``/usr/lib/python3.6/sitecustomize.py`` making ``debug`` available in any
            from devtools import debug
            return debug
 
+       def __getattr__(self, key):
+           from devtools import debug
+           return getattr(debug, key)
+
    __builtins__['debug'] = lazy_debug()
 
 .. |BuildStatus| image:: https://travis-ci.org/samuelcolvin/python-devtools.svg?branch=master

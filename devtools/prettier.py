@@ -87,8 +87,12 @@ class PrettyFormat:
     def _format(self, value: Any, indent_current: int, indent_first: bool):
         if indent_first:
             self._stream.write(indent_current * self._c)
-
-        pretty_func = getattr(value, '__pretty__', None)
+        
+        try:
+            pretty_func = getattr(value, '__pretty__', None)
+        except Exception:
+            # TODO warning
+            pretty_func = None
         if pretty_func and not isinstance(value, MockCall):
             try:
                 gen = pretty_func(fmt=fmt, skip_exc=SkipPretty)

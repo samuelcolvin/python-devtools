@@ -89,18 +89,19 @@ class PrettyFormat:
         if indent_first:
             self._stream.write(indent_current * self._c)
 
-        pretty_func = getattr(value, '__pretty__', None)
-        if pretty_func and callable(pretty_func) and not isinstance(value, MockCall):
-            try:
-                gen = pretty_func(fmt=fmt, skip_exc=SkipPretty)
-                self._render_pretty(gen, indent_current)
-            except TypeError as e:
-                if e.args != ("__pretty__() missing 1 required positional argument: 'self'",):
-                    raise
-            except SkipPretty:
-                pass
-            else:
-                return
+        try:
+            pretty_func = getattr(value, '__pretty__')
+        except AttributeError:
+            pass
+        else:
+            if hasattr(pretty_func, '__self__') and not isinstance(value, MockCall):
+                try:
+                    gen = pretty_func(fmt=fmt, skip_exc=SkipPretty)
+                    self._render_pretty(gen, indent_current)
+                except SkipPretty:
+                    pass
+                else:
+                    return
 
         value_repr = repr(value)
         if len(value_repr) <= self._simple_cutoff and not isinstance(value, Generator):

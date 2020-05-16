@@ -42,13 +42,22 @@ class DebugArgument:
         s = ''
         if self.name:
             s = sformat(self.name, sformat.blue, apply=highlight) + ': '
-        s += pformat(self.value, indent=4, highlight=highlight)
-        suffix = (
-            ' ({0.value.__class__.__name__}) {1}'
-            .format(self, ' '.join('{}={}'.format(k, v) for k, v in self.extra))
-            .rstrip(' ')  # trailing space if extra is empty
+
+        suffix = sformat(
+            ' ({.value.__class__.__name__}){}'.format(self, ''.join(' {}={}'.format(k, v) for k, v in self.extra)),
+            sformat.dim,
+            apply=highlight
         )
-        s += sformat(suffix, sformat.dim, apply=highlight)
+        try:
+            s += pformat(self.value, indent=4, highlight=highlight)
+        except Exception as exc:
+            s += '{!r}{}\n    {}'.format(
+                self.value,
+                suffix,
+                sformat('!!! error pretty printing value: {!r}'.format(exc), sformat.yellow, apply=highlight),
+            )
+        else:
+            s += suffix
         return s
 
     def __str__(self) -> str:

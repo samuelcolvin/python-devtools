@@ -1,6 +1,7 @@
 import io
 import os
 import textwrap
+import warnings
 from collections import OrderedDict
 from collections.abc import Generator
 from typing import Any, Union
@@ -87,16 +88,15 @@ class PrettyFormat:
     def _format(self, value: Any, indent_current: int, indent_first: bool):
         if indent_first:
             self._stream.write(indent_current * self._c)
-        
-        try:
-            pretty_func = getattr(value, '__pretty__', None)
-        except Exception:
-            # TODO warning
-            pretty_func = None
-        if pretty_func and not isinstance(value, MockCall):
+
+        pretty_func = getattr(value, '__pretty__', None)
+        if pretty_func and callable(pretty_func) and not isinstance(value, MockCall):
             try:
                 gen = pretty_func(fmt=fmt, skip_exc=SkipPretty)
                 self._render_pretty(gen, indent_current)
+            except TypeError as e:
+                if e.args != ("__pretty__() missing 1 required positional argument: 'self'",):
+                    raise
             except SkipPretty:
                 pass
             else:

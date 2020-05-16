@@ -95,6 +95,7 @@ def test_small_call_frame_warning():
         2,
         3,
     )
+    print(str(v))
     assert re.sub(r':\d{2,}', ':<line no>', str(v)) == (
         "tests/test_main.py:<line no> test_small_call_frame_warning "
         "(error passing code, found <class '_ast.Tuple'> not Call)\n"
@@ -239,3 +240,19 @@ def test_starred_kwargs():
         '    foo: 1 (int)',
         '    bar: 2 (int)',
     }
+
+
+def test_pretty_error():
+    class BadPretty:
+        def __getattr__(self, item):
+            raise RuntimeError('this is an error')
+
+    b = BadPretty()
+    v = debug.format(b)
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r'0x[0-9a-f]+', '0x000', s)
+    assert s == (
+        "tests/test_main.py:<line no> test_pretty_error\n"
+        "    b: <tests.test_main.test_pretty_error.<locals>.BadPretty object at 0x000> (BadPretty)\n"
+        "    !!! error pretty printing value: RuntimeError('this is an error')"
+    )

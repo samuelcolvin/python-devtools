@@ -38,7 +38,9 @@ jobs:
         pip freeze
 
     - name: lint
-      run: make lint
+      run: |
+        make lint
+        make check-dist
 
     - name: test
       run: make test

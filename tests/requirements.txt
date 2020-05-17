@@ -11,5 +11,6 @@ pytest-isort==0.3.1
 pytest-mock==1.10.4
 pytest-sugar==0.9.2
 pytest-toolbox==0.4
+twine==3.1.1
 numpy  # pyup: ignore
 multidict  # pyup: ignore

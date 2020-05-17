@@ -4,7 +4,7 @@
 install:
 	pip install -U setuptools pip
 	pip install -U -r requirements.txt
-	pip install -U -e .
+	pip install -e .
 
 .PHONY: isort
 isort:
@@ -13,9 +13,14 @@ isort:
 
 .PHONY: lint
 lint:
-	python setup.py check -rms
 	flake8 devtools/ tests/
 	pytest devtools -p no:sugar -q
+
+.PHONY: check-dist
+check-dist:
+	python setup.py check -ms
+	python setup.py sdist
+	twine check dist/*
 
 .PHONY: test
 test:

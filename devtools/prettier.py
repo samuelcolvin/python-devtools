@@ -1,7 +1,6 @@
 import io
 import os
 import textwrap
-import warnings
 from collections import OrderedDict
 from collections.abc import Generator
 from typing import Any, Union

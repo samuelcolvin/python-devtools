@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '**'
+  pull_request: {}
+
+jobs:
+  test:
+    name: test py${{ matrix.python-version }} on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macos]
+        python-version: ['3.6', '3.7', '3.8']
+
+    env:
+      PYTHON: ${{ matrix.python-version }}
+      OS: ${{ matrix.os }}
+      EXTRAS: yes
+
+    runs-on: ${{ matrix.os }}-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: set up python
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: install dependencies
+      run: |
+        make install
+        pip freeze
+
+    - name: lint
+      run: |
+        make lint
+        make check-dist
+
+    - name: test with extras
+      run: make test
+
+    - uses: codecov/codecov-action@v1
+      with:
+        file: ./coverage.xml
+        env_vars: EXTRAS,PYTHON,OS
+
+    - name: uninstall extras
+      run: pip uninstall -y multidict numpy
+
+    - name: test without extras
+      run: |
+        make test
+        coverage xml
+
+    - uses: codecov/codecov-action@v1
+      with:
+        file: ./coverage.xml
+        env_vars: DEPS,PYTHON,OS
+      env:
+        EXTRAS: no
+
+  deploy:
+    name: Deploy
+    needs: test
+    if: "success() && startsWith(github.ref, 'refs/tags/')"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: set up python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.8'
+
+      - name: install
+        run: |
+          make install
+          pip install -U wheel
+
+      - name: build
+        run: python setup.py sdist bdist_wheel
+
+      - run: twine check dist/*
+
+      - name: check tag
+        run: PACKAGE=devtools python <(curl -Ls https://git.io/JvQsH)
+
+      - name: upload to pypi
+        run: twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.pypi_token }}

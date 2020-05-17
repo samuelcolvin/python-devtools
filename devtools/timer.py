@@ -1,7 +1,7 @@
 from statistics import mean, stdev
 from time import time
 
-__all__ = 'Timer',
+__all__ = ('Timer',)
 
 
 class TimerResult:
@@ -49,9 +49,7 @@ class Timer:
         return self
 
     def start(self, name=None, verbose=None):
-        self.results.append(
-            TimerResult(name or self._name, self._verbose if verbose is None else verbose)
-        )
+        self.results.append(TimerResult(name or self._name, self._verbose if verbose is None else verbose))
         return self
 
     def capture(self, verbose=None):
@@ -72,14 +70,18 @@ class Timer:
             times.add(r.elapsed())
 
         if times:
-            print(_SUMMARY_TEMPLATE.format(
-                count=len(times),
-                mean=mean(times),
-                stddev=stdev(times) if len(times) > 1 else 0,
-                min=min(times),
-                max=max(times),
-                dp=self.dp,
-            ), file=self.file, flush=True)
+            print(
+                _SUMMARY_TEMPLATE.format(
+                    count=len(times),
+                    mean=mean(times),
+                    stddev=stdev(times) if len(times) > 1 else 0,
+                    min=min(times),
+                    max=max(times),
+                    dp=self.dp,
+                ),
+                file=self.file,
+                flush=True,
+            )
         else:
             raise RuntimeError('timer not started')
         return times

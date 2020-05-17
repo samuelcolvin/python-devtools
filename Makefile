@@ -36,7 +36,7 @@ testcov:
 	@coverage html
 
 .PHONY: all
-all: testcov lint
+all: lint testcov
 
 .PHONY: clean
 clean:

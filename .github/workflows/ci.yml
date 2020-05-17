@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, windows, macos]
+        os: [ubuntu, macos]
         python-version: ['3.6', '3.7', '3.8']
 
     env:
@@ -42,7 +42,7 @@ jobs:
         make lint
         make check-dist
 
-    - name: test
+    - name: test with extras
       run: make test
 
     - uses: codecov/codecov-action@v1
@@ -53,7 +53,7 @@ jobs:
     - name: uninstall extras
       run: pip uninstall -y multidict numpy
 
-    - name: test
+    - name: test without extras
       run: |
         make test
         coverage xml

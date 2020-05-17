@@ -81,7 +81,9 @@ jobs:
           python-version: '3.8'
 
       - name: install
-        run: pip install -U pip setuptools wheel twine
+        run: |
+          make install
+          pip install -U wheel
 
       - name: build
         run: python setup.py sdist bdist_wheel

@@ -90,8 +90,8 @@ jobs:
 
       - run: twine check dist/*
 
-      - name: check tag
-        run: PACKAGE=devtools python <(curl -Ls https://git.io/JvQsH)
+#      - name: check tag
+#        run: PACKAGE=devtools python <(curl -Ls https://git.io/JvQsH)
 
       - name: upload to pypi
         run: twine upload dist/*

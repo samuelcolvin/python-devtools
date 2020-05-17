@@ -95,10 +95,10 @@ def test_small_call_frame_warning():
         2,
         3,
     )
-    print(str(v))
+    print('\n---\n{}\n---'.format(v))
     assert re.sub(r':\d{2,}', ':<line no>', str(v)) == (
         "tests/test_main.py:<line no> test_small_call_frame_warning "
-        "(error passing code, found <class '_ast.Tuple'> not Call)\n"
+        "(error parsing code, found <class '_ast.Tuple'> not Call)\n"
         "    1 (int)\n"
         "    2 (int)\n"
         "    3 (int)"
@@ -242,6 +242,7 @@ def test_starred_kwargs():
     }
 
 
+@pytest.mark.skipif(sys.version_info < (3, 7), reason='error repr different before 3.7')
 def test_pretty_error():
     class BadPretty:
         def __getattr__(self, item):

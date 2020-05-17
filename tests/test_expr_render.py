@@ -48,7 +48,7 @@ def test_exotic_types():
     )
     s = re.sub(r':\d{2,}', ':<line no>', str(v))
     s = re.sub(r'(at 0x)\w+', r'\1<hash>', s)
-    print(s)
+    print('\n---\n{}\n---'.format(v))
     # list and generator comprehensions are wrong because ast is wrong, see https://bugs.python.org/issue31241
     assert (
         "tests/test_expr_render.py:<line no> test_exotic_types\n"
@@ -182,7 +182,7 @@ def test_syntax_warning():
     )
     # check only the original code is included in the warning
     s = re.sub(r':\d{2,}', ':<line no>', str(v))
-    assert s.startswith('tests/test_expr_render.py:<line no> test_syntax_warning (error passing code, '
+    assert s.startswith('tests/test_expr_render.py:<line no> test_syntax_warning (error parsing code, '
                         'SyntaxError: unexpected EOF')
 
 
@@ -200,7 +200,7 @@ def test_no_syntax_warning():
             )
         )
     )
-    assert '(error passing code' not in str(v)
+    assert '(error parsing code' not in str(v)
     assert 'test_no_syntax_warning' in str(v)
 
 

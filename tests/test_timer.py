@@ -8,7 +8,7 @@ import pytest
 from devtools import Timer, debug
 
 
-@pytest.mark.skipif('linux' not in sys.platform, reason='not on linux')
+@pytest.mark.skipif(sys.platform != 'linux', reason='not on linux')
 def test_simple():
     f = io.StringIO()
     t = debug.timer(name='foobar', file=f)
@@ -18,7 +18,7 @@ def test_simple():
     assert re.fullmatch(r'foobar: 0\.01[012]s elapsed\n', v)
 
 
-@pytest.mark.skipif('linux' not in sys.platform, reason='not on linux')
+@pytest.mark.skipif(sys.platform != 'linux', reason='not on linux')
 def test_multiple():
     f = io.StringIO()
     t = Timer(file=f)
@@ -40,7 +40,7 @@ def test_unfinished():
     assert str(t.results[0]) == '-1.000s elapsed'
 
 
-@pytest.mark.skipif('linux' not in sys.platform, reason='not on linux')
+@pytest.mark.skipif(sys.platform != 'linux', reason='not on linux')
 def test_multiple_not_verbose():
     f = io.StringIO()
     t = Timer(file=f)

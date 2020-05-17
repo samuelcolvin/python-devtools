@@ -245,7 +245,7 @@ class Debug:
             try:
                 new_line = call_frame.code_context[line]
             except IndexError:  # pragma: no cover
-                return None, None, line, 'error passing code. line not found'
+                return None, None, line, 'error parsing code. line not found'
             call_lines.append(new_line)
             if re.search(func_regex, new_line):
                 break
@@ -274,10 +274,10 @@ class Debug:
                     break
 
             if not func_ast:
-                return None, None, lineno, 'error passing code, {0.__class__.__name__}: {0}'.format(e1)
+                return None, None, lineno, 'error parsing code, {0.__class__.__name__}: {0}'.format(e1)
 
         if not isinstance(func_ast, ast.Call):
-            return None, None, lineno, 'error passing code, found {} not Call'.format(func_ast.__class__)
+            return None, None, lineno, 'error parsing code, found {} not Call'.format(func_ast.__class__)
 
         code_lines = [line for line in code.split('\n') if line]
         # this removes the trailing bracket from the lines of code meaning it doesn't appear in the

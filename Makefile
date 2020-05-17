@@ -1,16 +1,10 @@
 .DEFAULT_GOAL := all
 
-.PHONY: install-dev
-install-dev:
+.PHONY: install
+install:
 	pip install -U setuptools pip
-	pip install -r dev-requirements.txt
-
-.PHONY: install-test
-install-test:
-	pip install -U setuptools pip
-	pip install -r tests/requirements.txt
-	pip install -r docs/requirements.txt
-	pip install -U .
+	pip install -U -r requirements.txt
+	pip install -U -e .
 
 .PHONY: isort
 isort:

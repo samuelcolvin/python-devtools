@@ -46,7 +46,7 @@ class DebugArgument:
         suffix = sformat(
             ' ({.value.__class__.__name__}){}'.format(self, ''.join(' {}={}'.format(k, v) for k, v in self.extra)),
             sformat.dim,
-            apply=highlight
+            apply=highlight,
         )
         try:
             s += pformat(self.value, indent=4, highlight=highlight)
@@ -68,6 +68,7 @@ class DebugOutput:
     """
     Represents the output of a debug command.
     """
+
     arg_class = DebugArgument
     __slots__ = 'filename', 'lineno', 'frame', 'arguments', 'warning'
 
@@ -83,7 +84,7 @@ class DebugOutput:
             prefix = '{}:{} {}'.format(
                 sformat(self.filename, sformat.magenta),
                 sformat(self.lineno, sformat.green),
-                sformat(self.frame, sformat.green, sformat.italic)
+                sformat(self.frame, sformat.green, sformat.italic),
             )
             if self.warning:
                 prefix += sformat(' ({})'.format(self.warning), sformat.dim)
@@ -104,15 +105,22 @@ class DebugOutput:
 class Debug:
     output_class = DebugOutput
     complex_nodes = (
-        ast.Call, ast.Attribute, ast.Subscript,
-        ast.IfExp, ast.BoolOp, ast.BinOp, ast.Compare,
-        ast.DictComp, ast.ListComp, ast.SetComp, ast.GeneratorExp
+        ast.Call,
+        ast.Attribute,
+        ast.Subscript,
+        ast.IfExp,
+        ast.BoolOp,
+        ast.BinOp,
+        ast.Compare,
+        ast.DictComp,
+        ast.ListComp,
+        ast.SetComp,
+        ast.GeneratorExp,
     )
 
-    def __init__(self, *,
-                 warnings: Optional[bool] = None,
-                 highlight: Optional[bool] = None,
-                 frame_context_length: int = 50):
+    def __init__(
+        self, *, warnings: Optional[bool] = None, highlight: Optional[bool] = None, frame_context_length: int = 50
+    ):
         self._show_warnings = self._env_bool(warnings, 'PY_DEVTOOLS_WARNINGS', True)
         self._highlight = self._env_bool(highlight, 'PY_DEVTOOLS_HIGHLIGHT', None)
         # 50 lines should be enough to make sure we always get the entire function definition
@@ -217,9 +225,7 @@ class Debug:
                 for l_ in range(start_line, end_line + 1):
                     start_ = start_col if l_ == start_line else 0
                     end_ = end_col if l_ == end_line else None
-                    name_lines.append(
-                        code_lines[l_][start_:end_].strip(' ')
-                    )
+                    name_lines.append(code_lines[l_][start_:end_].strip(' '))
                 yield self.output_class.arg_class(arg, name=' '.join(name_lines).strip(' ,'))
             else:
                 yield self.output_class.arg_class(arg)
@@ -258,7 +264,7 @@ class Debug:
             # )
             # inspect ignores it when setting index and we have to add it back
             for extra in range(2, 6):
-                extra_lines = call_frame.code_context[tail_index + 1:tail_index + extra]
+                extra_lines = call_frame.code_context[tail_index + 1 : tail_index + extra]
                 code = dedent(''.join(call_lines + extra_lines))
                 try:
                     func_ast = self._wrap_parse(code, filename)
@@ -273,7 +279,7 @@ class Debug:
         if not isinstance(func_ast, ast.Call):
             return None, None, lineno, 'error passing code, found {} not Call'.format(func_ast.__class__)
 
-        code_lines = [l for l in code.split('\n') if l]
+        code_lines = [line for line in code.split('\n') if line]
         # this removes the trailing bracket from the lines of code meaning it doesn't appear in the
         # representation of the last argument
         code_lines[-1] = code_lines[-1][:-1]

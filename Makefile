@@ -1,4 +1,6 @@
 .DEFAULT_GOAL := all
+isort = isort -rc devtools tests
+black = black -S -l 120 --target-version py37 devtools
 
 .PHONY: install
 install:
@@ -6,15 +8,16 @@ install:
 	pip install -U -r requirements.txt
 	pip install -e .
 
-.PHONY: isort
-isort:
-	isort -rc -w 120 devtools
-	isort -rc -w 120 tests
+.PHONY: format
+format:
+	$(isort)
+	$(black)
 
 .PHONY: lint
 lint:
 	flake8 devtools/ tests/
-	pytest devtools -p no:sugar -q
+	$(isort) --check-only -df
+	$(black) --check
 
 .PHONY: check-dist
 check-dist:

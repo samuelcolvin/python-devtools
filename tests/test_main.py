@@ -6,7 +6,6 @@ from subprocess import PIPE, run
 import pytest
 
 import devtools.highlight
-
 from devtools import Debug, debug
 from devtools.ansi import strip_ansi
 from devtools.highlight import use_highlight

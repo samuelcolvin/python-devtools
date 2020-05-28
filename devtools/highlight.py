@@ -1,10 +1,8 @@
 import sys
-
 from typing import Optional
 
 from .ansi import isatty
 from .prettier import env_bool
-
 
 if sys.platform == "win32":  # pragma: no cover (windows)
     """Activate ANSI support on windows consoles.

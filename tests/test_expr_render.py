@@ -187,6 +187,29 @@ def test_very_nested():
     )
 
 
+def test_very_nested_last_statement():
+    def func():
+        return debug.format(
+            abs(
+                abs(
+                    abs(
+                        abs(
+                            -1
+                        )
+                    )
+                )
+            )
+        )
+
+    v = func()
+    # check only the original code is included in the warning
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    assert s == (
+        'tests/test_expr_render.py:<line no> func\n'
+        '    abs( abs( abs( abs( -1 ) ) ) ): 1 (int)'
+    )
+
+
 def test_no_syntax_warning():
     # exceed the 4 extra lines which are normally checked
     debug_ = Debug(warnings=False)

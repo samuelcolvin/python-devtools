@@ -2,7 +2,7 @@ import os
 import sys
 
 from .ansi import sformat
-from .prettier import PrettyFormat, env_true
+from .prettier import PrettyFormat, env_bool, env_true
 from .timer import Timer
 from .utils import isatty
 
@@ -111,17 +111,10 @@ class Debug:
     def __init__(
         self, *, warnings: 'Optional[bool]' = None, highlight: 'Optional[bool]' = None, frame_context_length: int = 50
     ):
-        self._show_warnings = self._env_bool(warnings, 'PY_DEVTOOLS_WARNINGS', True)
-        self._highlight = self._env_bool(highlight, 'PY_DEVTOOLS_HIGHLIGHT', None)
+        self._show_warnings = env_bool(warnings, 'PY_DEVTOOLS_WARNINGS', True)
+        self._highlight = env_bool(highlight, 'PY_DEVTOOLS_HIGHLIGHT', None)
         # 50 lines should be enough to make sure we always get the entire function definition
         self._frame_context_length = frame_context_length
-
-    @classmethod
-    def _env_bool(cls, value, env_name, env_default):
-        if value is None:
-            return env_true(env_name, env_default)
-        else:
-            return value
 
     def __call__(self, *args, file_=None, flush_=True, **kwargs) -> None:
         d_out = self._process(args, kwargs, 'debug')

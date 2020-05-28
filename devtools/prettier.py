@@ -28,6 +28,13 @@ def env_true(var_name, alt=None):
         return alt
 
 
+def env_bool(value, env_name, env_default):
+    if value is None:
+        return env_true(env_name, env_default)
+    else:
+        return value
+
+
 def fmt(v):
     return {PRETTY_KEY: v}
 

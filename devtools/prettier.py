@@ -95,7 +95,9 @@ class PrettyFormat:
         except AttributeError:
             pass
         else:
-            if hasattr(pretty_func, '__self__') and not isinstance(value, MockCall):
+            # `pretty_func.__class__.__name__ == 'method'` should only be true for bound methods,
+            # `hasattr(pretty_func, '__self__')` is more canonical but weirdly is true for unbound cython functions
+            if pretty_func.__class__.__name__ == 'method' and not isinstance(value, MockCall):
                 try:
                     gen = pretty_func(fmt=fmt, skip_exc=SkipPretty)
                     self._render_pretty(gen, indent_current)

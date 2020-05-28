@@ -208,8 +208,8 @@ def test_colours():
 
 
 def test_colours_warnings(mocker):
-    mocked_getouterframes = mocker.patch('sys._getframe')
-    mocked_getouterframes.side_effect = ValueError()
+    mocked_getframe = mocker.patch('sys._getframe')
+    mocked_getframe.side_effect = ValueError()
     v = debug.format('x')
     s = re.sub(r':\d{2,}', ':<line no>', v.str(True))
     assert s.startswith('\x1b[35m<unknown>'), repr(s)
@@ -218,8 +218,8 @@ def test_colours_warnings(mocker):
 
 
 def test_inspect_error(mocker):
-    mocked_getouterframes = mocker.patch('sys._getframe')
-    mocked_getouterframes.side_effect = ValueError()
+    mocked_getframe = mocker.patch('sys._getframe')
+    mocked_getframe.side_effect = ValueError()
     v = debug.format('x')
     print(repr(str(v)))
     assert str(v) == "<unknown>:0  (error parsing code, call stack too shallow)\n    'x' (str) len=1"

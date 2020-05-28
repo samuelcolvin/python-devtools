@@ -319,7 +319,7 @@ class Debug:
         if first_line is None:
             raise IntrospectionError('error parsing code, unable to find "{}" function statement'.format(func_name))
 
-        for instr in instructions:
+        for instr in instructions:  # pragma: no branch
             if instr.offset == call_frame.f_lasti:
                 break
 

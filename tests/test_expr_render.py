@@ -1,3 +1,4 @@
+import ast
 import asyncio
 import re
 import sys
@@ -266,3 +267,12 @@ def test_other_debug_arg():
         'tests/test_expr_render.py:<line no> test_other_debug_arg\n'
         '    [1, 2] (list) len=2'
     )
+
+
+def test_wrong_ast_type(mocker):
+    mocked_ast_parse = mocker.patch('ast.parse')
+
+    code = 'async def wrapper():\n x = "foobar"'
+    mocked_ast_parse.return_value = ast.parse(code, filename='testing.py').body[0].body[0].value
+    v = debug.format('x')
+    assert "(error parsing code, found <class 'unittest.mock.MagicMock'> not Call)" in v.str()

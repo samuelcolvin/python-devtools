@@ -167,26 +167,6 @@ def test_multiple_trailing_lines():
     ) == s
 
 
-def test_very_nested():
-    v = debug.format(
-        abs(
-            abs(
-                abs(
-                    abs(
-                        -1
-                    )
-                )
-            )
-        )
-    )
-    # check only the original code is included in the warning
-    s = re.sub(r':\d{2,}', ':<line no>', str(v))
-    assert s == (
-        'tests/test_expr_render.py:<line no> test_very_nested\n'
-        '    abs( abs( abs( abs( -1 ) ) ) ): 1 (int)'
-    )
-
-
 def test_very_nested_last_statement():
     def func():
         return debug.format(
@@ -210,22 +190,54 @@ def test_very_nested_last_statement():
     )
 
 
-def test_no_syntax_warning():
-    # exceed the 4 extra lines which are normally checked
-    debug_ = Debug(warnings=False)
-    v = debug_.format(
-        abs(
+def test_syntax_warning():
+    def func():
+        return debug.format(
             abs(
                 abs(
                     abs(
-                        -1
+                        abs(
+                            abs(
+                                -1
+                            )
+                        )
                     )
                 )
             )
         )
+
+    v = func()
+    # check only the original code is included in the warning
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    assert s == (
+        'tests/test_expr_render.py:<line no> func '
+        '(error parsing code, SyntaxError: unexpected EOF while parsing (test_expr_render.py, line 8))\n'
+        '    1 (int)'
     )
+
+
+def test_no_syntax_warning():
+    # exceed the 4 extra lines which are normally checked
+    debug_ = Debug(warnings=False)
+
+    def func():
+        return debug_.format(
+            abs(
+                abs(
+                    abs(
+                        abs(
+                            abs(
+                                -1
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+    v = func()
     assert '(error parsing code' not in str(v)
-    assert 'test_no_syntax_warning' in str(v)
+    assert 'func' in str(v)
 
 
 def test_await():
@@ -242,3 +254,15 @@ def test_await():
         'tests/test_expr_render.py:<line no> bar\n'
         '    1 (int)'
     ) == s
+
+
+def test_other_debug_arg():
+    debug.timer()
+    v = debug.format([1, 2])
+
+    # check only the original code is included in the warning
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    assert s == (
+        'tests/test_expr_render.py:<line no> test_other_debug_arg\n'
+        '    [1, 2] (list) len=2'
+    )

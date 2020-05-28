@@ -5,8 +5,11 @@ from subprocess import PIPE, run
 
 import pytest
 
+import devtools.highlight
+
 from devtools import Debug, debug
 from devtools.ansi import strip_ansi
+from devtools.highlight import use_highlight
 
 
 def test_print(capsys):
@@ -283,3 +286,34 @@ def test_multiple_debugs_38():
         'tests/test_main.py:<line no> test_multiple_debugs_38\n'
         '    ([i * 2 for i in range(2)]: [0, 2] (list) len=2'
     )
+
+
+def test_use_highlight_manually_set(monkeypatch):
+    monkeypatch.delenv("TEST_DONT_USE_HIGHLIGHT", raising=False)
+    assert use_highlight(highlight=True) is True
+    assert use_highlight(highlight=False) is False
+
+    monkeypatch.setenv("PY_DEVTOOLS_HIGHLIGHT", "True")
+    assert use_highlight() is True
+
+    monkeypatch.setenv("PY_DEVTOOLS_HIGHLIGHT", "False")
+    assert use_highlight() is False
+
+
+@pytest.mark.skipif(sys.platform == 'win32', reason='windows os')
+def test_use_highlight_auto_not_win(monkeypatch):
+    monkeypatch.delenv("TEST_DONT_USE_HIGHLIGHT", raising=False)
+    monkeypatch.setattr(devtools.highlight, "isatty", lambda _=None: True)
+    assert use_highlight() is True
+
+
+@pytest.mark.skipif(sys.platform != 'win32', reason='not windows os')
+def test_use_highlight_auto_win(monkeypatch):
+    monkeypatch.delenv("TEST_DONT_USE_HIGHLIGHT", raising=False)
+    monkeypatch.setattr(devtools.highlight, "isatty", lambda _=None: True)
+
+    monkeypatch.setattr(devtools.highlight, "color_active", False)
+    assert use_highlight() is False
+
+    monkeypatch.setattr(devtools.highlight, "color_active", True)
+    assert use_highlight() is True

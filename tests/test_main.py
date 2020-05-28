@@ -28,7 +28,7 @@ def test_format():
     b = "hello this is a test"
     v = debug.format(a, b)
     s = re.sub(r':\d{2,}', ':<line no>', str(v))
-    print(repr(s))
+    print(s)
     assert s == (
         "tests/test_main.py:<line no> test_format\n"
         "    a: b'i might bite' (bytes) len=12\n"
@@ -88,7 +88,6 @@ def test_small_call_frame():
     )
 
 
-@pytest.mark.xfail(sys.version_info >= (3, 8), reason='TODO fix for python 3.8')
 def test_small_call_frame_warning():
     debug_ = Debug(frame_context_length=2)
     v = debug_.format(
@@ -98,11 +97,11 @@ def test_small_call_frame_warning():
     )
     print('\n---\n{}\n---'.format(v))
     assert re.sub(r':\d{2,}', ':<line no>', str(v)) == (
-        "tests/test_main.py:<line no> test_small_call_frame_warning "
-        "(error parsing code, found <class '_ast.Tuple'> not Call)\n"
-        "    1 (int)\n"
-        "    2 (int)\n"
-        "    3 (int)"
+        'tests/test_main.py:<line no> test_small_call_frame_warning '
+        '(error parsing code, unable to find "format" function statement)\n'
+        '    1 (int)\n'
+        '    2 (int)\n'
+        '    3 (int)'
     )
 
 
@@ -209,8 +208,8 @@ def test_colours():
 
 
 def test_colours_warnings(mocker):
-    mocked_getouterframes = mocker.patch('inspect.getouterframes')
-    mocked_getouterframes.side_effect = IndexError()
+    mocked_getouterframes = mocker.patch('sys._getframe')
+    mocked_getouterframes.side_effect = ValueError()
     v = debug.format('x')
     s = re.sub(r':\d{2,}', ':<line no>', v.str(True))
     assert s.startswith('\x1b[35m<unknown>'), repr(s)
@@ -219,10 +218,11 @@ def test_colours_warnings(mocker):
 
 
 def test_inspect_error(mocker):
-    mocked_getouterframes = mocker.patch('inspect.getouterframes')
-    mocked_getouterframes.side_effect = IndexError()
+    mocked_getouterframes = mocker.patch('sys._getframe')
+    mocked_getouterframes.side_effect = ValueError()
     v = debug.format('x')
-    assert str(v) == "<unknown>:0  (error parsing code, IndexError)\n    'x' (str) len=1"
+    print(repr(str(v)))
+    assert str(v) == "<unknown>:0  (error parsing code, call stack too shallow)\n    'x' (str) len=1"
 
 
 def test_breakpoint(mocker):

@@ -32,7 +32,6 @@ def test_subscription():
     ) == s
 
 
-@pytest.mark.xfail(sys.version_info >= (3, 8), reason='TODO fix for python 3.8')
 def test_exotic_types():
     aa = [1, 2, 3]
     v = debug.format(
@@ -139,7 +138,6 @@ def test_kwargs():
     ) == s
 
 
-@pytest.mark.xfail(sys.version_info >= (3, 8), reason='TODO fix for python 3.8')
 @pytest.mark.skipif(sys.version_info < (3, 6), reason='kwarg order is not guaranteed for 3.5')
 def test_kwargs_multiline():
     v = debug.format(
@@ -169,8 +167,7 @@ def test_multiple_trailing_lines():
     ) == s
 
 
-def test_syntax_warning():
-    # exceed the 4 extra lines which are normally checked
+def test_very_nested():
     v = debug.format(
         abs(
             abs(
@@ -184,8 +181,10 @@ def test_syntax_warning():
     )
     # check only the original code is included in the warning
     s = re.sub(r':\d{2,}', ':<line no>', str(v))
-    assert s.startswith('tests/test_expr_render.py:<line no> test_syntax_warning (error parsing code, '
-                        'SyntaxError: unexpected EOF')
+    assert s == (
+        'tests/test_expr_render.py:<line no> test_very_nested\n'
+        '    abs( abs( abs( abs( -1 ) ) ) ): 1 (int)'
+    )
 
 
 def test_no_syntax_warning():

@@ -2,9 +2,9 @@ import os
 import sys
 
 from .ansi import sformat
+from .highlight import use_highlight
 from .prettier import PrettyFormat, env_bool, env_true
 from .timer import Timer
-from .utils import isatty
 
 __all__ = 'Debug', 'debug'
 MYPY = False
@@ -112,14 +112,13 @@ class Debug:
         self, *, warnings: 'Optional[bool]' = None, highlight: 'Optional[bool]' = None, frame_context_length: int = 50
     ):
         self._show_warnings = env_bool(warnings, 'PY_DEVTOOLS_WARNINGS', True)
-        self._highlight = env_bool(highlight, 'PY_DEVTOOLS_HIGHLIGHT', None)
+        self._highlight = highlight
         # 50 lines should be enough to make sure we always get the entire function definition
         self._frame_context_length = frame_context_length
 
     def __call__(self, *args, file_=None, flush_=True, **kwargs) -> None:
-        d_out = self._process(args, kwargs, 'debug')
-        highlight = isatty(file_) if self._highlight is None else self._highlight
-        s = d_out.str(highlight)
+        d_out = self._process(args, kwargs, r'debug *\(')
+        s = d_out.str(use_highlight(self._highlight, file_))
         print(s, file=file_, flush=flush_)
 
     def format(self, *args, **kwargs) -> DebugOutput:

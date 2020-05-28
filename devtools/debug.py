@@ -295,7 +295,7 @@ class Debug:
         return func_ast, code_lines
 
     @staticmethod  # noqa: C901
-    def _statement_range(call_frame: FrameType, func_name: str) -> Tuple[int, int]:
+    def _statement_range(call_frame: FrameType, func_name: str) -> Tuple[int, int]:  # noqa: C901
         """
         Try to find the start and end of a frame statement.
         """

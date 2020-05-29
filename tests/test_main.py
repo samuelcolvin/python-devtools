@@ -260,13 +260,26 @@ def test_pretty_error():
     )
 
 
-def test_multiple_debugs():
+@pytest.mark.skipif(sys.version_info >= (3, 8), reason='different between 3.7 and 3.8')
+def test_multiple_debugs_37():
+    debug.format([i * 2 for i in range(2)])
+    debug.format([i * 2 for i in range(2)])
+    v = debug.format([i * 2 for i in range(2)])
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    assert s == (
+        'tests/test_main.py:<line no> test_multiple_debugs_37\n'
+        '    [i * 2 for i in range(2)]: [0, 2] (list) len=2'
+    )
+
+
+@pytest.mark.skipif(sys.version_info < (3, 8), reason='different between 3.7 and 3.8')
+def test_multiple_debugs_38():
     debug.format([i * 2 for i in range(2)])
     debug.format([i * 2 for i in range(2)])
     v = debug.format([i * 2 for i in range(2)])
     s = re.sub(r':\d{2,}', ':<line no>', str(v))
     # FIXME there's an extraneous bracket here, due to some error building code from the ast
     assert s == (
-        'tests/test_main.py:<line no> test_multiple_debugs\n'
+        'tests/test_main.py:<line no> test_multiple_debugs_38\n'
         '    ([i * 2 for i in range(2)]: [0, 2] (list) len=2'
     )

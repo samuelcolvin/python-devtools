@@ -69,8 +69,8 @@ modify ``/usr/lib/python3.6/sitecustomize.py`` making ``debug`` available in any
    else:
        __builtins__['debug'] = debug
 
-.. |BuildStatus| image:: https://travis-ci.org/samuelcolvin/python-devtools.svg?branch=master
-   :target: https://travis-ci.org/samuelcolvin/python-devtools
+.. |BuildStatus| image:: https://github.com/samuelcolvin/python-devtools/workflows/CI/badge.svg?event=push
+   :target: https://github.com/samuelcolvin/python-devtools/actions?query=event%3Apush+branch%3Amaster+workflow%3ACI
 .. |Coverage| image:: https://codecov.io/gh/samuelcolvin/python-devtools/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/samuelcolvin/python-devtools
 .. |pypi| image:: https://img.shields.io/pypi/v/devtools.svg

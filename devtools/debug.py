@@ -1,19 +1,16 @@
-from __future__ import annotations
-
-import ast
-import dis
-import inspect
 import os
 import sys
-from types import FrameType
 
-from .ansi import isatty, sformat
+from .ansi import sformat
 from .prettier import PrettyFormat, env_true
 from .timer import Timer
+from .utils import isatty
 
 __all__ = 'Debug', 'debug'
 MYPY = False
 if MYPY:
+    import ast
+    from types import FrameType
     from typing import Generator, List, Optional, Tuple
 
 
@@ -78,7 +75,7 @@ class DebugOutput:
     arg_class = DebugArgument
     __slots__ = 'filename', 'lineno', 'frame', 'arguments', 'warning'
 
-    def __init__(self, *, filename: str, lineno: int, frame: str, arguments: List[DebugArgument], warning=None):
+    def __init__(self, *, filename: str, lineno: int, frame: str, arguments: 'List[DebugArgument]', warning=None):
         self.filename = filename
         self.lineno = lineno
         self.frame = frame
@@ -110,22 +107,9 @@ class DebugOutput:
 
 class Debug:
     output_class = DebugOutput
-    complex_nodes = (
-        ast.Call,
-        ast.Attribute,
-        ast.Subscript,
-        ast.IfExp,
-        ast.BoolOp,
-        ast.BinOp,
-        ast.Compare,
-        ast.DictComp,
-        ast.ListComp,
-        ast.SetComp,
-        ast.GeneratorExp,
-    )
 
     def __init__(
-        self, *, warnings: Optional[bool] = None, highlight: Optional[bool] = None, frame_context_length: int = 50
+        self, *, warnings: 'Optional[bool]' = None, highlight: 'Optional[bool]' = None, frame_context_length: int = 50
     ):
         self._show_warnings = self._env_bool(warnings, 'PY_DEVTOOLS_WARNINGS', True)
         self._highlight = self._env_bool(highlight, 'PY_DEVTOOLS_HIGHLIGHT', None)
@@ -162,7 +146,7 @@ class Debug:
         """
         # HELP: any errors other than ValueError from _getframe? If so please submit an issue
         try:
-            call_frame: FrameType = sys._getframe(2)
+            call_frame: 'FrameType' = sys._getframe(2)
         except ValueError:
             # "If [ValueError] is deeper than the call stack, ValueError is raised"
             return self.output_class(
@@ -188,6 +172,8 @@ class Debug:
 
         lineno = call_frame.f_lineno
         warning = None
+
+        import inspect
 
         try:
             file_lines, _ = inspect.findsource(call_frame)
@@ -220,6 +206,22 @@ class Debug:
             yield self.output_class.arg_class(value, name=name)
 
     def _process_args(self, func_ast, code_lines, args, kwargs) -> 'Generator[DebugArgument, None, None]':  # noqa: C901
+        import ast
+
+        complex_nodes = (
+            ast.Call,
+            ast.Attribute,
+            ast.Subscript,
+            ast.IfExp,
+            ast.BoolOp,
+            ast.BinOp,
+            ast.Compare,
+            ast.DictComp,
+            ast.ListComp,
+            ast.SetComp,
+            ast.GeneratorExp,
+        )
+
         arg_offsets = list(self._get_offsets(func_ast))
         for i, arg in enumerate(args):
             try:
@@ -231,7 +233,7 @@ class Debug:
 
             if isinstance(ast_node, ast.Name):
                 yield self.output_class.arg_class(arg, name=ast_node.id)
-            elif isinstance(ast_node, self.complex_nodes):
+            elif isinstance(ast_node, complex_nodes):
                 # TODO replace this hack with astor when it get's round to a new release
                 start_line, start_col = arg_offsets[i]
 
@@ -257,13 +259,14 @@ class Debug:
             yield self.output_class.arg_class(value, name=name, variable=kw_arg_names.get(name))
 
     def _parse_code(
-        self, filename: str, file_lines: List[str], first_line: int, last_line: int
-    ) -> Tuple[ast.AST, List[str]]:
+        self, filename: str, file_lines: 'List[str]', first_line: int, last_line: int
+    ) -> 'Tuple[ast.AST, List[str]]':
         """
         All we're trying to do here is build an AST of the function call statement. However numerous ugly interfaces,
         lack on introspection support and changes between python versions make this extremely hard.
         """
         from textwrap import dedent
+        import ast
 
         def get_code(_last_line: int) -> str:
             lines = file_lines[first_line - 1 : _last_line]
@@ -301,10 +304,12 @@ class Debug:
         return func_ast, code_lines
 
     @staticmethod  # noqa: C901
-    def _statement_range(call_frame: FrameType, func_name: str) -> Tuple[int, int]:  # noqa: C901
+    def _statement_range(call_frame: 'FrameType', func_name: str) -> 'Tuple[int, int]':  # noqa: C901
         """
         Try to find the start and end of a frame statement.
         """
+        import dis
+
         # dis.disassemble(call_frame.f_code, call_frame.f_lasti)
         # pprint([i for i in dis.get_instructions(call_frame.f_code)])
 
@@ -349,10 +354,11 @@ class Debug:
         return first_line, last_line
 
     @staticmethod
-    def _wrap_parse(code, filename):
+    def _wrap_parse(code: str, filename: str) -> 'ast.Call':
         """
         async wrapper is required to avoid await calls raising a SyntaxError
         """
+        import ast
         from textwrap import indent
 
         code = 'async def wrapper():\n' + indent(code, ' ')
@@ -360,6 +366,8 @@ class Debug:
 
     @staticmethod
     def _get_offsets(func_ast):
+        import ast
+
         for arg in func_ast.args:
             start_line, start_col = arg.lineno - 2, arg.col_offset - 1
 

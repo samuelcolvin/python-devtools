@@ -3,7 +3,7 @@ import os
 from collections import OrderedDict
 from collections.abc import Generator
 
-from .ansi import isatty
+from .utils import LazyIsInstance, isatty
 
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 MYPY = False
@@ -33,33 +33,6 @@ def fmt(v):
 
 
 class SkipPretty(Exception):
-    pass
-
-
-class LazyIsInstanceMeta(type):
-    _package_path: str
-    _cls_name: str
-    _t = None
-
-    def __instancecheck__(self, instance):
-        if self._t is None:
-            import importlib
-
-            try:
-                m = importlib.import_module(self._package_path)
-            except ImportError:
-                self._t = False
-            else:
-                self._t = getattr(m, self._cls_name)
-
-        return self._t and isinstance(instance, self._t)
-
-    def __getitem__(self, item):
-        package_path, cls_name = item
-        return type(cls_name, (self,), {'_package_path': package_path, '_cls_name': cls_name, '_t': None})
-
-
-class LazyIsInstance(metaclass=LazyIsInstanceMeta):
     pass
 
 

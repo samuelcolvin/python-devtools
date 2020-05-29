@@ -1,17 +1,14 @@
-import sys
 from enum import IntEnum
+
+from .utils import isatty
 
 _ansi_template = '\033[{}m'
 
 __all__ = 'sformat', 'sprint'
 
-
-def isatty(stream=None):
-    stream = stream or sys.stdout
-    try:
-        return stream.isatty()
-    except Exception:
-        return False
+MYPY = False
+if MYPY:
+    from typing import Any
 
 
 def strip_ansi(value):
@@ -67,7 +64,7 @@ class Style(IntEnum):
     # this is a meta value used for the "Style" instance which is the "style" function
     function = -1
 
-    def __call__(self, input, *styles, reset: bool = True, apply: bool = True):
+    def __call__(self, input: 'Any', *styles: 'Style', reset: bool = True, apply: bool = True) -> str:
         """
         Styles text with ANSI styles and returns the new string.
 

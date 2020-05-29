@@ -1,3 +1,4 @@
+import os
 import string
 import sys
 from collections import OrderedDict, namedtuple
@@ -18,6 +19,11 @@ try:
 except ImportError:
     CIMultiDict = None
     MultiDict = None
+
+try:
+    from asyncpg.protocol.protocol import _create_record as Record
+except ImportError:
+    Record = None
 
 
 def test_dict():
@@ -269,20 +275,91 @@ def test_multidict():
     d.add('b', 3)
     v = pformat(d)
     assert set(v.split('\n')) == {
-        "<MultiDict(",
+        "<MultiDict({",
         "    'a': 1,",
         "    'b': 2,",
         "    'b': 3,",
-        ")>",
+        "})>",
     }
 
 
-@pytest.mark.skipif(CIMultiDict is None, reason='CIMultiDict not installed')
+@pytest.mark.skipif(CIMultiDict is None, reason='MultiDict not installed')
 def test_cimultidict():
     v = pformat(CIMultiDict({'a': 1, 'b': 2}))
     assert set(v.split('\n')) == {
-        "<CIMultiDict(",
+        "<CIMultiDict({",
         "    'a': 1,",
         "    'b': 2,",
-        ")>",
+        "})>",
     }
+
+
+def test_os_environ():
+    v = pformat(os.environ)
+    assert v.startswith('<_Environ({')
+    assert "    'HOME': '" in v
+
+
+class Foo:
+    a = 1
+
+    def __init__(self):
+        self.b = 2
+        self.c = 3
+
+
+def test_dir():
+    assert pformat(vars(Foo())) == (
+        "{\n"
+        "    'b': 2,\n"
+        "    'c': 3,\n"
+        "}"
+    )
+
+
+def test_instance_dict():
+    assert pformat(Foo().__dict__) == (
+        "{\n"
+        "    'b': 2,\n"
+        "    'c': 3,\n"
+        "}"
+    )
+
+
+def test_class_dict():
+    s = pformat(Foo.__dict__)
+    assert s.startswith('<mappingproxy({\n')
+    assert "    '__module__': 'tests.test_prettier',\n" in s
+    assert "    'a': 1,\n" in s
+    assert s.endswith('})>')
+
+
+def test_dictlike():
+    class Dictlike:
+        _d = {'x': 4, 'y': 42, 3: None}
+
+        def items(self):
+            yield from self._d.items()
+
+        def __getitem__(self, item):
+            return self._d[item]
+
+    assert pformat(Dictlike()) == (
+        "<Dictlike({\n"
+        "    'x': 4,\n"
+        "    'y': 42,\n"
+        "    3: None,\n"
+        "})>"
+    )
+
+
+@pytest.mark.skipif(Record is None, reason='asyncpg not installed')
+def test_asyncpg_record():
+    r = Record({'a': 0, 'b': 1}, (41, 42))
+    assert dict(r) == {'a': 41, 'b': 42}
+    assert pformat(r) == (
+        "<Record({\n"
+        "    'a': 41,\n"
+        "    'b': 42,\n"
+        "})>"
+    )

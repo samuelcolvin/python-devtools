@@ -3,7 +3,7 @@ import os
 from collections import OrderedDict
 from collections.abc import Generator
 
-from .utils import LazyIsInstance, isatty
+from .utils import isatty
 
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 MYPY = False
@@ -18,7 +18,6 @@ PARENTHESES_LOOKUP = [
 DEFAULT_WIDTH = int(os.getenv('PY_DEVTOOLS_WIDTH', 120))
 MISSING = object()
 PRETTY_KEY = '__prettier_formatted_value__'
-MultiDict = LazyIsInstance['multidict', 'MultiDict']
 
 
 def env_true(var_name, alt=None):
@@ -70,7 +69,6 @@ class PrettyFormat:
             (tuple, self._format_tuples),
             ((list, set, frozenset), self._format_list_like),
             (Generator, self._format_generators),
-            (MultiDict, self._format_dict),
         ]
 
     def __call__(self, value: 'Any', *, indent: int = 0, indent_first: bool = False, highlight: bool = False):
@@ -114,6 +112,14 @@ class PrettyFormat:
                 if isinstance(value, t):
                     func(value, value_repr, indent_current, indent_new)
                     return
+
+            # very blunt check for things that look like dictionaries but do not necessarily inherit from Mapping
+            # e.g. asyncpg Records
+            # HELP: are there any other checks we should include here?
+            if hasattr(value, '__getitem__') and hasattr(value, 'items') and callable(value.items):
+                self._format_dict(value, value_repr, indent_current, indent_new)
+                return
+
             self._format_raw(value, value_repr, indent_current, indent_new)
 
     def _render_pretty(self, gen, indent: int):
@@ -136,13 +142,13 @@ class PrettyFormat:
                     # shouldn't happen but will
                     self._stream.write(repr(v))
 
-    def _format_dict(self, value: dict, value_repr: str, indent_current: int, indent_new: int):
+    def _format_dict(self, value: 'Any', value_repr: str, indent_current: int, indent_new: int):
         open_, before_, split_, after_, close_ = '{\n', indent_new * self._c, ': ', ',\n', '}'
         if isinstance(value, OrderedDict):
             open_, split_, after_, close_ = 'OrderedDict([\n', ', ', '),\n', '])'
             before_ += '('
-        elif isinstance(value, MultiDict):
-            open_, close_ = '<{}(\n'.format(value.__class__.__name__), ')>'
+        elif not isinstance(value, dict):
+            open_, close_ = '<{}({{\n'.format(value.__class__.__name__), '})>'
 
         self._stream.write(open_)
         for k, v in value.items():

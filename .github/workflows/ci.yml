@@ -45,7 +45,7 @@ jobs:
     - name: test with extras
       run: make test
 
-    - uses: codecov/codecov-action@v1
+    - uses: codecov/codecov-action@v1.0.7
       with:
         file: ./coverage.xml
         env_vars: EXTRAS,PYTHON,OS
@@ -58,7 +58,7 @@ jobs:
         make test
         coverage xml
 
-    - uses: codecov/codecov-action@v1
+    - uses: codecov/codecov-action@v1.0.7
       with:
         file: ./coverage.xml
         env_vars: DEPS,PYTHON,OS

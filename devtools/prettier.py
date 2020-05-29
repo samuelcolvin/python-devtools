@@ -18,6 +18,7 @@ PARENTHESES_LOOKUP = [
 DEFAULT_WIDTH = int(os.getenv('PY_DEVTOOLS_WIDTH', 120))
 MISSING = object()
 PRETTY_KEY = '__prettier_formatted_value__'
+MultiDict = LazyIsInstance['multidict', 'MultiDict']
 
 
 def env_true(var_name, alt=None):
@@ -34,9 +35,6 @@ def fmt(v):
 
 class SkipPretty(Exception):
     pass
-
-
-MultiDict = LazyIsInstance['multidict', 'MultiDict']
 
 
 def get_pygments():

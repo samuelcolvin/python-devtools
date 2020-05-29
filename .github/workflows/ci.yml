@@ -43,7 +43,9 @@ jobs:
         make check-dist
 
     - name: test with extras
-      run: make test
+      run: |
+        make test
+        coverage xml
 
     - uses: codecov/codecov-action@v1.0.7
       with:
@@ -61,7 +63,7 @@ jobs:
     - uses: codecov/codecov-action@v1.0.7
       with:
         file: ./coverage.xml
-        env_vars: DEPS,PYTHON,OS
+        env_vars: EXTRAS,PYTHON,OS
       env:
         EXTRAS: no
 

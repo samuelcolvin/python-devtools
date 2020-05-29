@@ -321,18 +321,14 @@ class Debug:
             if instr.starts_line:
                 if instr.opname in {'LOAD_GLOBAL', 'LOAD_NAME'} and instr.argval == func_name:
                     first_line = instr.starts_line
-                    break
                 elif instr.opname == 'LOAD_GLOBAL' and instr.argval == 'debug':
                     if next(instructions).argval == func_name:
                         first_line = instr.starts_line
-                        break
+            if instr.offset == call_frame.f_lasti:
+                break
 
         if first_line is None:
             raise IntrospectionError('error parsing code, unable to find "{}" function statement'.format(func_name))
-
-        for instr in instructions:  # pragma: no branch
-            if instr.offset == call_frame.f_lasti:
-                break
 
         for instr in instructions:
             if instr.starts_line:

@@ -258,3 +258,15 @@ def test_pretty_error():
         "    b: <tests.test_main.test_pretty_error.<locals>.BadPretty object at 0x000> (BadPretty)\n"
         "    !!! error pretty printing value: RuntimeError('this is an error')"
     )
+
+
+def test_multiple_debugs():
+    debug.format([i * 2 for i in range(2)])
+    debug.format([i * 2 for i in range(2)])
+    v = debug.format([i * 2 for i in range(2)])
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    # FIXME there's an extraneous bracket here, due to some error building code from the ast
+    assert s == (
+        'tests/test_main.py:<line no> test_multiple_debugs\n'
+        '    ([i * 2 for i in range(2)]: [0, 2] (list) len=2'
+    )

@@ -8,7 +8,7 @@ from .utils import isatty
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 MYPY = False
 if MYPY:
-    from typing import Any, Union, Mapping
+    from typing import Any, Union
 
 PARENTHESES_LOOKUP = [
     (list, '[', ']'),
@@ -142,7 +142,7 @@ class PrettyFormat:
                     # shouldn't happen but will
                     self._stream.write(repr(v))
 
-    def _format_dict(self, value: 'Mapping', value_repr: str, indent_current: int, indent_new: int):
+    def _format_dict(self, value: 'Any', value_repr: str, indent_current: int, indent_new: int):
         open_, before_, split_, after_, close_ = '{\n', indent_new * self._c, ': ', ',\n', '}'
         if isinstance(value, OrderedDict):
             open_, split_, after_, close_ = 'OrderedDict([\n', ', ', '),\n', '])'

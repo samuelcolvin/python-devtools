@@ -53,7 +53,7 @@ jobs:
         env_vars: EXTRAS,PYTHON,OS
 
     - name: uninstall extras
-      run: pip uninstall -y multidict numpy pydantic
+      run: pip uninstall -y multidict numpy pydantic asyncpg
 
     - name: test without extras
       run: |

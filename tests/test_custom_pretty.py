@@ -1,4 +1,11 @@
+import pytest
+
 from devtools import pformat
+
+try:
+    import pydantic
+except ImportError:
+    pydantic = None
 
 
 def test_simple():
@@ -62,4 +69,13 @@ def test_pretty_class():
             yield 'xxx'
 
     assert pformat(Foobar()) == 'xxx'
-    assert pformat(Foobar).endswith(".test_pretty_class.<locals>.Foobar'>")
+    assert pformat(Foobar) == "<class 'tests.test_custom_pretty.test_pretty_class.<locals>.Foobar'>"
+
+
+@pytest.mark.skipif(pydantic is None, reason='numpy not installed')
+def test_pydantic_pretty():
+    class MyModel(pydantic.BaseModel):
+        foobar: int = 1
+
+    assert pformat(MyModel()) == 'MyModel(\n    foobar=1,\n)'
+    assert pformat(MyModel) == "<class 'tests.test_custom_pretty.test_pydantic_pretty.<locals>.MyModel'>"

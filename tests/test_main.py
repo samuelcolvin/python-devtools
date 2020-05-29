@@ -28,7 +28,7 @@ def test_format():
     b = "hello this is a test"
     v = debug.format(a, b)
     s = re.sub(r':\d{2,}', ':<line no>', str(v))
-    print(repr(s))
+    print(s)
     assert s == (
         "tests/test_main.py:<line no> test_format\n"
         "    a: b'i might bite' (bytes) len=12\n"
@@ -95,12 +95,13 @@ def test_small_call_frame_warning():
         2,
         3,
     )
+    print('\n---\n{}\n---'.format(v))
     assert re.sub(r':\d{2,}', ':<line no>', str(v)) == (
-        "tests/test_main.py:<line no> test_small_call_frame_warning "
-        "(error passing code, found <class '_ast.Tuple'> not Call)\n"
-        "    1 (int)\n"
-        "    2 (int)\n"
-        "    3 (int)"
+        'tests/test_main.py:<line no> test_small_call_frame_warning '
+        '(error parsing code, unable to find "format" function statement)\n'
+        '    1 (int)\n'
+        '    2 (int)\n'
+        '    3 (int)'
     )
 
 
@@ -207,8 +208,8 @@ def test_colours():
 
 
 def test_colours_warnings(mocker):
-    mocked_getouterframes = mocker.patch('inspect.getouterframes')
-    mocked_getouterframes.side_effect = IndexError()
+    mocked_getframe = mocker.patch('sys._getframe')
+    mocked_getframe.side_effect = ValueError()
     v = debug.format('x')
     s = re.sub(r':\d{2,}', ':<line no>', v.str(True))
     assert s.startswith('\x1b[35m<unknown>'), repr(s)
@@ -217,10 +218,11 @@ def test_colours_warnings(mocker):
 
 
 def test_inspect_error(mocker):
-    mocked_getouterframes = mocker.patch('inspect.getouterframes')
-    mocked_getouterframes.side_effect = IndexError()
+    mocked_getframe = mocker.patch('sys._getframe')
+    mocked_getframe.side_effect = ValueError()
     v = debug.format('x')
-    assert str(v) == "<unknown>:0  (error parsing code, IndexError)\n    'x' (str) len=1"
+    print(repr(str(v)))
+    assert str(v) == "<unknown>:0  (error parsing code, call stack too shallow)\n    'x' (str) len=1"
 
 
 def test_breakpoint(mocker):
@@ -239,3 +241,20 @@ def test_starred_kwargs():
         '    foo: 1 (int)',
         '    bar: 2 (int)',
     }
+
+
+@pytest.mark.skipif(sys.version_info < (3, 7), reason='error repr different before 3.7')
+def test_pretty_error():
+    class BadPretty:
+        def __getattr__(self, item):
+            raise RuntimeError('this is an error')
+
+    b = BadPretty()
+    v = debug.format(b)
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    s = re.sub(r'0x[0-9a-f]+', '0x000', s)
+    assert s == (
+        "tests/test_main.py:<line no> test_pretty_error\n"
+        "    b: <tests.test_main.test_pretty_error.<locals>.BadPretty object at 0x000> (BadPretty)\n"
+        "    !!! error pretty printing value: RuntimeError('this is an error')"
+    )

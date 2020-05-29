@@ -1,27 +1,29 @@
 .DEFAULT_GOAL := all
+isort = isort -rc devtools tests
+black = black -S -l 120 --target-version py37 devtools
 
-.PHONY: install-dev
-install-dev:
+.PHONY: install
+install:
 	pip install -U setuptools pip
-	pip install -r dev-requirements.txt
+	pip install -U -r requirements.txt
+	pip install -e .
 
-.PHONY: install-test
-install-test:
-	pip install -U setuptools pip
-	pip install -r tests/requirements.txt
-	pip install -r docs/requirements.txt
-	pip install -U .
-
-.PHONY: isort
-isort:
-	isort -rc -w 120 devtools
-	isort -rc -w 120 tests
+.PHONY: format
+format:
+	$(isort)
+	$(black)
 
 .PHONY: lint
 lint:
-	python setup.py check -rms
 	flake8 devtools/ tests/
-	pytest devtools -p no:sugar -q
+	$(isort) --check-only -df
+	$(black) --check
+
+.PHONY: check-dist
+check-dist:
+	python setup.py check -ms
+	python setup.py sdist
+	twine check dist/*
 
 .PHONY: test
 test:
@@ -34,7 +36,7 @@ testcov:
 	@coverage html
 
 .PHONY: all
-all: testcov lint
+all: lint testcov
 
 .PHONY: clean
 clean:

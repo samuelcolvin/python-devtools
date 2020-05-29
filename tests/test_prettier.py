@@ -3,11 +3,15 @@ import sys
 from collections import OrderedDict, namedtuple
 from unittest.mock import MagicMock
 
-import numpy
 import pytest
 
 from devtools.ansi import strip_ansi
 from devtools.prettier import PrettyFormat, env_true, pformat, pprint
+
+try:
+    import numpy
+except ImportError:
+    numpy = None
 
 try:
     from multidict import CIMultiDict, MultiDict
@@ -149,6 +153,7 @@ def test_short_bytes():
     assert "b'abcdefghijklmnopqrstuvwxyz'" == pformat(string.ascii_lowercase.encode())
 
 
+@pytest.mark.skipif(numpy is None, reason='numpy not installed')
 def test_indent_numpy():
     v = pformat({'numpy test': numpy.array(range(20))})
     assert v == """{
@@ -159,6 +164,7 @@ def test_indent_numpy():
 }"""
 
 
+@pytest.mark.skipif(numpy is None, reason='numpy not installed')
 def test_indent_numpy_short():
     v = pformat({'numpy test': numpy.array(range(10))})
     assert v == """{

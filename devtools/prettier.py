@@ -5,7 +5,6 @@ from collections.abc import Generator
 
 from .ansi import isatty
 
-
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 MYPY = False
 if MYPY:
@@ -37,6 +36,36 @@ class SkipPretty(Exception):
     pass
 
 
+class LazyIsInstanceMeta(type):
+    _package_path: str
+    _cls_name: str
+    _t = None
+
+    def __instancecheck__(self, instance):
+        if self._t is None:
+            import importlib
+
+            try:
+                m = importlib.import_module(self._package_path)
+            except ImportError:
+                self._t = False
+            else:
+                self._t = getattr(m, self._cls_name)
+
+        return self._t and isinstance(instance, self._t)
+
+    def __getitem__(self, item):
+        package_path, cls_name = item
+        return type(cls_name, (self,), {'_package_path': package_path, '_cls_name': cls_name, '_t': None})
+
+
+class LazyIsInstance(metaclass=LazyIsInstanceMeta):
+    pass
+
+
+MultiDict = LazyIsInstance['multidict', 'MultiDict']
+
+
 def get_pygments():
     try:
         import pygments
@@ -48,15 +77,16 @@ def get_pygments():
         return pygments, PythonLexer(), Terminal256Formatter(style='vim')
 
 
-
 class PrettyFormat:
-    def __init__(self,
-                 indent_step=4,
-                 indent_char=' ',
-                 repr_strings=False,
-                 simple_cutoff=10,
-                 width=120,
-                 yield_from_generators=True):
+    def __init__(
+        self,
+        indent_step=4,
+        indent_char=' ',
+        repr_strings=False,
+        simple_cutoff=10,
+        width=120,
+        yield_from_generators=True,
+    ):
         self._indent_step = indent_step
         self._c = indent_char
         self._repr_strings = repr_strings
@@ -69,21 +99,14 @@ class PrettyFormat:
             (tuple, self._format_tuples),
             ((list, set, frozenset), self._format_list_like),
             (Generator, self._format_generators),
+            (MultiDict, self._format_dict),
         ]
-        # we can do something clever here to avoid having to do this import on __init__
-        # try:
-        #     from multidict import MultiDict
-        # except ImportError:
-        #     pass
-        # else:
-        #     if MultiDict:
-        #         self._type_lookup.append((MultiDict, self._format_dict))
 
     def __call__(self, value: 'Any', *, indent: int = 0, indent_first: bool = False, highlight: bool = False):
         self._stream = io.StringIO()
         self._format(value, indent_current=indent, indent_first=indent_first)
         s = self._stream.getvalue()
-        pygments, pyg_lexer, pyg_formatter = get_pygments
+        pygments, pyg_lexer, pyg_formatter = get_pygments()
         if highlight and pygments:
             # apparently highlight adds a trailing new line we don't want
             s = pygments.highlight(s, lexer=pyg_lexer, formatter=pyg_formatter).rstrip('\n')
@@ -93,17 +116,23 @@ class PrettyFormat:
         if indent_first:
             self._stream.write(indent_current * self._c)
 
-        pretty_func = getattr(value, '__pretty__', None)
+        try:
+            pretty_func = getattr(value, '__pretty__')
+        except AttributeError:
+            pass
+        else:
+            # `pretty_func.__class__.__name__ == 'method'` should only be true for bound methods,
+            # `hasattr(pretty_func, '__self__')` is more canonical but weirdly is true for unbound cython functions
+            from unittest.mock import _Call as MockCall
 
-        from unittest.mock import _Call as MockCall
-        if pretty_func and not isinstance(value, MockCall):
-            try:
-                gen = pretty_func(fmt=fmt, skip_exc=SkipPretty)
-                self._render_pretty(gen, indent_current)
-            except SkipPretty:
-                pass
-            else:
-                return
+            if pretty_func.__class__.__name__ == 'method' and not isinstance(value, MockCall):
+                try:
+                    gen = pretty_func(fmt=fmt, skip_exc=SkipPretty)
+                    self._render_pretty(gen, indent_current)
+                except SkipPretty:
+                    pass
+                else:
+                    return
 
         value_repr = repr(value)
         if len(value_repr) <= self._simple_cutoff and not isinstance(value, Generator):
@@ -141,7 +170,7 @@ class PrettyFormat:
         if isinstance(value, OrderedDict):
             open_, split_, after_, close_ = 'OrderedDict([\n', ', ', '),\n', '])'
             before_ += '('
-        elif MultiDict and isinstance(value, MultiDict):
+        elif isinstance(value, MultiDict):
             open_, close_ = '<{}(\n'.format(value.__class__.__name__), ')>'
 
         self._stream.write(open_)
@@ -153,7 +182,9 @@ class PrettyFormat:
             self._stream.write(after_)
         self._stream.write(indent_current * self._c + close_)
 
-    def _format_list_like(self, value: 'Union[list, tuple, set]', value_repr: str, indent_current: int, indent_new: int):
+    def _format_list_like(
+        self, value: 'Union[list, tuple, set]', value_repr: str, indent_current: int, indent_new: int
+    ):
         open_, close_ = '(', ')'
         for t, *oc in PARENTHESES_LOOKUP:
             if isinstance(value, t):
@@ -224,6 +255,7 @@ class PrettyFormat:
             prefix = indent_new * self._c
 
             from textwrap import wrap
+
             for line in lines:
                 sub_lines = wrap(line, wrap_at)
                 for sline in sub_lines:

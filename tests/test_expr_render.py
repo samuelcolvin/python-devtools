@@ -1,3 +1,4 @@
+import ast
 import asyncio
 import re
 import sys
@@ -48,7 +49,7 @@ def test_exotic_types():
     )
     s = re.sub(r':\d{2,}', ':<line no>', str(v))
     s = re.sub(r'(at 0x)\w+', r'\1<hash>', s)
-    print(s)
+    print('\n---\n{}\n---'.format(v))
     # list and generator comprehensions are wrong because ast is wrong, see https://bugs.python.org/issue31241
     assert (
         "tests/test_expr_render.py:<line no> test_exotic_types\n"
@@ -167,41 +168,77 @@ def test_multiple_trailing_lines():
     ) == s
 
 
-def test_syntax_warning():
-    # exceed the 4 extra lines which are normally checked
-    v = debug.format(
-        abs(
+def test_very_nested_last_statement():
+    def func():
+        return debug.format(
             abs(
                 abs(
                     abs(
-                        -1
+                        abs(
+                            -1
+                        )
                     )
                 )
             )
         )
-    )
+
+    v = func()
     # check only the original code is included in the warning
     s = re.sub(r':\d{2,}', ':<line no>', str(v))
-    assert s.startswith('tests/test_expr_render.py:<line no> test_syntax_warning (error passing code, '
-                        'SyntaxError: unexpected EOF')
+    assert s == (
+        'tests/test_expr_render.py:<line no> func\n'
+        '    abs( abs( abs( abs( -1 ) ) ) ): 1 (int)'
+    )
+
+
+def test_syntax_warning():
+    def func():
+        return debug.format(
+            abs(
+                abs(
+                    abs(
+                        abs(
+                            abs(
+                                -1
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+    v = func()
+    # check only the original code is included in the warning
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    assert s == (
+        'tests/test_expr_render.py:<line no> func '
+        '(error parsing code, SyntaxError: unexpected EOF while parsing (test_expr_render.py, line 8))\n'
+        '    1 (int)'
+    )
 
 
 def test_no_syntax_warning():
     # exceed the 4 extra lines which are normally checked
     debug_ = Debug(warnings=False)
-    v = debug_.format(
-        abs(
+
+    def func():
+        return debug_.format(
             abs(
                 abs(
                     abs(
-                        -1
+                        abs(
+                            abs(
+                                -1
+                            )
+                        )
                     )
                 )
             )
         )
-    )
-    assert '(error passing code' not in str(v)
-    assert 'test_no_syntax_warning' in str(v)
+
+    v = func()
+    assert '(error parsing code' not in str(v)
+    assert 'func' in str(v)
 
 
 def test_await():
@@ -218,3 +255,24 @@ def test_await():
         'tests/test_expr_render.py:<line no> bar\n'
         '    1 (int)'
     ) == s
+
+
+def test_other_debug_arg():
+    debug.timer()
+    v = debug.format([1, 2])
+
+    # check only the original code is included in the warning
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    assert s == (
+        'tests/test_expr_render.py:<line no> test_other_debug_arg\n'
+        '    [1, 2] (list) len=2'
+    )
+
+
+def test_wrong_ast_type(mocker):
+    mocked_ast_parse = mocker.patch('ast.parse')
+
+    code = 'async def wrapper():\n x = "foobar"'
+    mocked_ast_parse.return_value = ast.parse(code, filename='testing.py').body[0].body[0].value
+    v = debug.format('x')
+    assert "(error parsing code, found <class 'unittest.mock.MagicMock'> not Call)" in v.str()

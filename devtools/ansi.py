@@ -16,6 +16,7 @@ def isatty(stream=None):
 
 def strip_ansi(value):
     import re
+
     return re.sub('\033\\[((?:\\d|;)*)([a-zA-Z])', '', value)
 
 
@@ -131,6 +132,7 @@ class StylePrint:
     Annoyingly enums do not allow inheritance, a lazy design mistake, this is an ugly work around
     for that mistake.
     """
+
     def __call__(self, input, *styles, reset=True, flush=True, file=None, **print_kwargs):
         text = sformat(input, *styles, reset=reset, apply=isatty(file))
         print(text, flush=flush, file=file, **print_kwargs)

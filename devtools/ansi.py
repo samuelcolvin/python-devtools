@@ -1,24 +1,20 @@
-import re
-import sys
 from enum import IntEnum
-from typing import Any
+
+from .utils import isatty
 
 _ansi_template = '\033[{}m'
-_ansi_re = re.compile('\033\\[((?:\\d|;)*)([a-zA-Z])')
 
 __all__ = 'sformat', 'sprint'
 
-
-def isatty(stream=None):
-    stream = stream or sys.stdout
-    try:
-        return stream.isatty()
-    except Exception:
-        return False
+MYPY = False
+if MYPY:
+    from typing import Any
 
 
 def strip_ansi(value):
-    return _ansi_re.sub('', value)
+    import re
+
+    return re.sub('\033\\[((?:\\d|;)*)([a-zA-Z])', '', value)
 
 
 class Style(IntEnum):
@@ -68,7 +64,7 @@ class Style(IntEnum):
     # this is a meta value used for the "Style" instance which is the "style" function
     function = -1
 
-    def __call__(self, input: Any, *styles, reset: bool = True, apply: bool = True):
+    def __call__(self, input: 'Any', *styles: 'Style', reset: bool = True, apply: bool = True) -> str:
         """
         Styles text with ANSI styles and returns the new string.
 

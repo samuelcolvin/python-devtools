@@ -5,7 +5,8 @@ from time import sleep
 
 import pytest
 
-from devtools import Timer, debug
+from devtools import debug
+from devtools.timer import Timer
 
 
 @pytest.mark.skipif(sys.platform != 'linux', reason='not on linux')

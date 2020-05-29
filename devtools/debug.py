@@ -317,7 +317,7 @@ class Debug:
         first_line = None
         last_line = None
 
-        for instr in instructions:
+        for instr in instructions:  # pragma: no branch
             if instr.starts_line:
                 if instr.opname in {'LOAD_GLOBAL', 'LOAD_NAME'} and instr.argval == func_name:
                     first_line = instr.starts_line

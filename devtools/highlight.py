@@ -4,7 +4,7 @@ from typing import Optional
 from .ansi import isatty
 from .prettier import env_bool
 
-if sys.platform == "win32":  # pragma: no cover (windows)
+if sys.platform == 'win32':  # pragma: no cover (windows)
     """Activate ANSI support on windows consoles.
 
     As of Windows 10, the windows conolse got some support for ANSI escape
@@ -29,7 +29,7 @@ if sys.platform == "win32":  # pragma: no cover (windows)
 
     LPDWORD = ctypes.POINTER(wintypes.DWORD)
 
-    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
     kernel32.GetConsoleMode.errcheck = _check_bool
     kernel32.GetConsoleMode.argtypes = (wintypes.HANDLE, LPDWORD)
     kernel32.SetConsoleMode.errcheck = _check_bool
@@ -38,7 +38,7 @@ if sys.platform == "win32":  # pragma: no cover (windows)
     def _set_conout_mode(new_mode, mask=0xFFFFFFFF):
         # don't assume StandardOutput is a console.
         # open CONOUT$ instead
-        fdout = os.open("CONOUT$", os.O_RDWR)
+        fdout = os.open('CONOUT$', os.O_RDWR)
         try:
             hout = msvcrt.get_osfhandle(fdout)
             old_mode = wintypes.DWORD()

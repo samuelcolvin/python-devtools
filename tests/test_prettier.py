@@ -270,11 +270,11 @@ def test_env_true():
 
 
 def test_env_bool(monkeypatch):
-    assert env_bool(False, "VAR", None) == False
-    monkeypatch.delenv("TEST_VARIABLE_NOT_EXIST", raising=False)
-    assert env_bool(None, "TEST_VARIABLE_NOT_EXIST", True) == True
-    monkeypatch.setenv("TEST_VARIABLE_EXIST", "bar")
-    assert env_bool(None, "TEST_VARIABLE_EXIST", True) is False
+    assert env_bool(False, 'VAR', None) == False
+    monkeypatch.delenv('TEST_VARIABLE_NOT_EXIST', raising=False)
+    assert env_bool(None, 'TEST_VARIABLE_NOT_EXIST', True) == True
+    monkeypatch.setenv('TEST_VARIABLE_EXIST', 'bar')
+    assert env_bool(None, 'TEST_VARIABLE_EXIST', True) is False
 
 
 @pytest.mark.skipif(MultiDict is None, reason='MultiDict not installed')

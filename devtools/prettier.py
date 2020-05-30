@@ -8,7 +8,7 @@ from .utils import isatty
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 MYPY = False
 if MYPY:
-    from typing import Any, Union
+    from typing import Any, Optional, Union
 
 PARENTHESES_LOOKUP = [
     (list, '[', ']'),
@@ -20,7 +20,7 @@ MISSING = object()
 PRETTY_KEY = '__prettier_formatted_value__'
 
 
-def env_true(var_name, alt=None):
+def env_true(var_name: str, alt: Optional[bool] = None) -> Optional[bool]:
     env = os.getenv(var_name, None)
     if env:
         return env.upper() in {'1', 'TRUE'}
@@ -28,7 +28,7 @@ def env_true(var_name, alt=None):
         return alt
 
 
-def env_bool(value, env_name, env_default):
+def env_bool(value: Optional[bool], env_name: str, env_default: Optional[bool]) -> Optional[bool]:
     if value is None:
         return env_true(env_name, env_default)
     else:

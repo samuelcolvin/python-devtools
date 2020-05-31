@@ -27,11 +27,11 @@ check-dist:
 
 .PHONY: test
 test:
-	pytest --cov=devtools
+	pytest --cov=devtools --cov-fail-under 0
 
 .PHONY: testcov
 testcov:
-	pytest --cov=devtools
+	pytest --cov=devtools --cov-fail-under 0
 	@echo "building coverage html"
 	@coverage html
 

@@ -31,7 +31,7 @@ def env_bool(value: 'Optional[bool]', env_name: str, env_default: 'Optional[bool
         return value
 
 
-def activate_win_color() -> bool:
+def activate_win_color() -> bool:  # pragma: no cover
     """Activate ANSI support on windows consoles.
 
     As of Windows 10, the windows conolse got some support for ANSI escape
@@ -95,6 +95,6 @@ def use_highlight(highlight: 'Optional[bool]' = None, file_=None) -> bool:
     if highlight is not None:
         return highlight
 
-    if sys.platform == "win32":  # pragma: win32 cover
+    if sys.platform == "win32":  # pragma: no cover
         return isatty(file_) and activate_win_color()
-    return isatty(file_)  # pragma: win32 no cover
+    return isatty(file_)

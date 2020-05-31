@@ -2,7 +2,7 @@ import os
 import sys
 
 from .ansi import sformat
-from .highlight import use_highlight
+from .utils import use_highlight
 from .prettier import PrettyFormat, env_bool, env_true
 from .timer import Timer
 

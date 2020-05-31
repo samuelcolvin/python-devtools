@@ -117,7 +117,7 @@ class Debug:
         self._frame_context_length = frame_context_length
 
     def __call__(self, *args, file_=None, flush_=True, **kwargs) -> None:
-        d_out = self._process(args, kwargs, r'debug *\(')
+        d_out = self._process(args, kwargs, 'debug')
         s = d_out.str(use_highlight(self._highlight, file_))
         print(s, file=file_, flush=flush_)
 

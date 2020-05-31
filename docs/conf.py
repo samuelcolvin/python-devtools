@@ -140,7 +140,7 @@ html_theme = 'alabaster'
 html_theme_options = {
     'github_user': 'samuelcolvin',
     'github_repo': 'python-devtools',
-    'travis_button': True,
+    'travis_button': False,
     'codecov_button': True,
     'page_width': '1200px',
     'github_banner': True,

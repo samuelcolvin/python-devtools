@@ -4,7 +4,7 @@ black = black -S -l 120 --target-version py37 devtools
 
 .PHONY: install
 install:
-	pip install -U setuptools pip
+	python -m pip install -U setuptools pip
 	pip install -U -r requirements.txt
 	pip install -e .
 

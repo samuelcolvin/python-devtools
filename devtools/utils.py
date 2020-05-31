@@ -1,6 +1,5 @@
 import os
 import sys
-from typing import Optional
 
 __all__ = ('isatty',)
 

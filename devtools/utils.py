@@ -3,7 +3,6 @@ from typing import Optional
 
 from .prettier import env_bool
 
-
 __all__ = ('isatty',)
 
 

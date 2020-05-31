@@ -2,9 +2,9 @@ import os
 import sys
 
 from .ansi import sformat
-from .utils import use_highlight
 from .prettier import PrettyFormat, env_bool, env_true
 from .timer import Timer
+from .utils import use_highlight
 
 __all__ = 'Debug', 'debug'
 MYPY = False

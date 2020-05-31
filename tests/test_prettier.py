@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from devtools.ansi import strip_ansi
-from devtools.prettier import PrettyFormat, env_bool, env_true, pformat, pprint
+from devtools.prettier import PrettyFormat, pformat, pprint
 
 try:
     import numpy
@@ -262,19 +262,6 @@ _Call(
     _fields=(1, 2, 3),
     {'a': 4},
 )"""
-
-
-def test_env_true():
-    assert env_true('PATH') is False
-    assert env_true('DOES_NOT_EXIST') is None
-
-
-def test_env_bool(monkeypatch):
-    assert env_bool(False, 'VAR', None) is False
-    monkeypatch.delenv('TEST_VARIABLE_NOT_EXIST', raising=False)
-    assert env_bool(None, 'TEST_VARIABLE_NOT_EXIST', True) is True
-    monkeypatch.setenv('TEST_VARIABLE_EXIST', 'bar')
-    assert env_bool(None, 'TEST_VARIABLE_EXIST', True) is False
 
 
 @pytest.mark.skipif(MultiDict is None, reason='MultiDict not installed')

@@ -1,9 +1,12 @@
+import os
 import sys
 from typing import Optional
 
-from .prettier import env_bool
-
 __all__ = ('isatty',)
+
+MYPY = False
+if MYPY:
+    from typing import Optional
 
 
 def isatty(stream=None):
@@ -12,6 +15,21 @@ def isatty(stream=None):
         return stream.isatty()
     except Exception:
         return False
+
+
+def env_true(var_name: str, alt: Optional[bool] = None) -> Optional[bool]:
+    env = os.getenv(var_name, None)
+    if env:
+        return env.upper() in {'1', 'TRUE'}
+    else:
+        return alt
+
+
+def env_bool(value: Optional[bool], env_name: str, env_default: Optional[bool]) -> Optional[bool]:
+    if value is None:
+        return env_true(env_name, env_default)
+    else:
+        return value
 
 
 def activate_win_color() -> bool:

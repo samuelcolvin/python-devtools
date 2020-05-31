@@ -16,7 +16,7 @@ def isatty(stream=None):
         return False
 
 
-def env_true(var_name: str, alt: Optional[bool] = None) -> Optional[bool]:
+def env_true(var_name: str, alt: 'Optional[bool]' = None) -> 'Optional[bool]':
     env = os.getenv(var_name, None)
     if env:
         return env.upper() in {'1', 'TRUE'}
@@ -24,7 +24,7 @@ def env_true(var_name: str, alt: Optional[bool] = None) -> Optional[bool]:
         return alt
 
 
-def env_bool(value: Optional[bool], env_name: str, env_default: Optional[bool]) -> Optional[bool]:
+def env_bool(value: 'Optional[bool]', env_name: str, env_default: 'Optional[bool]') -> 'Optional[bool]':
     if value is None:
         return env_true(env_name, env_default)
     else:
@@ -76,7 +76,7 @@ def activate_win_color() -> bool:
         finally:
             os.close(fdout)
 
-    def _enable_vt_mode():
+    def _enable_vt_mode() -> bool:
         mode = mask = ENABLE_VIRTUAL_TERMINAL_PROCESSING
         try:
             _set_conout_mode(mode, mask)
@@ -89,7 +89,7 @@ def activate_win_color() -> bool:
     return _enable_vt_mode()
 
 
-def use_highlight(highlight: Optional[bool] = None, file_=None) -> bool:
+def use_highlight(highlight: 'Optional[bool]' = None, file_=None) -> bool:
     highlight = env_bool(highlight, 'PY_DEVTOOLS_HIGHLIGHT', None)
 
     if highlight is not None:

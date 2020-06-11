@@ -95,6 +95,6 @@ def use_highlight(highlight: 'Optional[bool]' = None, file_=None) -> bool:
     if highlight is not None:
         return highlight
 
-    if sys.platform == "win32":  # pragma: no cover
+    if sys.platform == 'win32':  # pragma: no cover
         return isatty(file_) and activate_win_color()
     return isatty(file_)

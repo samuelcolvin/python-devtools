@@ -32,7 +32,8 @@ def env_bool(value: 'Optional[bool]', env_name: str, env_default: 'Optional[bool
 
 
 def activate_win_color() -> bool:  # pragma: no cover
-    """Activate ANSI support on windows consoles.
+    """
+    Activate ANSI support on windows consoles.
 
     As of Windows 10, the windows conolse got some support for ANSI escape
     sequences. Unfortunately it has to be enabled first using `SetConsoleMode`.

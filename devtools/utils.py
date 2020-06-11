@@ -77,17 +77,14 @@ def activate_win_color() -> bool:  # pragma: no cover
         finally:
             os.close(fdout)
 
-    def _enable_vt_mode() -> bool:
-        mode = mask = ENABLE_VIRTUAL_TERMINAL_PROCESSING
-        try:
-            _set_conout_mode(mode, mask)
-        except WindowsError as e:
-            if e.winerror == ERROR_INVALID_PARAMETER:
-                return False
-            raise
-        return True
-
-    return _enable_vt_mode()
+    mode = mask = ENABLE_VIRTUAL_TERMINAL_PROCESSING
+    try:
+        _set_conout_mode(mode, mask)
+    except WindowsError as e:
+        if e.winerror == ERROR_INVALID_PARAMETER:
+            return False
+        raise
+    return True
 
 
 def use_highlight(highlight: 'Optional[bool]' = None, file_=None) -> bool:

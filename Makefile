@@ -4,7 +4,7 @@ black = black -S -l 120 --target-version py37 devtools
 
 .PHONY: install
 install:
-	pip install -U setuptools pip
+	python -m pip install -U setuptools pip
 	pip install -U -r requirements.txt
 	pip install -e .
 
@@ -27,11 +27,11 @@ check-dist:
 
 .PHONY: test
 test:
-	pytest --cov=devtools
+	pytest --cov=devtools --cov-fail-under 0
 
 .PHONY: testcov
 testcov:
-	pytest --cov=devtools
+	pytest --cov=devtools --cov-fail-under 0
 	@echo "building coverage html"
 	@coverage html
 

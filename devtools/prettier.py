@@ -3,7 +3,7 @@ import os
 from collections import OrderedDict
 from collections.abc import Generator
 
-from .utils import isatty
+from .utils import env_true, isatty
 
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 MYPY = False
@@ -18,14 +18,6 @@ PARENTHESES_LOOKUP = [
 DEFAULT_WIDTH = int(os.getenv('PY_DEVTOOLS_WIDTH', 120))
 MISSING = object()
 PRETTY_KEY = '__prettier_formatted_value__'
-
-
-def env_true(var_name, alt=None):
-    env = os.getenv(var_name, None)
-    if env:
-        return env.upper() in {'1', 'TRUE'}
-    else:
-        return alt
 
 
 def fmt(v):

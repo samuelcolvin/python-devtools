@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from devtools.ansi import strip_ansi
-from devtools.prettier import PrettyFormat, env_true, pformat, pprint
+from devtools.prettier import PrettyFormat, pformat, pprint
 
 try:
     import numpy
@@ -262,11 +262,6 @@ _Call(
     _fields=(1, 2, 3),
     {'a': 4},
 )"""
-
-
-def test_env_true():
-    assert env_true('PATH') is False
-    assert env_true('DOES_NOT_EXIST') is None
 
 
 @pytest.mark.skipif(MultiDict is None, reason='MultiDict not installed')

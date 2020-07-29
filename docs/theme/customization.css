@@ -9,7 +9,7 @@
   line-height: normal;
   background-color: #300a24;
   padding: 20px 30px;
-  color: white;
+  color: white !important;
   border-radius: 5px;
 }
 .body_foreground { color: #AAAAAA; }

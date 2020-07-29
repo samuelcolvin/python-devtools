@@ -23,7 +23,7 @@ nav:
 - Overview: index.md
 - install.md
 - usage.md
-- changelog.md
+- history.md
 
 markdown_extensions:
 - markdown.extensions.codehilite:

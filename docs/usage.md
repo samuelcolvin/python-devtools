@@ -3,7 +3,7 @@
 Somehow in the 27 years (and counting) of active development of python, no one thought to add a simple
 and readable way to print stuff during development. (If you know why this is, I'd love to hear).
 
-The wait is over:
+**The wait is over:**
 
 ```py
 {!examples/example1.py!}
@@ -11,8 +11,7 @@ The wait is over:
 
 {!examples/example1.html!}
 
-`debug` is like `print` on steroids, and coffee, and some orange pills
-you found down the back of a chair on a train:
+`debug` is like `print` after a good night's sleep and lots of coffee:
 
 * each output is prefixed with the file, line number and function where `debug` was called
 * the variable name or expression being printed is shown
@@ -66,7 +65,7 @@ For more details on prettier printing, see
 ```
 
 For more details on ansi colours, see
-[ansi.p](https://github.com/samuelcolvin/python-devtools/blob/master/devtools/ansi.py).
+[ansi.py](https://github.com/samuelcolvin/python-devtools/blob/master/devtools/ansi.py).
 
 ## Usage without import
 

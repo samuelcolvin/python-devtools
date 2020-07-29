@@ -14,7 +14,7 @@ def main():
     history = re.sub(r'( +)@([\w\-]+)', r'\1[@\2](https://github.com/\2)', history, flags=re.I)
     history = re.sub('@@', '@', history)
 
-    (PROJECT_ROOT / 'docs/.changelog.md').write_text(history)
+    (PROJECT_ROOT / 'docs/.history.md').write_text(history)
 
     version = SourceFileLoader('version', str(PROJECT_ROOT / 'devtools/version.py')).load_module()
     (PROJECT_ROOT / 'docs/.version.md').write_text(f'Documentation for version: **v{version.VERSION}**\n')

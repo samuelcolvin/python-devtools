@@ -11,13 +11,13 @@ EX_DIR = Path(__file__).parent / '..' / 'examples'
 def gen_examples_html():
     os.environ.update(PY_DEVTOOLS_HIGHLIGHT='true')
     conv = Ansi2HTMLConverter()
-    force = 'FORCE' in os.environ
+    fast = 'FAST' in os.environ
 
     for f in EX_DIR.iterdir():
         if f.suffix != '.py' or f.name == 'sitecustomize.py':
             continue
         output_file = EX_DIR / f'{f.stem}.html'
-        if not force and output_file.exists():
+        if fast and output_file.exists():
             print(f'HTML file already exists for {f}, skipping')
             continue
 
@@ -25,7 +25,7 @@ def gen_examples_html():
         p = subprocess.run((sys.executable, str(f)), stdout=subprocess.PIPE, check=True)
         html = conv.convert(p.stdout.decode(), full=False).strip('\r\n')
         html = html.replace('docs/build/../examples/', '')
-        output_file.write_text(f'<pre class="ansi2html-content">\n{html}\n</pre>')
+        output_file.write_text(f'<pre class="ansi2html-content">\n{html}\n</pre>\n')
 
 
 if __name__ == '__main__':

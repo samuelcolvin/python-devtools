@@ -70,7 +70,8 @@ jobs:
   deploy:
     name: Deploy
     needs: test
-    if: "success() && startsWith(github.ref, 'refs/tags/')"
+#    if: "success() && startsWith(github.ref, 'refs/tags/')"
+    if: "success()"
     runs-on: ubuntu-latest
 
     steps:
@@ -94,8 +95,13 @@ jobs:
       - name: check tag
         run: PACKAGE=devtools python <(curl -Ls https://git.io/JvQsH)
 
-      - name: upload to pypi
-        run: twine upload dist/*
+#      - name: upload to pypi
+#        run: twine upload dist/*
+#        env:
+#          TWINE_USERNAME: __token__
+#          TWINE_PASSWORD: ${{ secrets.pypi_token }}
+#
+      - name: publish docs
+        run: make publish-docs
         env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.pypi_token }}
+          NETLIFY: ${{ secrets.netlify_token }}

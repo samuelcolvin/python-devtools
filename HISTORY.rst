@@ -3,6 +3,16 @@
 History
 -------
 
+v0.6.0 (2020-07-29)
+...................
+* improve ``__pretty__`` to work better with pydantic classes, #52
+* improve the way statement ranges are calculated, #58
+* drastically improve import time, #50
+* pretty printing for non-standard dicts, #60
+* better statement finding for mult-line statements, #61
+* colors in windows, #57
+* fix ``debug(type(dict(...)))``, #62
+
 v0.5.1 (2019-10-09)
 ...................
 * fix python tag in ``setup.cfg``, #46

@@ -1,4 +1,4 @@
-site_name: pydantic
+site_name: python-devtools
 site_description: Python's missing debug print command and other development tools.
 strict: true
 site_url: https://python-devtools.helpmanual.io/

@@ -18,3 +18,4 @@ docs/examples/*.html
 old-version/
 *.swp
 /site/
+/site.zip

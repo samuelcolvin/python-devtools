@@ -8,10 +8,10 @@
 
 {!.version.md!}
 
-### Python's missing debug print command and other development tools.
+**Python's missing debug print command and other development tools.**
 
 ```py
-{!examples/example1.py!}
+{!examples/example.py!}
 ```
 
-{!examples/example1.html!}
+{!examples/example.html!}

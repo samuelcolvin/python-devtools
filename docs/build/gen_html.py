@@ -9,7 +9,7 @@ EX_DIR = Path(__file__).parent / '..' / 'examples'
 
 
 def gen_examples_html():
-    os.environ.update(PY_DEVTOOLS_HIGHLIGHT='true')
+    os.environ.update(PY_DEVTOOLS_HIGHLIGHT='true', PY_DEVTOOLS_WIDTH='80')
     conv = Ansi2HTMLConverter()
     fast = 'FAST' in os.environ
 

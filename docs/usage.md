@@ -6,10 +6,10 @@ and readable way to print stuff during development. (If you know why this is, I'
 **The wait is over:**
 
 ```py
-{!examples/example1.py!}
+{!examples/example.py!}
 ```
 
-{!examples/example1.html!}
+{!examples/example.html!}
 
 `debug` is like `print` after a good night's sleep and lots of coffee:
 
@@ -21,10 +21,10 @@ and readable way to print stuff during development. (If you know why this is, I'
 A more complex example of `debug` shows more of what it can do.
 
 ```py
-{!examples/example2.py!}
+{!examples/complex.py!}
 ```
 
-{!examples/example2.html!}
+{!examples/complex.html!}
 
 ## Other debug tools
 
@@ -35,10 +35,10 @@ The debug namespace includes a number of other useful functions:
 * `debug.breakpoint()` introduces a breakpoint using `pdb`
 
 ```py
-{!examples/more_debug.py!}
+{!examples/other.py!}
 ```
 
-{!examples/more_debug.html!}
+{!examples/other.html!}
 
 ### Prettier print
 

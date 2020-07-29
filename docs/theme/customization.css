@@ -1,14 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap');
+
 .divider {
   text-align: center;
   font-weight: bold;
   margin: -12px;
 }
 .ansi2html-content {
+  font-family: 'Ubuntu Mono', monospace;
+  font-size: 0.9em;
   white-space: pre-wrap;
   word-wrap: break-word;
   line-height: normal;
   background-color: #300a24;
-  padding: 20px 30px;
+  padding: 10px 15px;
   color: white !important;
   border-radius: 5px;
 }

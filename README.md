@@ -6,7 +6,7 @@
 [![versions](https://img.shields.io/pypi/pyversions/python-devtools.svg)](https://github.com/samuelcolvin/python-devtools)
 [![license](https://img.shields.io/github/license/samuelcolvin/python-devtools.svg)](https://github.com/samuelcolvin/python-devtools/blob/master/LICENSE)
 
-### Python's missing debug print command and other development tools.
+**Python's missing debug print command and other development tools.**
 
 For more information, see [documentation](https://python-devtools.helpmanual.io/).
 

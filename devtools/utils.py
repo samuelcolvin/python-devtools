@@ -41,10 +41,9 @@ def activate_win_color() -> bool:  # pragma: no cover
 
     Code snippet source: https://bugs.python.org/msg291732
     """
-    import os
-    import msvcrt
     import ctypes
-
+    import msvcrt
+    import os
     from ctypes import wintypes
 
     def _check_bool(result, func, args):

@@ -31,8 +31,8 @@ class SkipPretty(Exception):
 def get_pygments():
     try:
         import pygments
-        from pygments.lexers import PythonLexer
         from pygments.formatters import Terminal256Formatter
+        from pygments.lexers import PythonLexer
     except ImportError:  # pragma: no cover
         return None, None, None
     else:

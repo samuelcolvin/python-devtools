@@ -2,7 +2,8 @@ import random
 
 from devtools import debug
 
-# debug.format() behaves the same as debug() except it returns an object to inspect or print
+# debug.format() behaves the same as debug() except it
+# returns an object to inspect or print
 r = debug.format(x=123, y=321)
 print(r)
 print(repr(r))

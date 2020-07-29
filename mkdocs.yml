@@ -1,0 +1,46 @@
+site_name: pydantic
+site_description: Python's missing debug print command and other development tools.
+strict: true
+site_url: https://python-devtools.helpmanual.io/
+
+theme:
+  name: 'material'
+  custom_dir: 'docs/theme'
+  palette:
+    primary: pink
+    accent: pink
+
+repo_name: samuelcolvin/python-devtools
+repo_url: https://github.com/samuelcolvin/python-devtools
+google_analytics:
+- 'UA-62733018-4'
+- 'auto'
+
+extra_css:
+- 'theme/customization.css'
+
+nav:
+- Overview: index.md
+- install.md
+- usage.md
+- history.md
+
+markdown_extensions:
+- markdown.extensions.codehilite:
+    guess_lang: false
+- markdown_include.include:
+    base_path: docs
+- toc:
+    permalink: 🔗
+- admonition
+- codehilite
+- extra
+- attr_list
+
+plugins:
+- search
+- exclude:
+    glob:
+    - build/*
+    - examples/*
+    - requirements.txt

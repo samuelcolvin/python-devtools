@@ -5,7 +5,6 @@ env36/
 env37/
 *.py[cod]
 *.egg-info/
-build/
 dist/
 .cache/
 .mypy_cache/
@@ -14,6 +13,8 @@ test.py
 htmlcov/
 benchmarks/*.json
 docs/_build/
+/docs/.*.md
 docs/examples/*.html
 old-version/
 *.swp
+/site/

@@ -358,3 +358,7 @@ def test_asyncpg_record():
         "    'b': 42,\n"
         "})>"
     )
+
+
+def test_dict_type():
+    assert pformat(type({1: 2})) == "<class 'dict'>"

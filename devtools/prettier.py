@@ -108,7 +108,12 @@ class PrettyFormat:
             # very blunt check for things that look like dictionaries but do not necessarily inherit from Mapping
             # e.g. asyncpg Records
             # HELP: are there any other checks we should include here?
-            if hasattr(value, '__getitem__') and hasattr(value, 'items') and callable(value.items):
+            if (
+                hasattr(value, '__getitem__')
+                and hasattr(value, 'items')
+                and callable(value.items)
+                and not type(value) == type
+            ):
                 self._format_dict(value, value_repr, indent_current, indent_new)
                 return
 

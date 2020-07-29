@@ -22,6 +22,7 @@ extra_css:
 nav:
 - Overview: index.md
 - install.md
+- usage.md
 - changelog.md
 
 markdown_extensions:

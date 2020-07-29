@@ -310,12 +310,12 @@ class Debug:
         last_line = None
 
         for instr in instructions:  # pragma: no branch
-            if instr.starts_line:
-                if instr.opname in {'LOAD_GLOBAL', 'LOAD_NAME'} and instr.argval == func_name:
-                    first_line = instr.starts_line
-                elif instr.opname == 'LOAD_GLOBAL' and instr.argval == 'debug':
-                    if next(instructions).argval == func_name:
-                        first_line = instr.starts_line
+            if (
+                instr.starts_line
+                and instr.opname in {'LOAD_GLOBAL', 'LOAD_NAME'}
+                and (instr.argval == func_name or (instr.argval == 'debug' and next(instructions).argval == func_name))
+            ):
+                first_line = instr.starts_line
             if instr.offset == call_frame.f_lasti:
                 break
 

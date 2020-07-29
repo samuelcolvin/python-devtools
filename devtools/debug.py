@@ -257,8 +257,8 @@ class Debug:
         All we're trying to do here is build an AST of the function call statement. However numerous ugly interfaces,
         lack on introspection support and changes between python versions make this extremely hard.
         """
-        from textwrap import dedent
         import ast
+        from textwrap import dedent
 
         def get_code(_last_line: int) -> str:
             lines = file_lines[first_line - 1 : _last_line]

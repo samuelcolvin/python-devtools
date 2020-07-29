@@ -3,7 +3,7 @@ from importlib.machinery import SourceFileLoader
 from pathlib import Path
 from setuptools import setup
 
-description = 'Development tools for python'
+description = "Python's missing debug print command and other development tools."
 THIS_DIR = Path(__file__).resolve().parent
 try:
     history = (THIS_DIR / 'HISTORY.md').read_text()

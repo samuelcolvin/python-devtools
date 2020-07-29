@@ -6,9 +6,7 @@
 [![versions](https://img.shields.io/pypi/pyversions/python-devtools.svg)](https://github.com/samuelcolvin/python-devtools)
 [![license](https://img.shields.io/github/license/samuelcolvin/python-devtools.svg)](https://github.com/samuelcolvin/python-devtools/blob/master/LICENSE)
 
-Dev tools for python.
-
-The debug print command python never had (and other things).
+### Python's missing debug print command and other development tools.
 
 For more information, see [documentation](https://python-devtools.helpmanual.io/).
 
@@ -20,7 +18,10 @@ Just
 pip install devtools[pygments]
 ```
 
-(`pygments` is not required but if it's available output will be highlighted and easier to read.)
+`pygments` is not required but if it's installed, output will be highlighted and easier to read.
+
+`devtools` has no other required dependencies except python 3.6, 3.7, or 3.8.
+If you've got python 3.6+ and `pip` installed, you're good to go.
 
 ## Usage
 

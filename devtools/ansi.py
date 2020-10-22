@@ -8,7 +8,7 @@ __all__ = 'sformat', 'sprint'
 
 MYPY = False
 if MYPY:
-    from typing import Any
+    from typing import Any, Union
 
 
 def strip_ansi(value):
@@ -93,7 +93,7 @@ class Style(IntEnum):
                     s = self.styles[s]
                 except KeyError:
                     raise ValueError('invalid style "{}"'.format(s))
-            codes.append(str(s.value))
+            codes.append(_style_as_int(s.value))
 
         if codes:
             r = _ansi_template.format(';'.join(codes)) + text
@@ -101,7 +101,7 @@ class Style(IntEnum):
             r = text
 
         if reset:
-            r += _ansi_template.format(self.reset)
+            r += _ansi_template.format(_style_as_int(self.reset))
         return r
 
     @property
@@ -119,6 +119,13 @@ class Style(IntEnum):
             return repr(self)
         else:
             return super().__str__()
+
+
+def _style_as_int(v: 'Union[Style, int]') -> str:
+    if isinstance(v, Style):
+        return str(v.value)
+    else:
+        return str(v)
 
 
 sformat = Style(-1)

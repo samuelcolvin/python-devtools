@@ -36,6 +36,18 @@ def test_dict():
         '}')
 
 
+def test_mappingproxy():
+    v = pformat(C.__dict__)
+    print(v)
+    assert v == (
+        "<mappingproxy({{\n"
+        "    '__module__': 'tests.test_prettier',\n"
+        "    '__dict__': <attribute '__dict__' of 'C' objects>,\n"
+        "    '__weakref__': <attribute '__weakref__' of 'C' objects>,"
+        "    '__doc__': None,"
+        "})>"
+
+
 def test_print(capsys):
     pprint({1: 2, 3: 4})
     stdout, stderr = capsys.readouterr()

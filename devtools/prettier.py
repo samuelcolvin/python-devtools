@@ -2,6 +2,7 @@ import io
 import os
 from collections import OrderedDict
 from collections.abc import Generator
+from types import MappingProxyType
 
 from .utils import env_true, isatty
 
@@ -56,7 +57,7 @@ class PrettyFormat:
         self._simple_cutoff = simple_cutoff
         self._width = width
         self._type_lookup = [
-            (dict, self._format_dict),
+            ((dict, MappingProxyType), self._format_dict),
             ((str, bytes), self._format_str_bytes),
             (tuple, self._format_tuples),
             ((list, set, frozenset), self._format_list_like),

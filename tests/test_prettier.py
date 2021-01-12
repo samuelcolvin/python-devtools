@@ -37,7 +37,9 @@ def test_dict():
 
 
 def test_mappingproxy():
-    class C: pass
+    class C:
+        pass
+
     v = pformat(C.__dict__)
     print(v)
     assert v == (

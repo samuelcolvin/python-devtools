@@ -4,7 +4,7 @@ flake8==3.8.3
 isort==5.2.1
 pycodestyle==2.6.0
 pyflakes==2.2.0
-Pygments==2.6.1
+Pygments==2.7.4
 pydantic==1.6.1
 pytest==5.4.3
 pytest-cov==2.10.0

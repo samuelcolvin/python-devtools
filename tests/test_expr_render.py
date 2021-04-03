@@ -307,3 +307,19 @@ def test_executing_failure():
         '(executing failed to find the calling node)\n'
         '    [1, 2] (list) len=2'
     )
+
+
+def test_format_inside_error():
+    debug.timer()
+    x = 1
+    y = 2
+    try:
+        raise RuntimeError(debug.format([x, y]))
+    except RuntimeError as e:
+        v = str(e)
+
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    assert s == (
+        'tests/test_expr_render.py:<line no> test_format_inside_error\n'
+        '    [x, y]: [1, 2] (list) len=2'
+    )

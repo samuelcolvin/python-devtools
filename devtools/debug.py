@@ -103,9 +103,7 @@ class DebugOutput:
 class Debug:
     output_class = DebugOutput
 
-    def __init__(
-        self, *, warnings: 'Optional[bool]' = None, highlight: 'Optional[bool]' = None
-    ):
+    def __init__(self, *, warnings: 'Optional[bool]' = None, highlight: 'Optional[bool]' = None):
         self._show_warnings = env_bool(warnings, 'PY_DEVTOOLS_WARNINGS', True)
         self._highlight = highlight
 

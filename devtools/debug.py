@@ -104,20 +104,18 @@ class Debug:
     output_class = DebugOutput
 
     def __init__(
-        self, *, warnings: 'Optional[bool]' = None, highlight: 'Optional[bool]' = None, frame_context_length: int = 50
+        self, *, warnings: 'Optional[bool]' = None, highlight: 'Optional[bool]' = None
     ):
         self._show_warnings = env_bool(warnings, 'PY_DEVTOOLS_WARNINGS', True)
         self._highlight = highlight
-        # 50 lines should be enough to make sure we always get the entire function definition
-        self._frame_context_length = frame_context_length
 
     def __call__(self, *args, file_=None, flush_=True, **kwargs) -> None:
-        d_out = self._process(args, kwargs, 'debug')
+        d_out = self._process(args, kwargs)
         s = d_out.str(use_highlight(self._highlight, file_))
         print(s, file=file_, flush=flush_)
 
     def format(self, *args, **kwargs) -> DebugOutput:
-        return self._process(args, kwargs, 'format')
+        return self._process(args, kwargs)
 
     def breakpoint(self):
         import pdb
@@ -127,7 +125,7 @@ class Debug:
     def timer(self, name=None, *, verbose=True, file=None, dp=3) -> Timer:
         return Timer(name=name, verbose=verbose, file=file, dp=dp)
 
-    def _process(self, args, kwargs, func_name: str) -> DebugOutput:
+    def _process(self, args, kwargs) -> DebugOutput:
         """
         BEWARE: this must be called from a function exactly 2 levels below the top of the stack.
         """

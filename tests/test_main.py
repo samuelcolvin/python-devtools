@@ -78,7 +78,7 @@ def test_odd_path(mocker):
 
 
 def test_small_call_frame():
-    debug_ = Debug(warnings=False, frame_context_length=2)
+    debug_ = Debug(warnings=False)
     v = debug_.format(
         1,
         2,
@@ -94,7 +94,7 @@ def test_small_call_frame():
 
 @pytest.mark.xfail(sys.platform == 'win32', reason='yet unknown windows problem')
 def test_small_call_frame_warning():
-    debug_ = Debug(frame_context_length=2)
+    debug_ = Debug()
     v = debug_.format(
         1,
         2,

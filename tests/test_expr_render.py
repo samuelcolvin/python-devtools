@@ -52,7 +52,14 @@ def test_exotic_types():
     s = re.sub(r':\d{2,}', ':<line no>', str(v))
     s = re.sub(r'(at 0x)\w+', r'\1<hash>', s)
     print('\n---\n{}\n---'.format(v))
-    # list and generator comprehensions are wrong because ast is wrong, see https://bugs.python.org/issue31241
+
+    # Generator expression source changed in 3.8 to include parentheses, see:
+    # https://github.com/gristlabs/asttokens/pull/50
+    # https://bugs.python.org/issue31241
+    genexpr_source = "a for a in aa"
+    if sys.version_info[:2] > (3, 7):
+        genexpr_source = f"({genexpr_source})"
+
     assert (
         "tests/test_expr_render.py:<line no> test_exotic_types\n"
         "    sum(aa): 6 (int)\n"
@@ -68,7 +75,7 @@ def test_exotic_types():
         "        2: 3,\n"
         "        3: 4,\n"
         "    } (dict) len=3\n"
-        "    (a for a in aa): (\n"
+        f"    {genexpr_source}: (\n"
         "        1,\n"
         "        2,\n"
         "        3,\n"

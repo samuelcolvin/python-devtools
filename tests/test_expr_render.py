@@ -1,4 +1,3 @@
-import ast
 import asyncio
 import re
 import sys
@@ -53,7 +52,14 @@ def test_exotic_types():
     s = re.sub(r':\d{2,}', ':<line no>', str(v))
     s = re.sub(r'(at 0x)\w+', r'\1<hash>', s)
     print('\n---\n{}\n---'.format(v))
-    # list and generator comprehensions are wrong because ast is wrong, see https://bugs.python.org/issue31241
+
+    # Generator expression source changed in 3.8 to include parentheses, see:
+    # https://github.com/gristlabs/asttokens/pull/50
+    # https://bugs.python.org/issue31241
+    genexpr_source = "a for a in aa"
+    if sys.version_info[:2] > (3, 7):
+        genexpr_source = f"({genexpr_source})"
+
     assert (
         "tests/test_expr_render.py:<line no> test_exotic_types\n"
         "    sum(aa): 6 (int)\n"
@@ -69,7 +75,7 @@ def test_exotic_types():
         "        2: 3,\n"
         "        3: 4,\n"
         "    } (dict) len=3\n"
-        "    (a for a in aa): (\n"
+        f"    {genexpr_source}: (\n"
         "        1,\n"
         "        2,\n"
         "        3,\n"
@@ -223,9 +229,8 @@ def test_syntax_warning():
     # check only the original code is included in the warning
     s = re.sub(r':\d{2,}', ':<line no>', str(v))
     assert s == (
-        'tests/test_expr_render.py:<line no> func '
-        '(error parsing code, SyntaxError: unexpected EOF while parsing (test_expr_render.py, line 8))\n'
-        '    1 (int)'
+        'tests/test_expr_render.py:<line no> func\n'
+        '    abs( abs( abs( abs( abs( -1 ) ) ) ) ): 1 (int)'
     )
 
 
@@ -249,8 +254,11 @@ def test_no_syntax_warning():
         )
 
     v = func()
-    assert '(error parsing code' not in str(v)
-    assert 'func' in str(v)
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    assert s == (
+        'tests/test_expr_render.py:<line no> func\n'
+        '    abs( abs( abs( abs( abs( -1 ) ) ) ) ): 1 (int)'
+    )
 
 
 @pytest.mark.xfail(sys.platform == 'win32', reason='yet unknown windows problem')
@@ -266,7 +274,7 @@ def test_await():
     s = re.sub(r':\d{2,}', ':<line no>', str(v))
     assert (
         'tests/test_expr_render.py:<line no> bar\n'
-        '    1 (int)'
+        '    await foo(): 1 (int)'
     ) == s
 
 
@@ -282,10 +290,43 @@ def test_other_debug_arg():
     )
 
 
-def test_wrong_ast_type(mocker):
-    mocked_ast_parse = mocker.patch('ast.parse')
+def test_other_debug_arg_not_literal():
+    debug.timer()
+    x = 1
+    y = 2
+    v = debug.format([x, y])
 
-    code = 'async def wrapper():\n x = "foobar"'
-    mocked_ast_parse.return_value = ast.parse(code, filename='testing.py').body[0].body[0].value
-    v = debug.format('x')
-    assert "(error parsing code, found <class 'unittest.mock.MagicMock'> not Call)" in v.str()
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    assert s == (
+        'tests/test_expr_render.py:<line no> test_other_debug_arg_not_literal\n'
+        '    [x, y]: [1, 2] (list) len=2'
+    )
+
+
+def test_executing_failure():
+    debug.timer()
+    x = 1
+    y = 2
+
+    # executing fails inside a pytest assert ast the AST is modified
+    assert re.sub(r':\d{2,}', ':<line no>', str(debug.format([x, y]))) == (
+        'tests/test_expr_render.py:<line no> test_executing_failure '
+        '(executing failed to find the calling node)\n'
+        '    [1, 2] (list) len=2'
+    )
+
+
+def test_format_inside_error():
+    debug.timer()
+    x = 1
+    y = 2
+    try:
+        raise RuntimeError(debug.format([x, y]))
+    except RuntimeError as e:
+        v = str(e)
+
+    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    assert s == (
+        'tests/test_expr_render.py:<line no> test_format_inside_error\n'
+        '    [x, y]: [1, 2] (list) len=2'
+    )

@@ -21,9 +21,9 @@ class TimerResult:
 
     def str(self, dp=3):
         if self._name:
-            return '{}: {:0.{dp}f}s elapsed'.format(self._name, self.elapsed(), dp=dp)
+            return f'{self._name}: {self.elapsed():0.{dp}f}s elapsed'
         else:
-            return '{:0.{dp}f}s elapsed'.format(self.elapsed(), dp=dp)
+            return f'{self.elapsed():0.{dp}f}s elapsed'
 
     def __str__(self):
         return self.str()
@@ -65,21 +65,18 @@ class Timer:
             if not r.finish:
                 r.capture()
             if verbose:
-                print('    {}'.format(r.str(self.dp)), file=self.file)
+                print(f'    {r.str(self.dp)}', file=self.file)
             times.add(r.elapsed())
 
         if times:
             from statistics import mean, stdev
 
             print(
-                _SUMMARY_TEMPLATE.format(
-                    count=len(times),
-                    mean=mean(times),
-                    stddev=stdev(times) if len(times) > 1 else 0,
-                    min=min(times),
-                    max=max(times),
-                    dp=self.dp,
-                ),
+                f'{len(times)} times: '
+                f'mean={mean(times):0.{self.dp}f}s '
+                f'stdev={stdev(times) if len(times) > 1 else 0:0.{self.dp}f}s '
+                f'min={min(times):0.{self.dp}f}s '
+                f'max={max(times):0.{self.dp}f}s',
                 file=self.file,
                 flush=True,
             )

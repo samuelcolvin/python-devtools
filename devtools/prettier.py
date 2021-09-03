@@ -141,7 +141,7 @@ class PrettyFormat:
             open_, split_, after_, close_ = 'OrderedDict([\n', ', ', '),\n', '])'
             before_ += '('
         elif type(value) != dict:
-            open_, close_ = '<{}({{\n'.format(value.__class__.__name__), '})>'
+            open_, close_ = f'<{value.__class__.__name__}({{\n', '})>'
 
         self._stream.write(open_)
         for k, v in value.items():

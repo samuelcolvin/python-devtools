@@ -92,7 +92,7 @@ class Style(IntEnum):
                 try:
                     s = self.styles[s]
                 except KeyError:
-                    raise ValueError('invalid style "{}"'.format(s))
+                    raise ValueError(f'invalid style "{s}"')
             codes.append(_style_as_int(s.value))
 
         if codes:

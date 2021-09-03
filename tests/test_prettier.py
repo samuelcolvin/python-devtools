@@ -159,6 +159,28 @@ def test_short_bytes():
     assert "b'abcdefghijklmnopqrstuvwxyz'" == pformat(string.ascii_lowercase.encode())
 
 
+def test_bytearray():
+    pformat_ = PrettyFormat(width=18)
+    v = pformat_(bytearray(string.ascii_lowercase.encode()))
+    assert v == """\
+bytearray(
+    b'abcdefghijk'
+    b'lmnopqrstuv'
+    b'wxyz'
+)"""
+
+
+def test_map():
+    pformat_ = PrettyFormat(width=18)
+    v = pformat_(map(str.strip, ['x', 'y ', ' z']))
+    assert v == """\
+map(
+    'x',
+    'y',
+    'z',
+)"""
+
+
 @pytest.mark.skipif(numpy is None, reason='numpy not installed')
 def test_indent_numpy():
     v = pformat({'numpy test': numpy.array(range(20))})

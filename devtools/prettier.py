@@ -3,7 +3,7 @@ import os
 from collections import OrderedDict
 from collections.abc import Generator
 
-from .utils import env_true, isatty
+from .utils import LaxMapping, env_true, isatty
 
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 MYPY = False
@@ -39,6 +39,10 @@ def get_pygments():
         return pygments, PythonLexer(), Terminal256Formatter(style='vim')
 
 
+# common generator types (this is not exhaustive: things like chain are not include to avoid the import)
+generator_types = Generator, map, filter, zip, enumerate
+
+
 class PrettyFormat:
     def __init__(
         self,
@@ -60,7 +64,10 @@ class PrettyFormat:
             ((str, bytes), self._format_str_bytes),
             (tuple, self._format_tuples),
             ((list, set, frozenset), self._format_list_like),
-            (Generator, self._format_generators),
+            (bytearray, self._format_bytearray),
+            (generator_types, self._format_generator),
+            # put this last as the check can be slow
+            (LaxMapping, self._format_dict),
         ]
 
     def __call__(self, value: 'Any', *, indent: int = 0, indent_first: bool = False, highlight: bool = False):
@@ -105,18 +112,6 @@ class PrettyFormat:
                     func(value, value_repr, indent_current, indent_new)
                     return
 
-            # very blunt check for things that look like dictionaries but do not necessarily inherit from Mapping
-            # e.g. asyncpg Records
-            # HELP: are there any other checks we should include here?
-            if (
-                hasattr(value, '__getitem__')
-                and hasattr(value, 'items')
-                and callable(value.items)
-                and not type(value) == type
-            ):
-                self._format_dict(value, value_repr, indent_current, indent_new)
-                return
-
             self._format_raw(value, value_repr, indent_current, indent_new)
 
     def _render_pretty(self, gen, indent: int):
@@ -139,7 +134,7 @@ class PrettyFormat:
                     # shouldn't happen but will
                     self._stream.write(repr(v))
 
-    def _format_dict(self, value: 'Any', value_repr: str, indent_current: int, indent_new: int):
+    def _format_dict(self, value: 'Any', _: str, indent_current: int, indent_new: int):
         open_, before_, split_, after_, close_ = '{\n', indent_new * self._c, ': ', ',\n', '}'
         if isinstance(value, OrderedDict):
             open_, split_, after_, close_ = 'OrderedDict([\n', ', ', '),\n', '])'
@@ -156,9 +151,7 @@ class PrettyFormat:
             self._stream.write(after_)
         self._stream.write(indent_current * self._c + close_)
 
-    def _format_list_like(
-        self, value: 'Union[list, tuple, set]', value_repr: str, indent_current: int, indent_new: int
-    ):
+    def _format_list_like(self, value: 'Union[list, tuple, set]', _: str, indent_current: int, indent_new: int):
         open_, close_ = '(', ')'
         for t, *oc in PARENTHESES_LOOKUP:
             if isinstance(value, t):
@@ -211,17 +204,26 @@ class PrettyFormat:
                 start = pos
             yield line[start:]
 
-    def _format_generators(self, value: Generator, value_repr: str, indent_current: int, indent_new: int):
+    def _format_generator(self, value: Generator, value_repr: str, indent_current: int, indent_new: int):
         if self._repr_generators:
             self._stream.write(value_repr)
         else:
-            self._stream.write('(\n')
+            name = value.__class__.__name__
+            if name == 'generator':
+                # no name if the name is just "generator"
+                self._stream.write('(\n')
+            else:
+                self._stream.write(f'{name}(\n')
             for v in value:
                 self._format(v, indent_new, True)
                 self._stream.write(',\n')
             self._stream.write(indent_current * self._c + ')')
 
-    def _format_raw(self, value: 'Any', value_repr: str, indent_current: int, indent_new: int):
+    def _format_bytearray(self, value: 'Any', value_repr: str, indent_current: int, indent_new: int):
+        self._stream.write('bytearray')
+        self._format_str_bytes(bytes(value), value_repr[10:-1], indent_current, indent_new)
+
+    def _format_raw(self, _: 'Any', value_repr: str, indent_current: int, indent_new: int):
         lines = value_repr.splitlines(True)
         if len(lines) > 1 or (len(value_repr) + indent_current) >= self._width:
             self._stream.write('(\n')

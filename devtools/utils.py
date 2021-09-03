@@ -1,7 +1,7 @@
 import os
 import sys
 
-__all__ = ('isatty',)
+__all__ = 'isatty', 'env_true', 'env_bool', 'use_highlight', 'is_literal', 'LaxMapping'
 
 MYPY = False
 if MYPY:
@@ -106,3 +106,17 @@ def is_literal(s):
         return False
     else:
         return True
+
+
+class MetaLaxMapping(type):
+    def __instancecheck__(self, instance):
+        return (
+            hasattr(instance, '__getitem__')
+            and hasattr(instance, 'items')
+            and callable(instance.items)
+            and type(instance) != type
+        )
+
+
+class LaxMapping(metaclass=MetaLaxMapping):
+    pass

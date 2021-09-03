@@ -185,19 +185,23 @@ class Debug:
         for name, value in kwargs.items():
             yield self.output_class.arg_class(value, name=name)
 
-    def _process_args(self, ex, args, kwargs) -> 'Generator[DebugArgument, None, None]':  # noqa: C901
+    def _process_args(self, ex, args, kwargs) -> 'Generator[DebugArgument, None, None]':
         import ast
 
         func_ast = ex.node
         atok = ex.source.asttokens()
         for arg, ast_arg in zip(args, func_ast.args):
-            name = ' '.join(map(str.strip, atok.get_text(ast_arg).splitlines()))
-            yield self.output_class.arg_class(arg, name=name)
+            if isinstance(ast_arg, ast.Name):
+                yield self.output_class.arg_class(arg, name=ast_arg.id)
+            else:
+                name = ' '.join(map(str.strip, atok.get_text(ast_arg).splitlines()))
+                yield self.output_class.arg_class(arg, name=name)
 
         kw_arg_names = {}
         for kw in func_ast.keywords:
             if isinstance(kw.value, ast.Name):
                 kw_arg_names[kw.arg] = kw.value.id
+
         for name, value in kwargs.items():
             yield self.output_class.arg_class(value, name=name, variable=kw_arg_names.get(name))
 

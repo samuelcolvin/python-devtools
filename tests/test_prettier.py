@@ -181,6 +181,17 @@ map(
 )"""
 
 
+def test_filter():
+    pformat_ = PrettyFormat(width=18)
+    v = pformat_(filter(None, [1, 2, False, 3]))
+    assert v == """\
+filter(
+    1,
+    2,
+    3,
+)"""
+
+
 @pytest.mark.skipif(numpy is None, reason='numpy not installed')
 def test_indent_numpy():
     v = pformat({'numpy test': numpy.array(range(20))})

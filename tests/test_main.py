@@ -247,10 +247,10 @@ def test_exec(capsys):
 
 def test_colours():
     v = debug.format(range(6))
-    s = normalise_output(v.str(True))
+    s = v.str(True)
     assert s.startswith('\x1b[35mtests'), repr(s)
-    s2 = strip_ansi(s)
-    assert s2 == v.str(), repr(s2)
+    s2 = normalise_output(strip_ansi(s))
+    assert s2 == normalise_output(v.str()), repr(s2)
 
 
 def test_colours_warnings(mocker):

@@ -1,11 +1,11 @@
 import os
 import sys
 
-__all__ = ('isatty',)
+__all__ = 'isatty', 'env_true', 'env_bool', 'use_highlight', 'is_literal', 'LaxMapping', 'DataClassType'
 
 MYPY = False
 if MYPY:
-    from typing import Optional
+    from typing import Any, Optional
 
 
 def isatty(stream=None):
@@ -106,3 +106,32 @@ def is_literal(s):
         return False
     else:
         return True
+
+
+class MetaLaxMapping(type):
+    def __instancecheck__(self, instance: 'Any') -> bool:
+        return (
+            hasattr(instance, '__getitem__')
+            and hasattr(instance, 'items')
+            and callable(instance.items)
+            and type(instance) != type
+        )
+
+
+class LaxMapping(metaclass=MetaLaxMapping):
+    pass
+
+
+class MetaDataClassType(type):
+    def __instancecheck__(self, instance: 'Any') -> bool:
+        try:
+            from dataclasses import _is_dataclass_instance
+        except ImportError:
+            # python 3.6
+            return False
+        else:
+            return _is_dataclass_instance(instance)
+
+
+class DataClassType(metaclass=MetaDataClassType):
+    pass

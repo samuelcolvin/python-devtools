@@ -3,12 +3,12 @@ import os
 from collections import OrderedDict
 from collections.abc import Generator
 
-from .utils import env_true, isatty
+from .utils import DataClassType, LaxMapping, env_true, isatty
 
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 MYPY = False
 if MYPY:
-    from typing import Any, Union
+    from typing import Any, Iterable, Union
 
 PARENTHESES_LOOKUP = [
     (list, '[', ']'),
@@ -39,6 +39,10 @@ def get_pygments():
         return pygments, PythonLexer(), Terminal256Formatter(style='vim')
 
 
+# common generator types (this is not exhaustive: things like chain are not include to avoid the import)
+generator_types = Generator, map, filter, zip, enumerate
+
+
 class PrettyFormat:
     def __init__(
         self,
@@ -60,7 +64,11 @@ class PrettyFormat:
             ((str, bytes), self._format_str_bytes),
             (tuple, self._format_tuples),
             ((list, set, frozenset), self._format_list_like),
-            (Generator, self._format_generators),
+            (bytearray, self._format_bytearray),
+            (generator_types, self._format_generator),
+            # put this last as the check can be slow
+            (LaxMapping, self._format_dict),
+            (DataClassType, self._format_dataclass),
         ]
 
     def __call__(self, value: 'Any', *, indent: int = 0, indent_first: bool = False, highlight: bool = False):
@@ -96,7 +104,7 @@ class PrettyFormat:
                     return
 
         value_repr = repr(value)
-        if len(value_repr) <= self._simple_cutoff and not isinstance(value, Generator):
+        if len(value_repr) <= self._simple_cutoff and not isinstance(value, generator_types):
             self._stream.write(value_repr)
         else:
             indent_new = indent_current + self._indent_step
@@ -104,18 +112,6 @@ class PrettyFormat:
                 if isinstance(value, t):
                     func(value, value_repr, indent_current, indent_new)
                     return
-
-            # very blunt check for things that look like dictionaries but do not necessarily inherit from Mapping
-            # e.g. asyncpg Records
-            # HELP: are there any other checks we should include here?
-            if (
-                hasattr(value, '__getitem__')
-                and hasattr(value, 'items')
-                and callable(value.items)
-                and not type(value) == type
-            ):
-                self._format_dict(value, value_repr, indent_current, indent_new)
-                return
 
             self._format_raw(value, value_repr, indent_current, indent_new)
 
@@ -139,12 +135,12 @@ class PrettyFormat:
                     # shouldn't happen but will
                     self._stream.write(repr(v))
 
-    def _format_dict(self, value: 'Any', value_repr: str, indent_current: int, indent_new: int):
+    def _format_dict(self, value: 'Any', _: str, indent_current: int, indent_new: int):
         open_, before_, split_, after_, close_ = '{\n', indent_new * self._c, ': ', ',\n', '}'
         if isinstance(value, OrderedDict):
             open_, split_, after_, close_ = 'OrderedDict([\n', ', ', '),\n', '])'
             before_ += '('
-        elif not isinstance(value, dict):
+        elif type(value) != dict:
             open_, close_ = '<{}({{\n'.format(value.__class__.__name__), '})>'
 
         self._stream.write(open_)
@@ -156,9 +152,7 @@ class PrettyFormat:
             self._stream.write(after_)
         self._stream.write(indent_current * self._c + close_)
 
-    def _format_list_like(
-        self, value: 'Union[list, tuple, set]', value_repr: str, indent_current: int, indent_new: int
-    ):
+    def _format_list_like(self, value: 'Union[list, tuple, set]', _: str, indent_current: int, indent_new: int):
         open_, close_ = '(', ')'
         for t, *oc in PARENTHESES_LOOKUP:
             if isinstance(value, t):
@@ -194,15 +188,18 @@ class PrettyFormat:
         else:
             lines = list(self._wrap_lines(value, indent_new))
             if len(lines) > 1:
-                self._stream.write('(\n')
-                prefix = indent_new * self._c
-                for line in lines:
-                    self._stream.write(prefix + repr(line) + '\n')
-                self._stream.write(indent_current * self._c + ')')
+                self._str_lines(lines, indent_current, indent_new)
             else:
                 self._stream.write(value_repr)
 
-    def _wrap_lines(self, s, indent_new):
+    def _str_lines(self, lines: 'Iterable[str]', indent_current: int, indent_new: int) -> None:
+        self._stream.write('(\n')
+        prefix = indent_new * self._c
+        for line in lines:
+            self._stream.write(prefix + repr(line) + '\n')
+        self._stream.write(indent_current * self._c + ')')
+
+    def _wrap_lines(self, s, indent_new) -> 'Generator[str, None, None]':
         width = self._width - indent_new - 3
         for line in s.splitlines(True):
             start = 0
@@ -211,17 +208,38 @@ class PrettyFormat:
                 start = pos
             yield line[start:]
 
-    def _format_generators(self, value: Generator, value_repr: str, indent_current: int, indent_new: int):
+    def _format_generator(self, value: Generator, value_repr: str, indent_current: int, indent_new: int):
         if self._repr_generators:
             self._stream.write(value_repr)
         else:
-            self._stream.write('(\n')
+            name = value.__class__.__name__
+            if name == 'generator':
+                # no name if the name is just "generator"
+                self._stream.write('(\n')
+            else:
+                self._stream.write(f'{name}(\n')
             for v in value:
                 self._format(v, indent_new, True)
                 self._stream.write(',\n')
             self._stream.write(indent_current * self._c + ')')
 
-    def _format_raw(self, value: 'Any', value_repr: str, indent_current: int, indent_new: int):
+    def _format_bytearray(self, value: 'Any', _: str, indent_current: int, indent_new: int):
+        self._stream.write('bytearray')
+        lines = self._wrap_lines(bytes(value), indent_new)
+        self._str_lines(lines, indent_current, indent_new)
+
+    def _format_dataclass(self, value: 'Any', _: str, indent_current: int, indent_new: int):
+        from dataclasses import asdict
+
+        before_ = indent_new * self._c
+        self._stream.write(f'{value.__class__.__name__}(\n')
+        for k, v in asdict(value).items():
+            self._stream.write(f'{before_}{k}=')
+            self._format(v, indent_new, False)
+            self._stream.write(',\n')
+        self._stream.write(indent_current * self._c + ')')
+
+    def _format_raw(self, _: 'Any', value_repr: str, indent_current: int, indent_new: int):
         lines = value_repr.splitlines(True)
         if len(lines) > 1 or (len(value_repr) + indent_current) >= self._width:
             self._stream.write('(\n')

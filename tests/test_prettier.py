@@ -1,7 +1,9 @@
 import os
 import string
 import sys
-from collections import OrderedDict, namedtuple
+from collections import Counter, OrderedDict, namedtuple
+from dataclasses import dataclass
+from typing import List
 from unittest.mock import MagicMock
 
 import pytest
@@ -159,6 +161,80 @@ def test_short_bytes():
     assert "b'abcdefghijklmnopqrstuvwxyz'" == pformat(string.ascii_lowercase.encode())
 
 
+def test_bytearray():
+    pformat_ = PrettyFormat(width=18)
+    v = pformat_(bytearray(string.ascii_lowercase.encode()))
+    assert v == """\
+bytearray(
+    b'abcdefghijk'
+    b'lmnopqrstuv'
+    b'wxyz'
+)"""
+
+
+def test_bytearray_short():
+    v = pformat(bytearray(b'boo'))
+    assert v == """\
+bytearray(
+    b'boo'
+)"""
+
+
+def test_map():
+    v = pformat(map(str.strip, ['x', 'y ', ' z']))
+    assert v == """\
+map(
+    'x',
+    'y',
+    'z',
+)"""
+
+
+def test_filter():
+    v = pformat(filter(None, [1, 2, False, 3]))
+    assert v == """\
+filter(
+    1,
+    2,
+    3,
+)"""
+
+
+def test_counter():
+    c = Counter()
+    c['x'] += 1
+    c['x'] += 1
+    c['y'] += 1
+    v = pformat(c)
+    assert v == """\
+<Counter({
+    'x': 2,
+    'y': 1,
+})>"""
+
+
+@pytest.mark.skipif(sys.version_info > (3, 7), reason='no datalcasses before 3.6')
+def test_dataclass():
+    @dataclass
+    class FooDataclass:
+        x: int
+        y: List[int]
+
+    f = FooDataclass(123, [1, 2, 3, 4])
+    v = pformat(f)
+    print(v)
+    assert v == """\
+FooDataclass(
+    x=123,
+    y=[
+        1,
+        2,
+        3,
+        4,
+    ],
+)"""
+
+
 @pytest.mark.skipif(numpy is None, reason='numpy not installed')
 def test_indent_numpy():
     v = pformat({'numpy test': numpy.array(range(20))})
@@ -238,21 +314,7 @@ def test_deep_objects():
 )"""
 
 
-@pytest.mark.skipif(sys.version_info > (3, 5, 3), reason='like this only for old 3.5')
-def test_call_args_py353():
-    m = MagicMock()
-    m(1, 2, 3, a=4)
-    v = pformat(m.call_args)
-
-    assert v == """\
-_Call(
-    (1, 2, 3),
-    {'a': 4},
-)"""
-
-
-@pytest.mark.skipif(sys.version_info <= (3, 5, 3), reason='different for old 3.5')
-def test_call_args_py354():
+def test_call_args():
     m = MagicMock()
     m(1, 2, 3, a=4)
     v = pformat(m.call_args)

@@ -1,17 +1,11 @@
-black==19.10b0
-coverage==5.2.1
-flake8==3.8.3
-isort==5.2.1
-pycodestyle==2.6.0
-pyflakes==2.2.0
+coverage==5.5
 Pygments==2.7.4
-pydantic==1.6.2
-pytest==5.4.3
-pytest-cov==2.10.0
-pytest-mock==3.2.0
+pytest==6.2.5
+pytest-cov==2.12.1
+pytest-mock==3.6.1
 pytest-sugar==0.9.4
 pytest-toolbox==0.4
-twine==3.2.0
-asyncpg  # pyup: ignore
-numpy  # pyup: ignore
-multidict  # pyup: ignore
+pydantic
+asyncpg
+numpy
+multidict

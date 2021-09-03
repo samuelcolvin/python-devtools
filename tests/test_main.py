@@ -77,9 +77,8 @@ def test_odd_path(mocker):
     assert re.search(r"/.*?/test_main.py:\d{2,} test_odd_path\n    'test' \(str\) len=4", str(v)), v
 
 
-@pytest.mark.xfail(sys.platform == 'win32', reason='yet unknown windows problem')
 def test_small_call_frame():
-    debug_ = Debug(warnings=False, frame_context_length=2)
+    debug_ = Debug(warnings=False)
     v = debug_.format(
         1,
         2,
@@ -95,7 +94,7 @@ def test_small_call_frame():
 
 @pytest.mark.xfail(sys.platform == 'win32', reason='yet unknown windows problem')
 def test_small_call_frame_warning():
-    debug_ = Debug(frame_context_length=2)
+    debug_ = Debug()
     v = debug_.format(
         1,
         2,
@@ -103,8 +102,7 @@ def test_small_call_frame_warning():
     )
     print('\n---\n{}\n---'.format(v))
     assert re.sub(r':\d{2,}', ':<line no>', str(v)) == (
-        'tests/test_main.py:<line no> test_small_call_frame_warning '
-        '(error parsing code, unable to find "format" function statement)\n'
+        'tests/test_main.py:<line no> test_small_call_frame_warning\n'
         '    1 (int)\n'
         '    2 (int)\n'
         '    3 (int)'
@@ -272,26 +270,12 @@ def test_pretty_error():
     )
 
 
-@pytest.mark.skipif(sys.version_info >= (3, 8), reason='different between 3.7 and 3.8')
-def test_multiple_debugs_37():
+def test_multiple_debugs():
     debug.format([i * 2 for i in range(2)])
     debug.format([i * 2 for i in range(2)])
     v = debug.format([i * 2 for i in range(2)])
     s = re.sub(r':\d{2,}', ':<line no>', str(v))
     assert s == (
-        'tests/test_main.py:<line no> test_multiple_debugs_37\n'
+        'tests/test_main.py:<line no> test_multiple_debugs\n'
         '    [i * 2 for i in range(2)]: [0, 2] (list) len=2'
-    )
-
-
-@pytest.mark.skipif(sys.version_info < (3, 8), reason='different between 3.7 and 3.8')
-def test_multiple_debugs_38():
-    debug.format([i * 2 for i in range(2)])
-    debug.format([i * 2 for i in range(2)])
-    v = debug.format([i * 2 for i in range(2)])
-    s = re.sub(r':\d{2,}', ':<line no>', str(v))
-    # FIXME there's an extraneous bracket here, due to some error building code from the ast
-    assert s == (
-        'tests/test_main.py:<line no> test_multiple_debugs_38\n'
-        '    ([i * 2 for i in range(2)]: [0, 2] (list) len=2'
     )

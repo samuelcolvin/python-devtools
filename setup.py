@@ -48,6 +48,10 @@ setup(
     license='MIT',
     packages=['devtools'],
     python_requires='>=3.6',
+    install_requires=[
+        'executing>=0.8.0,<1.0.0',
+        'asttokens>=2.0.0,<3.0.0',
+    ],
     extras_require={
         'pygments': ['Pygments>=2.2.0'],
     },

@@ -38,10 +38,10 @@ class DebugArgument:
     def str(self, highlight=False) -> str:
         s = ''
         if self.name and not is_literal(self.name):
-            s = sformat(self.name, sformat.blue, apply=highlight) + ': '
+            s = f'{sformat(self.name, sformat.blue, apply=highlight)}: '
 
         suffix = sformat(
-            f' ({self.value.__class__.__name__}){"".join(f" {k}={v}" for k, v in self.extra)}',
+            f" ({self.value.__class__.__name__}){''.join(f' {k}={v}' for k, v in self.extra)}",
             sformat.dim,
             apply=highlight,
         )
@@ -85,7 +85,7 @@ class DebugOutput:
             prefix = f'{self.filename}:{self.lineno} {self.frame}'
             if self.warning:
                 prefix += f' ({self.warning})'
-        return prefix + '\n    ' + '\n    '.join(a.str(highlight) for a in self.arguments)
+        return f'{prefix}\n    ' + '\n    '.join(a.str(highlight) for a in self.arguments)
 
     def __str__(self) -> str:
         return self.str()

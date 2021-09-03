@@ -1,7 +1,7 @@
 import os
 import string
 import sys
-from collections import OrderedDict, namedtuple
+from collections import Counter, OrderedDict, namedtuple
 from unittest.mock import MagicMock
 
 import pytest
@@ -170,9 +170,16 @@ bytearray(
 )"""
 
 
+def test_bytearray_short():
+    v = pformat(bytearray(b'boo'))
+    assert v == """\
+bytearray(
+    b'boo'
+)"""
+
+
 def test_map():
-    pformat_ = PrettyFormat(width=18)
-    v = pformat_(map(str.strip, ['x', 'y ', ' z']))
+    v = pformat(map(str.strip, ['x', 'y ', ' z']))
     assert v == """\
 map(
     'x',
@@ -182,14 +189,26 @@ map(
 
 
 def test_filter():
-    pformat_ = PrettyFormat(width=18)
-    v = pformat_(filter(None, [1, 2, False, 3]))
+    v = pformat(filter(None, [1, 2, False, 3]))
     assert v == """\
 filter(
     1,
     2,
     3,
 )"""
+
+
+def test_counter():
+    c = Counter()
+    c['x'] += 1
+    c['x'] += 1
+    c['y'] += 1
+    v = pformat(c)
+    assert v == """\
+<Counter({
+    'x': 2,
+    'y': 1,
+})>"""
 
 
 @pytest.mark.skipif(numpy is None, reason='numpy not installed')

@@ -8,7 +8,7 @@ from .utils import LaxMapping, env_true, isatty
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 MYPY = False
 if MYPY:
-    from typing import Any, Union
+    from typing import Any, Iterable, Union
 
 PARENTHESES_LOOKUP = [
     (list, '[', ']'),
@@ -103,7 +103,7 @@ class PrettyFormat:
                     return
 
         value_repr = repr(value)
-        if len(value_repr) <= self._simple_cutoff and not isinstance(value, Generator):
+        if len(value_repr) <= self._simple_cutoff and not isinstance(value, generator_types):
             self._stream.write(value_repr)
         else:
             indent_new = indent_current + self._indent_step
@@ -139,7 +139,7 @@ class PrettyFormat:
         if isinstance(value, OrderedDict):
             open_, split_, after_, close_ = 'OrderedDict([\n', ', ', '),\n', '])'
             before_ += '('
-        elif not isinstance(value, dict):
+        elif type(value) != dict:
             open_, close_ = '<{}({{\n'.format(value.__class__.__name__), '})>'
 
         self._stream.write(open_)
@@ -187,15 +187,18 @@ class PrettyFormat:
         else:
             lines = list(self._wrap_lines(value, indent_new))
             if len(lines) > 1:
-                self._stream.write('(\n')
-                prefix = indent_new * self._c
-                for line in lines:
-                    self._stream.write(prefix + repr(line) + '\n')
-                self._stream.write(indent_current * self._c + ')')
+                self._str_lines(lines, indent_current, indent_new)
             else:
                 self._stream.write(value_repr)
 
-    def _wrap_lines(self, s, indent_new):
+    def _str_lines(self, lines: 'Iterable[str]', indent_current: int, indent_new: int) -> None:
+        self._stream.write('(\n')
+        prefix = indent_new * self._c
+        for line in lines:
+            self._stream.write(prefix + repr(line) + '\n')
+        self._stream.write(indent_current * self._c + ')')
+
+    def _wrap_lines(self, s, indent_new) -> 'Generator[str, None, None]':
         width = self._width - indent_new - 3
         for line in s.splitlines(True):
             start = 0
@@ -219,9 +222,10 @@ class PrettyFormat:
                 self._stream.write(',\n')
             self._stream.write(indent_current * self._c + ')')
 
-    def _format_bytearray(self, value: 'Any', value_repr: str, indent_current: int, indent_new: int):
+    def _format_bytearray(self, value: 'Any', _: str, indent_current: int, indent_new: int):
         self._stream.write('bytearray')
-        self._format_str_bytes(bytes(value), value_repr[10:-1], indent_current, indent_new)
+        lines = self._wrap_lines(bytes(value), indent_new)
+        self._str_lines(lines, indent_current, indent_new)
 
     def _format_raw(self, _: 'Any', value_repr: str, indent_current: int, indent_new: int):
         lines = value_repr.splitlines(True)

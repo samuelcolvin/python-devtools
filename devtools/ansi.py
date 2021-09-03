@@ -2,8 +2,6 @@ from enum import IntEnum
 
 from .utils import isatty
 
-_ansi_template = '\033[{}m'
-
 __all__ = 'sformat', 'sprint'
 
 MYPY = False
@@ -92,16 +90,16 @@ class Style(IntEnum):
                 try:
                     s = self.styles[s]
                 except KeyError:
-                    raise ValueError('invalid style "{}"'.format(s))
+                    raise ValueError(f'invalid style "{s}"')
             codes.append(_style_as_int(s.value))
 
         if codes:
-            r = _ansi_template.format(';'.join(codes)) + text
+            r = _as_ansi(';'.join(codes)) + text
         else:
             r = text
 
         if reset:
-            r += _ansi_template.format(_style_as_int(self.reset))
+            r += _as_ansi(_style_as_int(self.reset))
         return r
 
     @property
@@ -126,6 +124,10 @@ def _style_as_int(v: 'Union[Style, int]') -> str:
         return str(v.value)
     else:
         return str(v)
+
+
+def _as_ansi(s: str) -> str:
+    return f'\033[{s}m'
 
 
 sformat = Style(-1)

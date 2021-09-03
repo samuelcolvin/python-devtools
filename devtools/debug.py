@@ -38,21 +38,18 @@ class DebugArgument:
     def str(self, highlight=False) -> str:
         s = ''
         if self.name and not is_literal(self.name):
-            s = sformat(self.name, sformat.blue, apply=highlight) + ': '
+            s = f'{sformat(self.name, sformat.blue, apply=highlight)}: '
 
         suffix = sformat(
-            ' ({.value.__class__.__name__}){}'.format(self, ''.join(' {}={}'.format(k, v) for k, v in self.extra)),
+            f" ({self.value.__class__.__name__}){''.join(f' {k}={v}' for k, v in self.extra)}",
             sformat.dim,
             apply=highlight,
         )
         try:
             s += pformat(self.value, indent=4, highlight=highlight)
         except Exception as exc:
-            s += '{!r}{}\n    {}'.format(
-                self.value,
-                suffix,
-                sformat('!!! error pretty printing value: {!r}'.format(exc), sformat.yellow, apply=highlight),
-            )
+            v = sformat(f'!!! error pretty printing value: {exc!r}', sformat.yellow, apply=highlight)
+            s += f'{self.value!r}{suffix}\n    {v}'
         else:
             s += suffix
         return s
@@ -78,25 +75,24 @@ class DebugOutput:
 
     def str(self, highlight=False) -> str:
         if highlight:
-            prefix = '{}:{} {}'.format(
-                sformat(self.filename, sformat.magenta),
-                sformat(self.lineno, sformat.green),
-                sformat(self.frame, sformat.green, sformat.italic),
+            prefix = (
+                f'{sformat(self.filename, sformat.magenta)}:{sformat(self.lineno, sformat.green)} '
+                f'{sformat(self.frame, sformat.green, sformat.italic)}'
             )
             if self.warning:
-                prefix += sformat(' ({})'.format(self.warning), sformat.dim)
+                prefix += sformat(f' ({self.warning})', sformat.dim)
         else:
-            prefix = '{0.filename}:{0.lineno} {0.frame}'.format(self)
+            prefix = f'{self.filename}:{self.lineno} {self.frame}'
             if self.warning:
-                prefix += ' ({})'.format(self.warning)
-        return prefix + '\n    ' + '\n    '.join(a.str(highlight) for a in self.arguments)
+                prefix += f' ({self.warning})'
+        return f'{prefix}\n    ' + '\n    '.join(a.str(highlight) for a in self.arguments)
 
     def __str__(self) -> str:
         return self.str()
 
     def __repr__(self) -> str:
         arguments = ' '.join(str(a) for a in self.arguments)
-        return '<DebugOutput {s.filename}:{s.lineno} {s.frame} arguments: {a}>'.format(s=self, a=arguments)
+        return f'<DebugOutput {self.filename}:{self.lineno} {self.frame} arguments: {arguments}>'
 
 
 class Debug:

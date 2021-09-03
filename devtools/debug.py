@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 
 from .ansi import sformat
 from .prettier import PrettyFormat
@@ -141,15 +142,14 @@ class Debug:
                 warning=self._show_warnings and 'error parsing code, call stack too shallow',
             )
 
-        filename = call_frame.f_code.co_filename
         function = call_frame.f_code.co_name
-        if filename.startswith('/'):
-            # make the path relative
-            from pathlib import Path
 
+        path = Path(call_frame.f_code.co_filename)
+        if path.is_absolute():
+            # make the path relative
             cwd = Path('.').resolve()
             try:
-                filename = str(Path(filename).relative_to(cwd))
+                path = path.relative_to(cwd)
             except ValueError:
                 # happens if filename path is not within CWD
                 pass
@@ -173,7 +173,7 @@ class Debug:
                 arguments = list(self._process_args(ex, args, kwargs))
 
         return self.output_class(
-            filename=filename,
+            filename=str(path),
             lineno=lineno,
             frame=function,
             arguments=arguments,

@@ -54,7 +54,7 @@ def test_mappingproxy():
 def test_print(capsys):
     pprint({1: 2, 3: 4})
     stdout, stderr = capsys.readouterr()
-    assert stdout == (
+    assert strip_ansi(stdout) == (
         '{\n'
         '    1: 2,\n'
         '    3: 4,\n'

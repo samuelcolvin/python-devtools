@@ -95,3 +95,14 @@ def use_highlight(highlight: 'Optional[bool]' = None, file_=None) -> bool:
     if sys.platform == 'win32':  # pragma: no cover
         return isatty(file_) and activate_win_color()
     return isatty(file_)
+
+
+def is_literal(s):
+    import ast
+
+    try:
+        ast.literal_eval(s)
+    except (TypeError, MemoryError, SyntaxError, ValueError):
+        return False
+    else:
+        return True

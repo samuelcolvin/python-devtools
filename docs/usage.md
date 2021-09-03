@@ -26,6 +26,22 @@ A more complex example of `debug` shows more of what it can do.
 
 {!examples/complex.html!}
 
+### Returning the arguments
+
+`debug` will return the arguments passed to it meaning you can insert `debug(...)` into code.
+
+The returned arguments work as follows:
+
+* if one non-keyword argument is passed to `debug()`, it is returned as-is
+* if multiple arguments are passed to `debug()`, they are returned as a tuple
+* if keyword arguments are passed to `debug()`, the `kwargs` dictionary is added to the returned tuple
+
+```py
+{!examples/return_args.py!}
+```
+
+{!examples/return_args.html!}
+
 ## Other debug tools
 
 The debug namespace includes a number of other useful functions:

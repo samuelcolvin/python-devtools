@@ -10,8 +10,7 @@ __all__ = 'Debug', 'debug'
 MYPY = False
 if MYPY:
     from types import FrameType
-    from typing import Generator, List, Optional
-
+    from typing import Any, Generator, List, Optional
 
 pformat = PrettyFormat(
     indent_step=int(os.getenv('PY_DEVTOOLS_INDENT', 4)),
@@ -107,10 +106,16 @@ class Debug:
         self._show_warnings = env_bool(warnings, 'PY_DEVTOOLS_WARNINGS', True)
         self._highlight = highlight
 
-    def __call__(self, *args, file_=None, flush_=True, **kwargs) -> None:
+    def __call__(self, *args, file_=None, flush_=True, **kwargs) -> 'Any':
         d_out = self._process(args, kwargs)
         s = d_out.str(use_highlight(self._highlight, file_))
         print(s, file=file_, flush=flush_)
+        if kwargs:
+            return (*args, kwargs)
+        elif len(args) == 1:
+            return args[0]
+        else:
+            return args
 
     def format(self, *args, **kwargs) -> DebugOutput:
         return self._process(args, kwargs)

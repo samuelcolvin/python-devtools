@@ -107,7 +107,7 @@ class Debug:
         s = d_out.str(use_highlight(self._highlight, file_))
         print(s, file=file_, flush=flush_)
         if kwargs:
-            return (*args, kwargs)
+            return *args, kwargs
         elif len(args) == 1:
             return args[0]
         else:

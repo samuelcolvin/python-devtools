@@ -9,13 +9,30 @@ on:
   pull_request: {}
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.8'
+
+    - run: pip install -U pip wheel
+    - run: pip install -r tests/requirements-linting.txt
+    - run: pip install .
+
+    - run: make lint
+    - run: make check-dist
+
   test:
     name: test py${{ matrix.python-version }} on ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu, macos, windows]
-        python-version: ['3.6', '3.7', '3.8']
+        python-version: ['3.6', '3.7', '3.8', '3.9']
 
     env:
       PYTHON: ${{ matrix.python-version }}
@@ -32,22 +49,17 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: install dependencies
-      run: |
-        make install
-        pip freeze
-
-    - name: lint
-      run: |
-        make lint
-        make check-dist
+    - run: pip install -U pip wheel
+    - run: pip install -r tests/requirements.txt
+    - run: pip install .
+    - run: pip freeze
 
     - name: test with extras
       run: |
         make test
         coverage xml
 
-    - uses: codecov/codecov-action@v1.0.7
+    - uses: codecov/codecov-action@v2.0.3
       with:
         file: ./coverage.xml
         env_vars: EXTRAS,PYTHON,OS
@@ -60,7 +72,7 @@ jobs:
         make test
         coverage xml
 
-    - uses: codecov/codecov-action@v1.0.7
+    - uses: codecov/codecov-action@v2.0.3
       with:
         file: ./coverage.xml
         env_vars: EXTRAS,PYTHON,OS
@@ -68,8 +80,9 @@ jobs:
         EXTRAS: no
 
   deploy:
-    name: Deploy
-    needs: test
+    needs:
+      - test
+      - lint
     if: "success() && startsWith(github.ref, 'refs/tags/')"
     runs-on: ubuntu-latest
 
@@ -83,16 +96,16 @@ jobs:
 
       - name: install
         run: |
-          make install
-          pip install -U wheel
+          pip install -U pip setuptools wheel twine
+          pip install .
+
+      - name: set version
+        run: VERSION_PATH='aioaws/version.py' python <(curl -Ls https://git.io/JT3rm)
 
       - name: build
         run: python setup.py sdist bdist_wheel
 
       - run: twine check dist/*
-
-      - name: check tag
-        run: PACKAGE=devtools python <(curl -Ls https://git.io/JvQsH)
 
       - name: upload to pypi
         run: twine upload dist/*

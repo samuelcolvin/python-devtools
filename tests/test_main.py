@@ -1,5 +1,6 @@
 import re
 import sys
+from collections.abc import Generator
 from pathlib import Path
 from subprocess import PIPE, run
 
@@ -40,6 +41,28 @@ def test_print_kwargs(capsys):
     )
     assert stderr == ''
     assert result == (1, 2, {'foo': [1, 2, 3]})
+
+
+def test_print_generator(capsys):
+    def gen():
+        yield 1
+        yield 2
+
+    result = debug(gen())
+    stdout, stderr = capsys.readouterr()
+    print(stdout)
+    assert re.sub(r':\d{2,}', ':<line no>', stdout) == (
+        'tests/test_main.py:<line no> test_print_generator\n'
+        '    gen(): (\n'
+        '        1,\n'
+        '        2,\n'
+        '    ) (generator)\n'
+    )
+    assert stderr == ''
+    assert len(result) == 1
+    assert isinstance(result[0], Generator)
+    # the generator got evaluated and is now empty, that's correct currently
+    assert list(result[0]) == []
 
 
 def test_format():

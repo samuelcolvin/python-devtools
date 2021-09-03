@@ -15,3 +15,5 @@
 ```
 
 {!examples/example.html!}
+
+Python devtools can do much more, see [Usage](./usage.md) for examples.

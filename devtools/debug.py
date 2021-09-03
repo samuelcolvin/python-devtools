@@ -106,12 +106,14 @@ class Debug:
         self._show_warnings = env_bool(warnings, 'PY_DEVTOOLS_WARNINGS', True)
         self._highlight = highlight
 
-    def __call__(self, *args, file_=None, flush_=True, **kwargs) -> 'Tuple[Any, ...]':
+    def __call__(self, *args, file_=None, flush_=True, **kwargs) -> 'Any':
         d_out = self._process(args, kwargs)
         s = d_out.str(use_highlight(self._highlight, file_))
         print(s, file=file_, flush=flush_)
         if kwargs:
             return *args, kwargs
+        elif len(args) == 1:
+            return args[0]
         else:
             return args
 

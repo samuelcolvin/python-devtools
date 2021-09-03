@@ -44,25 +44,22 @@ def test_print_kwargs(capsys):
 
 
 def test_print_generator(capsys):
-    def gen():
-        yield 1
-        yield 2
+    gen = (i for i in [1, 2])
 
-    result = debug(gen())
+    result = debug(gen)
     stdout, stderr = capsys.readouterr()
     print(stdout)
     assert re.sub(r':\d{2,}', ':<line no>', stdout) == (
         'tests/test_main.py:<line no> test_print_generator\n'
-        '    gen(): (\n'
+        '    gen: (\n'
         '        1,\n'
         '        2,\n'
         '    ) (generator)\n'
     )
     assert stderr == ''
-    assert len(result) == 1
-    assert isinstance(result[0], Generator)
+    assert isinstance(result, Generator)
     # the generator got evaluated and is now empty, that's correct currently
-    assert list(result[0]) == []
+    assert list(result) == []
 
 
 def test_format():
@@ -310,3 +307,12 @@ def test_multiple_debugs():
         'tests/test_main.py:<line no> test_multiple_debugs\n'
         '    [i * 2 for i in range(2)]: [0, 2] (list) len=2'
     )
+
+
+def test_return_args(capsys):
+    assert debug('foo') == 'foo'
+    assert debug('foo', 'bar') == ('foo', 'bar')
+    assert debug('foo', 'bar', spam=123) == ('foo', 'bar', {'spam': 123})
+    assert debug(spam=123) == ({'spam': 123},)
+    stdout, stderr = capsys.readouterr()
+    print(stdout)

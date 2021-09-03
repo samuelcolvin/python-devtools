@@ -47,8 +47,11 @@ setup(
     url='https://github.com/samuelcolvin/python-devtools',
     license='MIT',
     packages=['devtools'],
-    install_requires=['executing', 'asttokens'],
     python_requires='>=3.6',
+    install_requires=[
+        'executing>=0.8.0,<1.0.0',
+        'asttokens>=2.0.0,<3.0.0',
+    ],
     extras_require={
         'pygments': ['Pygments>=2.2.0'],
     },

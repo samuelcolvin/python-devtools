@@ -102,6 +102,7 @@ def is_literal(s):
 
     try:
         ast.literal_eval(s)
-        return True
-    except Exception:
+    except ValueError:
         return False
+    else:
+        return True

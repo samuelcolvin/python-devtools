@@ -10,8 +10,6 @@ from devtools import Debug, debug
 from devtools.ansi import strip_ansi
 from tests.utils import normalise_output
 
-pytestmark = pytest.mark.xfail(sys.platform == 'win32', reason='as yet unknown windows problem')
-
 
 def test_print(capsys):
     a = 1

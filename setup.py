@@ -7,7 +7,7 @@ description = "Python's missing debug print command and other development tools.
 THIS_DIR = Path(__file__).resolve().parent
 try:
     history = (THIS_DIR / 'HISTORY.md').read_text()
-    history = re.sub(r'#(\d+)', r'[#\1](https://github.com/samuelcolvin/pydantic/issues/\1)', history)
+    history = re.sub(r'#(\d+)', r'[#\1](https://github.com/samuelcolvin/python-devtools/issues/\1)', history)
     history = re.sub(r'( +)@([\w\-]+)', r'\1[@\2](https://github.com/\2)', history, flags=re.I)
     history = re.sub('@@', '@', history)
 

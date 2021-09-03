@@ -94,9 +94,7 @@ jobs:
           python-version: '3.8'
 
       - name: install
-        run: |
-          pip install -U pip setuptools wheel twine
-          pip install .
+        run: make install
 
       - name: set version
         run: VERSION_PATH='devtools/version.py' python <(curl -Ls https://git.io/JT3rm)

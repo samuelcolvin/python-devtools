@@ -99,7 +99,7 @@ jobs:
           pip install .
 
       - name: set version
-        run: VERSION_PATH='aioaws/version.py' python <(curl -Ls https://git.io/JT3rm)
+        run: VERSION_PATH='devtools/version.py' python <(curl -Ls https://git.io/JT3rm)
 
       - name: build
         run: python setup.py sdist bdist_wheel

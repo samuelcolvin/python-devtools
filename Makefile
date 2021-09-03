@@ -20,12 +20,6 @@ lint:
 	$(isort) --check-only --df
 	$(black) --check --diff
 
-.PHONY: check-dist
-check-dist:
-	python setup.py check -ms
-	python setup.py sdist
-	twine check dist/*
-
 .PHONY: test
 test:
 	pytest --cov=devtools --cov-fail-under 0

@@ -1,7 +1,5 @@
-asttokens==2.0.4
 black==19.10b0
 coverage==5.2.1
-executing==0.5.4
 flake8==3.8.3
 isort==5.2.1
 pycodestyle==2.6.0

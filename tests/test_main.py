@@ -8,12 +8,13 @@ import pytest
 from devtools import Debug, debug
 from devtools.ansi import strip_ansi
 
+pytestmark = pytest.mark.xfail(sys.platform == 'win32', reason='as yet unknown windows problem')
 
-@pytest.mark.xfail(sys.platform == 'win32', reason='yet unknown windows problem')
+
 def test_print(capsys):
     a = 1
     b = 2
-    debug(a, b)
+    result = debug(a, b)
     stdout, stderr = capsys.readouterr()
     print(stdout)
     assert re.sub(r':\d{2,}', ':<line no>', stdout) == (
@@ -22,9 +23,25 @@ def test_print(capsys):
         '    b: 2 (int)\n'
     )
     assert stderr == ''
+    assert result == (1, 2)
 
 
-@pytest.mark.xfail(sys.platform == 'win32', reason='yet unknown windows problem')
+def test_print_kwargs(capsys):
+    a = 1
+    b = 2
+    result = debug(a, b, foo=[1, 2, 3])
+    stdout, stderr = capsys.readouterr()
+    print(stdout)
+    assert re.sub(r':\d{2,}', ':<line no>', stdout) == (
+        'tests/test_main.py:<line no> test_print_kwargs\n'
+        '    a: 1 (int)\n'
+        '    b: 2 (int)\n'
+        '    foo: [1, 2, 3] (list) len=3\n'
+    )
+    assert stderr == ''
+    assert result == (1, 2, {'foo': [1, 2, 3]})
+
+
 def test_format():
     a = b'i might bite'
     b = "hello this is a test"
@@ -38,7 +55,6 @@ def test_format():
     )
 
 
-@pytest.mark.xfail(sys.platform == 'win32', reason='yet unknown windows problem')
 def test_print_subprocess(tmpdir):
     f = tmpdir.join('test.py')
     f.write("""\
@@ -68,7 +84,6 @@ print('debug run.')
     )
 
 
-@pytest.mark.xfail(sys.platform == 'win32', reason='yet unknown windows problem')
 def test_odd_path(mocker):
     # all valid calls
     mocked_relative_to = mocker.patch('pathlib.Path.relative_to')
@@ -92,7 +107,6 @@ def test_small_call_frame():
     )
 
 
-@pytest.mark.xfail(sys.platform == 'win32', reason='yet unknown windows problem')
 def test_small_call_frame_warning():
     debug_ = Debug()
     v = debug_.format(
@@ -109,7 +123,6 @@ def test_small_call_frame_warning():
     )
 
 
-@pytest.mark.xfail(sys.platform == 'win32', reason='yet unknown windows problem')
 @pytest.mark.skipif(sys.version_info < (3, 6), reason='kwarg order is not guaranteed for 3.5')
 def test_kwargs():
     a = 'variable'
@@ -123,7 +136,6 @@ def test_kwargs():
     )
 
 
-@pytest.mark.xfail(sys.platform == 'win32', reason='yet unknown windows problem')
 def test_kwargs_orderless():
     # for python3.5
     a = 'variable'
@@ -136,7 +148,6 @@ def test_kwargs_orderless():
     }
 
 
-@pytest.mark.xfail(sys.platform == 'win32', reason='yet unknown windows problem')
 def test_simple_vars():
     v = debug.format('test', 1, 2)
     s = re.sub(r':\d{2,}', ':<line no>', str(v))
@@ -206,7 +217,6 @@ def test_exec(capsys):
     assert stderr == ''
 
 
-@pytest.mark.xfail(sys.platform == 'win32', reason='yet unknown windows problem')
 def test_colours():
     v = debug.format(range(6))
     s = re.sub(r':\d{2,}', ':<line no>', v.str(True))
@@ -240,7 +250,6 @@ def test_breakpoint(mocker):
     assert mocked_set_trace.called
 
 
-@pytest.mark.xfail(sys.platform == 'win32', reason='yet unknown windows problem')
 def test_starred_kwargs():
     v = {'foo': 1, 'bar': 2}
     v = debug.format(**v)
@@ -252,7 +261,6 @@ def test_starred_kwargs():
     }
 
 
-@pytest.mark.xfail(sys.platform == 'win32', reason='yet unknown windows problem')
 @pytest.mark.skipif(sys.version_info < (3, 7), reason='error repr different before 3.7')
 def test_pretty_error():
     class BadPretty:

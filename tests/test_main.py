@@ -74,6 +74,10 @@ def test_format():
     )
 
 
+@pytest.mark.xfail(
+    sys.platform == "win32",
+    reason="Fatal Python error: _Py_HashRandomization_Init: failed to get random numbers to initialize Python",
+)
 def test_print_subprocess(tmpdir):
     f = tmpdir.join('test.py')
     f.write("""\
@@ -108,7 +112,12 @@ def test_odd_path(mocker):
     mocked_relative_to = mocker.patch('pathlib.Path.relative_to')
     mocked_relative_to.side_effect = ValueError()
     v = debug.format('test')
-    assert re.search(r"/.*?/test_main.py:\d{2,} test_odd_path\n    'test' \(str\) len=4", str(v)), v
+    if sys.platform == "win32":
+        pattern = r"\w:\\.*?\\"
+    else:
+        pattern = r"/.*?/"
+    pattern += r"test_main.py:\d{2,} test_odd_path\n    'test' \(str\) len=4"
+    assert re.search(pattern, str(v)), v
 
 
 def test_small_call_frame():

@@ -3,7 +3,7 @@ import os
 from collections import OrderedDict
 from collections.abc import Generator
 
-from .utils import LaxMapping, env_true, isatty
+from .utils import DataClassType, LaxMapping, env_true, isatty
 
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 MYPY = False
@@ -68,6 +68,7 @@ class PrettyFormat:
             (generator_types, self._format_generator),
             # put this last as the check can be slow
             (LaxMapping, self._format_dict),
+            (DataClassType, self._format_dataclass),
         ]
 
     def __call__(self, value: 'Any', *, indent: int = 0, indent_first: bool = False, highlight: bool = False):
@@ -226,6 +227,17 @@ class PrettyFormat:
         self._stream.write('bytearray')
         lines = self._wrap_lines(bytes(value), indent_new)
         self._str_lines(lines, indent_current, indent_new)
+
+    def _format_dataclass(self, value: 'Any', _: str, indent_current: int, indent_new: int):
+        from dataclasses import asdict
+
+        before_ = indent_new * self._c
+        self._stream.write(f'{value.__class__.__name__}(\n')
+        for k, v in asdict(value).items():
+            self._stream.write(f'{before_}{k}=')
+            self._format(v, indent_new, False)
+            self._stream.write(',\n')
+        self._stream.write(indent_current * self._c + ')')
 
     def _format_raw(self, _: 'Any', value_repr: str, indent_current: int, indent_new: int):
         lines = value_repr.splitlines(True)

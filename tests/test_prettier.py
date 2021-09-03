@@ -2,6 +2,8 @@ import os
 import string
 import sys
 from collections import Counter, OrderedDict, namedtuple
+from dataclasses import dataclass
+from typing import List
 from unittest.mock import MagicMock
 
 import pytest
@@ -211,6 +213,28 @@ def test_counter():
 })>"""
 
 
+@pytest.mark.skipif(sys.version_info > (3, 7), reason='no datalcasses before 3.6')
+def test_dataclass():
+    @dataclass
+    class FooDataclass:
+        x: int
+        y: List[int]
+
+    f = FooDataclass(123, [1, 2, 3, 4])
+    v = pformat(f)
+    print(v)
+    assert v == """\
+FooDataclass(
+    x=123,
+    y=[
+        1,
+        2,
+        3,
+        4,
+    ],
+)"""
+
+
 @pytest.mark.skipif(numpy is None, reason='numpy not installed')
 def test_indent_numpy():
     v = pformat({'numpy test': numpy.array(range(20))})
@@ -290,21 +314,7 @@ def test_deep_objects():
 )"""
 
 
-@pytest.mark.skipif(sys.version_info > (3, 5, 3), reason='like this only for old 3.5')
-def test_call_args_py353():
-    m = MagicMock()
-    m(1, 2, 3, a=4)
-    v = pformat(m.call_args)
-
-    assert v == """\
-_Call(
-    (1, 2, 3),
-    {'a': 4},
-)"""
-
-
-@pytest.mark.skipif(sys.version_info <= (3, 5, 3), reason='different for old 3.5')
-def test_call_args_py354():
+def test_call_args():
     m = MagicMock()
     m(1, 2, 3, a=4)
     v = pformat(m.call_args)

@@ -227,16 +227,12 @@ class PrettyFormat:
         self._format_fields(value, asdict(value).items(), indent_current, indent_new)
 
     def _format_sqlalchemy_class(self, value: 'Any', _: str, indent_current: int, indent_new: int):
-        fields = {}
-        for field in dir(value):
-            if not field.startswith('_') and field not in ['metadata', 'registry']:
-                data = getattr(value, field)
-                try:
-                    fields[field] = data
-                except TypeError:
-                    pass
-
-        self._format_fields(value, fields.items(), indent_current, indent_new)
+        fields = [
+            (field, getattr(value, field))
+            for field in dir(value)
+            if not (field.startswith('_') or field in ['metadata', 'registry'])
+        ]
+        self._format_fields(value, fields, indent_current, indent_new)
 
     def _format_raw(self, _: 'Any', value_repr: str, indent_current: int, indent_new: int):
         lines = value_repr.splitlines(True)

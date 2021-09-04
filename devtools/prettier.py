@@ -116,10 +116,7 @@ class PrettyFormat:
         else:
             indent_new = indent_current + self._indent_step
             for t, func in self._type_lookup:
-                if isinstance(value, t):
-                    func(value, value_repr, indent_current, indent_new)
-                    return
-                elif isinstance(value.__class__, t):
+                if isinstance(value, t) or isinstance(value.__class__, t):
                     func(value, value_repr, indent_current, indent_new)
                     return
 

@@ -27,6 +27,13 @@ try:
 except ImportError:
     Record = None
 
+try:
+    from sqlalchemy import Column, Integer, String
+    from sqlalchemy.ext.declarative import declarative_base
+    SQLAlchemyBase = declarative_base()
+except ImportError:
+    SQLAlchemyBase = None
+
 
 def test_dict():
     v = pformat({1: 2, 3: 4})
@@ -424,3 +431,27 @@ def test_asyncpg_record():
 
 def test_dict_type():
     assert pformat(type({1: 2})) == "<class 'dict'>"
+
+
+@pytest.mark.skipif(SQLAlchemyBase is None, reason='sqlalchemy not installed')
+def test_sqlalchemy_object():
+    class User(SQLAlchemyBase):
+        __tablename__ = 'users'
+        id = Column(Integer, primary_key=True)
+        name = Column(String)
+        fullname = Column(String)
+        nickname = Column(String)
+    user = User()
+    user.id = 1
+    user.name = "Test"
+    user.fullname = "Test For SQLAlchemy"
+    user.nickname = "test"
+    assert pformat(user) == (
+        "User(\n"
+        "    fullname='Test For SQLAlchemy',\n"
+        "    id=1,\n"
+        "    name='Test',\n"
+        "    nickname='test',\n"
+        "    registry=None,\n"
+        ")"
+    )

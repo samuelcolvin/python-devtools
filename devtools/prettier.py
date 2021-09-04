@@ -3,6 +3,11 @@ import os
 from collections import OrderedDict
 from collections.abc import Generator
 
+try:
+    from sqlalchemy.ext.declarative import DeclarativeMeta
+except ImportError:
+    DeclarativeMeta = None
+
 from .utils import DataClassType, LaxMapping, env_true, isatty
 
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
@@ -70,6 +75,8 @@ class PrettyFormat:
             (LaxMapping, self._format_dict),
             (DataClassType, self._format_dataclass),
         ]
+        if DeclarativeMeta is not None:
+            self._type_lookup.append((DeclarativeMeta, self._format_sqlalchemy_class))
 
     def __call__(self, value: 'Any', *, indent: int = 0, indent_first: bool = False, highlight: bool = False):
         self._stream = io.StringIO()
@@ -110,6 +117,9 @@ class PrettyFormat:
             indent_new = indent_current + self._indent_step
             for t, func in self._type_lookup:
                 if isinstance(value, t):
+                    func(value, value_repr, indent_current, indent_new)
+                    return
+                elif isinstance(value.__class__, t):
                     func(value, value_repr, indent_current, indent_new)
                     return
 
@@ -234,6 +244,26 @@ class PrettyFormat:
         before_ = indent_new * self._c
         self._stream.write(f'{value.__class__.__name__}(\n')
         for k, v in asdict(value).items():
+            self._stream.write(f'{before_}{k}=')
+            self._format(v, indent_new, False)
+            self._stream.write(',\n')
+        self._stream.write(indent_current * self._c + ')')
+
+    def _format_sqlalchemy_class(self, value: 'Any', _: str, indent_current: int, indent_new: int):
+        import json
+
+        fields = {}
+        for field in [x for x in dir(value) if not x.startswith('_') and x != 'metadata']:
+            data = value.__getattribute__(field)
+            try:
+                json.dumps(data)
+                fields[field] = data
+            except TypeError:
+                fields[field] = None
+
+        before_ = indent_new * self._c
+        self._stream.write(f'{value.__class__.__name__}(\n')
+        for k, v in fields.items():
             self._stream.write(f'{before_}{k}=')
             self._format(v, indent_new, False)
             self._stream.write(',\n')

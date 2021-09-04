@@ -227,14 +227,11 @@ class PrettyFormat:
         self._format_fields(value, asdict(value).items(), indent_current, indent_new)
 
     def _format_sqlalchemy_class(self, value: 'Any', _: str, indent_current: int, indent_new: int):
-        import json
-
         fields = {}
         for field in dir(value):
-            if not field.startswith('_') and field != 'metadata':
+            if not field.startswith('_') and field not in ['metadata', 'registry']:
                 data = getattr(value, field)
                 try:
-                    json.dumps(data)  # this will fail on non-encodable values, like other classes
                     fields[field] = data
                 except TypeError:
                     pass

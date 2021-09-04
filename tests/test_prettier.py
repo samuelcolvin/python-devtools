@@ -452,6 +452,5 @@ def test_sqlalchemy_object():
         "    id=1,\n"
         "    name='Test',\n"
         "    nickname='test',\n"
-        "    registry=None,\n"
         ")"
     )

@@ -135,3 +135,17 @@ class MetaDataClassType(type):
 
 class DataClassType(metaclass=MetaDataClassType):
     pass
+
+
+class MetaSQLAlchemyClassType(type):
+    def __instancecheck__(self, instance: 'Any') -> bool:
+        try:
+            from sqlalchemy.ext.declarative import DeclarativeMeta
+        except ImportError:
+            return False
+        else:
+            return isinstance(instance.__class__, DeclarativeMeta)
+
+
+class SQLAlchemyClassType(metaclass=MetaSQLAlchemyClassType):
+    pass

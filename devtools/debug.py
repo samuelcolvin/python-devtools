@@ -1,6 +1,5 @@
 import os
 import sys
-from pathlib import Path
 
 from .ansi import sformat
 from .prettier import PrettyFormat
@@ -143,6 +142,8 @@ class Debug:
             )
 
         function = call_frame.f_code.co_name
+
+        from pathlib import Path
 
         path = Path(call_frame.f_code.co_filename)
         if path.is_absolute():

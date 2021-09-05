@@ -58,9 +58,9 @@ jobs:
     - run: pip freeze
 
     - name: test with extras
-      run: |
-        make test
-        coverage xml
+      run: make test
+
+    - run: coverage xml
 
     - uses: codecov/codecov-action@v2.0.3
       with:
@@ -71,9 +71,9 @@ jobs:
       run: pip uninstall -y multidict numpy pydantic asyncpg
 
     - name: test without extras
-      run: |
-        make test
-        coverage xml
+      run: make test
+
+    - run: coverage xml
 
     - uses: codecov/codecov-action@v2.0.3
       with:

@@ -3,12 +3,12 @@ import os
 from collections import OrderedDict
 from collections.abc import Generator
 
-from .utils import DataClassType, LaxMapping, env_true, isatty
+from .utils import DataClassType, LaxMapping, SQLAlchemyClassType, env_true, isatty
 
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 MYPY = False
 if MYPY:
-    from typing import Any, Iterable, Union
+    from typing import Any, Iterable, Tuple, Union
 
 PARENTHESES_LOOKUP = [
     (list, '[', ']'),
@@ -69,6 +69,7 @@ class PrettyFormat:
             # put this last as the check can be slow
             (LaxMapping, self._format_dict),
             (DataClassType, self._format_dataclass),
+            (SQLAlchemyClassType, self._format_sqlalchemy_class),
         ]
 
     def __call__(self, value: 'Any', *, indent: int = 0, indent_first: bool = False, highlight: bool = False):
@@ -169,15 +170,7 @@ class PrettyFormat:
         fields = getattr(value, '_fields', None)
         if fields:
             # named tuple
-            self._stream.write(value.__class__.__name__ + '(\n')
-            for field, v in zip(fields, value):
-                self._stream.write(indent_new * self._c)
-                if field:  # field is falsy sometimes for odd things like call_args
-                    self._stream.write(str(field))
-                    self._stream.write('=')
-                self._format(v, indent_new, False)
-                self._stream.write(',\n')
-            self._stream.write(indent_current * self._c + ')')
+            self._format_fields(value, zip(fields, value), indent_current, indent_new)
         else:
             # normal tuples are just like other similar iterables
             return self._format_list_like(value, value_repr, indent_current, indent_new)
@@ -231,13 +224,15 @@ class PrettyFormat:
     def _format_dataclass(self, value: 'Any', _: str, indent_current: int, indent_new: int):
         from dataclasses import asdict
 
-        before_ = indent_new * self._c
-        self._stream.write(f'{value.__class__.__name__}(\n')
-        for k, v in asdict(value).items():
-            self._stream.write(f'{before_}{k}=')
-            self._format(v, indent_new, False)
-            self._stream.write(',\n')
-        self._stream.write(indent_current * self._c + ')')
+        self._format_fields(value, asdict(value).items(), indent_current, indent_new)
+
+    def _format_sqlalchemy_class(self, value: 'Any', _: str, indent_current: int, indent_new: int):
+        fields = [
+            (field, getattr(value, field))
+            for field in dir(value)
+            if not (field.startswith('_') or field in ['metadata', 'registry'])
+        ]
+        self._format_fields(value, fields, indent_current, indent_new)
 
     def _format_raw(self, _: 'Any', value_repr: str, indent_current: int, indent_new: int):
         lines = value_repr.splitlines(True)
@@ -255,6 +250,18 @@ class PrettyFormat:
             self._stream.write(indent_current * self._c + ')')
         else:
             self._stream.write(value_repr)
+
+    def _format_fields(
+        self, value: 'Any', fields: 'Iterable[Tuple[str, Any]]', indent_current: int, indent_new: int
+    ) -> None:
+        self._stream.write(f'{value.__class__.__name__}(\n')
+        for field, v in fields:
+            self._stream.write(indent_new * self._c)
+            if field:  # field is falsy sometimes for odd things like call_args
+                self._stream.write(f'{field}=')
+            self._format(v, indent_new, False)
+            self._stream.write(',\n')
+        self._stream.write(indent_current * self._c + ')')
 
 
 pformat = PrettyFormat()

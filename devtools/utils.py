@@ -1,7 +1,16 @@
 import os
 import sys
 
-__all__ = 'isatty', 'env_true', 'env_bool', 'use_highlight', 'is_literal', 'LaxMapping', 'DataClassType'
+__all__ = (
+    'isatty',
+    'env_true',
+    'env_bool',
+    'use_highlight',
+    'is_literal',
+    'LaxMapping',
+    'DataClassType',
+    'SQLAlchemyClassType',
+)
 
 MYPY = False
 if MYPY:

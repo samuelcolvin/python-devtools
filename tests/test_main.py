@@ -8,7 +8,8 @@ import pytest
 
 from devtools import Debug, debug
 from devtools.ansi import strip_ansi
-from tests.utils import normalise_output
+
+from .utils import normalise_output
 
 
 def test_print(capsys):

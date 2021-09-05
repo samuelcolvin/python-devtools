@@ -4,7 +4,8 @@ import sys
 import pytest
 
 from devtools import Debug, debug
-from tests.utils import normalise_output
+
+from .utils import normalise_output
 
 
 def foobar(a, b, c):

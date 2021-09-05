@@ -8,7 +8,7 @@ from .utils import DataClassType, LaxMapping, SQLAlchemyClassType, env_true, isa
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 MYPY = False
 if MYPY:
-    from typing import Any, Iterable, Union
+    from typing import Any, Iterable, Tuple, Union
 
 PARENTHESES_LOOKUP = [
     (list, '[', ']'),
@@ -251,7 +251,9 @@ class PrettyFormat:
         else:
             self._stream.write(value_repr)
 
-    def _format_fields(self, value: 'Any', fields: 'Iterable[Tuple[str, Any]]', indent_current: int, indent_new: int) -> None:
+    def _format_fields(
+        self, value: 'Any', fields: 'Iterable[Tuple[str, Any]]', indent_current: int, indent_new: int
+    ) -> None:
         self._stream.write(f'{value.__class__.__name__}(\n')
         for field, v in fields:
             self._stream.write(indent_new * self._c)

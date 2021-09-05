@@ -361,7 +361,8 @@ def test_cimultidict():
 def test_os_environ():
     v = pformat(os.environ)
     assert v.startswith('<_Environ({')
-    assert "    'HOME': '" in v
+    for key in os.environ:
+        assert f"    '{key}': " in v
 
 
 class Foo:

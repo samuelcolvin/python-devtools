@@ -43,8 +43,4 @@ def test_use_highlight_auto_win(monkeypatch):
     monkeypatch.delenv('TEST_DONT_USE_HIGHLIGHT', raising=False)
     monkeypatch.setattr(devtools.utils, 'isatty', lambda _=None: True)
 
-    monkeypatch.setattr(devtools.utils, 'color_active', False)
-    assert use_highlight() is False
-
-    monkeypatch.setattr(devtools.utils, 'color_active', True)
     assert use_highlight() is True

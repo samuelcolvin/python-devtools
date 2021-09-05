@@ -9,7 +9,7 @@ import pytest
 from devtools import Debug, debug
 from devtools.ansi import strip_ansi
 
-pytestmark = pytest.mark.xfail(sys.platform == 'win32', reason='as yet unknown windows problem')
+from .utils import normalise_output
 
 
 def test_print(capsys):
@@ -18,7 +18,7 @@ def test_print(capsys):
     result = debug(a, b)
     stdout, stderr = capsys.readouterr()
     print(stdout)
-    assert re.sub(r':\d{2,}', ':<line no>', stdout) == (
+    assert normalise_output(stdout) == (
         'tests/test_main.py:<line no> test_print\n'
         '    a: 1 (int)\n'
         '    b: 2 (int)\n'
@@ -33,7 +33,7 @@ def test_print_kwargs(capsys):
     result = debug(a, b, foo=[1, 2, 3])
     stdout, stderr = capsys.readouterr()
     print(stdout)
-    assert re.sub(r':\d{2,}', ':<line no>', stdout) == (
+    assert normalise_output(stdout) == (
         'tests/test_main.py:<line no> test_print_kwargs\n'
         '    a: 1 (int)\n'
         '    b: 2 (int)\n'
@@ -49,7 +49,7 @@ def test_print_generator(capsys):
     result = debug(gen)
     stdout, stderr = capsys.readouterr()
     print(stdout)
-    assert re.sub(r':\d{2,}', ':<line no>', stdout) == (
+    assert normalise_output(stdout) == (
         'tests/test_main.py:<line no> test_print_generator\n'
         '    gen: (\n'
         '        1,\n'
@@ -66,7 +66,7 @@ def test_format():
     a = b'i might bite'
     b = "hello this is a test"
     v = debug.format(a, b)
-    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    s = normalise_output(str(v))
     print(s)
     assert s == (
         "tests/test_main.py:<line no> test_format\n"
@@ -75,6 +75,10 @@ def test_format():
     )
 
 
+@pytest.mark.xfail(
+    sys.platform == 'win32',
+    reason='Fatal Python error: _Py_HashRandomization_Init: failed to get random numbers to initialize Python',
+)
 def test_print_subprocess(tmpdir):
     f = tmpdir.join('test.py')
     f.write("""\
@@ -109,7 +113,12 @@ def test_odd_path(mocker):
     mocked_relative_to = mocker.patch('pathlib.Path.relative_to')
     mocked_relative_to.side_effect = ValueError()
     v = debug.format('test')
-    assert re.search(r"/.*?/test_main.py:\d{2,} test_odd_path\n    'test' \(str\) len=4", str(v)), v
+    if sys.platform == "win32":
+        pattern = r"\w:\\.*?\\"
+    else:
+        pattern = r"/.*?/"
+    pattern += r"test_main.py:\d{2,} test_odd_path\n    'test' \(str\) len=4"
+    assert re.search(pattern, str(v)), v
 
 
 def test_small_call_frame():
@@ -119,7 +128,7 @@ def test_small_call_frame():
         2,
         3,
     )
-    assert re.sub(r':\d{2,}', ':<line no>', str(v)) == (
+    assert normalise_output(str(v)) == (
         'tests/test_main.py:<line no> test_small_call_frame\n'
         '    1 (int)\n'
         '    2 (int)\n'
@@ -135,7 +144,7 @@ def test_small_call_frame_warning():
         3,
     )
     print('\n---\n{}\n---'.format(v))
-    assert re.sub(r':\d{2,}', ':<line no>', str(v)) == (
+    assert normalise_output(str(v)) == (
         'tests/test_main.py:<line no> test_small_call_frame_warning\n'
         '    1 (int)\n'
         '    2 (int)\n'
@@ -147,7 +156,7 @@ def test_small_call_frame_warning():
 def test_kwargs():
     a = 'variable'
     v = debug.format(first=a, second='literal')
-    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    s = normalise_output(str(v))
     print(s)
     assert s == (
         "tests/test_main.py:<line no> test_kwargs\n"
@@ -160,7 +169,7 @@ def test_kwargs_orderless():
     # for python3.5
     a = 'variable'
     v = debug.format(first=a, second='literal')
-    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    s = normalise_output(str(v))
     assert set(s.split('\n')) == {
         "tests/test_main.py:<line no> test_kwargs_orderless",
         "    first: 'variable' (str) len=8 variable=a",
@@ -170,14 +179,14 @@ def test_kwargs_orderless():
 
 def test_simple_vars():
     v = debug.format('test', 1, 2)
-    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    s = normalise_output(str(v))
     assert s == (
         "tests/test_main.py:<line no> test_simple_vars\n"
         "    'test' (str) len=4\n"
         "    1 (int)\n"
         "    2 (int)"
     )
-    r = re.sub(r':\d{2,}', ':<line no>', repr(v))
+    r = normalise_output(repr(v))
     assert r == (
         "<DebugOutput tests/test_main.py:<line no> test_simple_vars arguments: 'test' (str) len=4 1 (int) 2 (int)>"
     )
@@ -239,17 +248,17 @@ def test_exec(capsys):
 
 def test_colours():
     v = debug.format(range(6))
-    s = re.sub(r':\d{2,}', ':<line no>', v.str(True))
+    s = v.str(True)
     assert s.startswith('\x1b[35mtests'), repr(s)
-    s2 = strip_ansi(s)
-    assert s2 == v.str(), repr(s2)
+    s2 = normalise_output(strip_ansi(s))
+    assert s2 == normalise_output(v.str()), repr(s2)
 
 
 def test_colours_warnings(mocker):
     mocked_getframe = mocker.patch('sys._getframe')
     mocked_getframe.side_effect = ValueError()
     v = debug.format('x')
-    s = re.sub(r':\d{2,}', ':<line no>', v.str(True))
+    s = normalise_output(v.str(True))
     assert s.startswith('\x1b[35m<unknown>'), repr(s)
     s2 = strip_ansi(s)
     assert s2 == v.str(), repr(s2)
@@ -270,10 +279,14 @@ def test_breakpoint(mocker):
     assert mocked_set_trace.called
 
 
+@pytest.mark.xfail(
+    sys.platform == 'win32' and sys.version_info >= (3, 9),
+    reason='see https://github.com/alexmojaki/executing/issues/27',
+)
 def test_starred_kwargs():
     v = {'foo': 1, 'bar': 2}
     v = debug.format(**v)
-    s = re.sub(r':\d{2,}', ':<line no>', v.str())
+    s = normalise_output(v.str())
     assert set(s.split('\n')) == {
         'tests/test_main.py:<line no> test_starred_kwargs',
         '    foo: 1 (int)',
@@ -289,11 +302,10 @@ def test_pretty_error():
 
     b = BadPretty()
     v = debug.format(b)
-    s = re.sub(r':\d{2,}', ':<line no>', str(v))
-    s = re.sub(r'0x[0-9a-f]+', '0x000', s)
+    s = normalise_output(str(v))
     assert s == (
         "tests/test_main.py:<line no> test_pretty_error\n"
-        "    b: <tests.test_main.test_pretty_error.<locals>.BadPretty object at 0x000> (BadPretty)\n"
+        "    b: <tests.test_main.test_pretty_error.<locals>.BadPretty object at 0x<hash>> (BadPretty)\n"
         "    !!! error pretty printing value: RuntimeError('this is an error')"
     )
 
@@ -302,7 +314,7 @@ def test_multiple_debugs():
     debug.format([i * 2 for i in range(2)])
     debug.format([i * 2 for i in range(2)])
     v = debug.format([i * 2 for i in range(2)])
-    s = re.sub(r':\d{2,}', ':<line no>', str(v))
+    s = normalise_output(str(v))
     assert s == (
         'tests/test_main.py:<line no> test_multiple_debugs\n'
         '    [i * 2 for i in range(2)]: [0, 2] (list) len=2'

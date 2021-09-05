@@ -251,7 +251,7 @@ class PrettyFormat:
         else:
             self._stream.write(value_repr)
 
-    def _format_fields(self, value, fields, indent_current: int, indent_new: int):
+    def _format_fields(self, value: 'Any', fields: 'Iterable[Tuple[str, Any]]', indent_current: int, indent_new: int) -> None:
         self._stream.write(f'{value.__class__.__name__}(\n')
         for field, v in fields:
             self._stream.write(indent_new * self._c)

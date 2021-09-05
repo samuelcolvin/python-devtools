@@ -76,8 +76,8 @@ def test_format():
 
 
 @pytest.mark.xfail(
-    sys.platform == "win32",
-    reason="Fatal Python error: _Py_HashRandomization_Init: failed to get random numbers to initialize Python",
+    sys.platform == 'win32',
+    reason='Fatal Python error: _Py_HashRandomization_Init: failed to get random numbers to initialize Python',
 )
 def test_print_subprocess(tmpdir):
     f = tmpdir.join('test.py')
@@ -279,6 +279,10 @@ def test_breakpoint(mocker):
     assert mocked_set_trace.called
 
 
+@pytest.mark.xfail(
+    sys.platform == 'win32' and sys.version_info >= (3, 9),
+    reason='see https://github.com/alexmojaki/executing/issues/27',
+)
 def test_starred_kwargs():
     v = {'foo': 1, 'bar': 2}
     v = debug.format(**v)

@@ -258,8 +258,7 @@ class PrettyFormat:
         for field, v in fields:
             self._stream.write(indent_new * self._c)
             if field:  # field is falsy sometimes for odd things like call_args
-                self._stream.write(str(field))
-                self._stream.write('=')
+                self._stream.write(f'{field}=')
             self._format(v, indent_new, False)
             self._stream.write(',\n')
         self._stream.write(indent_current * self._c + ')')

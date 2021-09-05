@@ -166,7 +166,7 @@ class Debug:
             arguments = list(self._args_inspection_failed(args, kwargs))
         else:
             ex = source.executing(call_frame)
-            # function = ex.code_qualname()
+            function = ex.code_qualname()
             if not ex.node:
                 warning = "executing failed to find the calling node"
                 arguments = list(self._args_inspection_failed(args, kwargs))

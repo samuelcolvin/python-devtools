@@ -192,7 +192,7 @@ def test_very_nested_last_statement():
     # check only the original code is included in the warning
     s = normalise_output(str(v))
     assert s == (
-        'tests/test_expr_render.py:<line no> func\n'
+        'tests/test_expr_render.py:<line no> test_very_nested_last_statement.<locals>.func\n'
         '    abs( abs( abs( abs( -1 ) ) ) ): 1 (int)'
     )
 
@@ -217,7 +217,7 @@ def test_syntax_warning():
     # check only the original code is included in the warning
     s = normalise_output(str(v))
     assert s == (
-        'tests/test_expr_render.py:<line no> func\n'
+        'tests/test_expr_render.py:<line no> test_syntax_warning.<locals>.func\n'
         '    abs( abs( abs( abs( abs( -1 ) ) ) ) ): 1 (int)'
     )
 
@@ -244,7 +244,7 @@ def test_no_syntax_warning():
     v = func()
     s = normalise_output(str(v))
     assert s == (
-        'tests/test_expr_render.py:<line no> func\n'
+        'tests/test_expr_render.py:<line no> test_no_syntax_warning.<locals>.func\n'
         '    abs( abs( abs( abs( abs( -1 ) ) ) ) ): 1 (int)'
     )
 
@@ -261,7 +261,7 @@ def test_await():
     loop.close()
     s = normalise_output(str(v))
     assert (
-        'tests/test_expr_render.py:<line no> bar\n'
+        'tests/test_expr_render.py:<line no> test_await.<locals>.bar\n'
         '    await foo(): 1 (int)'
     ) == s
 

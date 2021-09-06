@@ -2,6 +2,7 @@ import io
 import os
 from collections import OrderedDict
 from collections.abc import Generator
+from functools import lru_cache
 
 from .utils import DataClassType, LaxMapping, SQLAlchemyClassType, env_true, isatty
 
@@ -28,12 +29,13 @@ class SkipPretty(Exception):
     pass
 
 
+@lru_cache
 def get_pygments():
     try:
         import pygments
         from pygments.formatters import Terminal256Formatter
         from pygments.lexers import PythonLexer
-    except ImportError:  # pragma: no cover
+    except ImportError:
         return None, None, None
     else:
         return pygments, PythonLexer(), Terminal256Formatter(style='vim')

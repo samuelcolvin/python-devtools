@@ -2,9 +2,14 @@ import io
 import os
 from collections import OrderedDict
 from collections.abc import Generator
-from functools import lru_cache
 
 from .utils import DataClassType, LaxMapping, SQLAlchemyClassType, env_true, isatty
+
+try:
+    from functools import cache
+except ImportError:
+    from functools import lru_cache
+    cache = lru_cache()
 
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 MYPY = False
@@ -29,7 +34,7 @@ class SkipPretty(Exception):
     pass
 
 
-@lru_cache
+@cache
 def get_pygments():
     try:
         import pygments

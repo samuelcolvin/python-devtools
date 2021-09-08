@@ -41,7 +41,7 @@ def get_pygments():
         import pygments
         from pygments.formatters import Terminal256Formatter
         from pygments.lexers import PythonLexer
-    except ImportError:
+    except ImportError:  # pragma: no cover
         return None, None, None
     else:
         return pygments, PythonLexer(), Terminal256Formatter(style='vim')

@@ -5,6 +5,13 @@ from collections.abc import Generator
 
 from .utils import DataClassType, LaxMapping, SQLAlchemyClassType, env_true, isatty
 
+try:
+    from functools import cache
+except ImportError:
+    from functools import lru_cache
+
+    cache = lru_cache()
+
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 MYPY = False
 if MYPY:
@@ -28,6 +35,7 @@ class SkipPretty(Exception):
     pass
 
 
+@cache
 def get_pygments():
     try:
         import pygments

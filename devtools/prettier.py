@@ -230,9 +230,7 @@ class PrettyFormat:
         self._str_lines(lines, indent_current, indent_new)
 
     def _format_dataclass(self, value: 'Any', _: str, indent_current: int, indent_new: int):
-        from dataclasses import asdict
-
-        self._format_fields(value, asdict(value).items(), indent_current, indent_new)
+        self._format_fields(value, value.__dict__.items(), indent_current, indent_new)
 
     def _format_sqlalchemy_class(self, value: 'Any', _: str, indent_current: int, indent_new: int):
         fields = [

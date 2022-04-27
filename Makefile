@@ -1,6 +1,7 @@
 .DEFAULT_GOAL := all
 isort = isort devtools tests
 black = black -S -l 120 --target-version py37 devtools
+mypy = mypy devtools
 
 .PHONY: install
 install:
@@ -18,6 +19,7 @@ lint:
 	flake8 devtools/ tests/
 	$(isort) --check-only --df
 	$(black) --check --diff
+	$(mypy)
 
 .PHONY: test
 test:

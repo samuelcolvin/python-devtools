@@ -49,6 +49,7 @@ setup(
     url='https://github.com/samuelcolvin/python-devtools',
     license='MIT',
     packages=['devtools'],
+    package_data={"devtools": ["py.typed"]},
     python_requires='>=3.6',
     install_requires=[
         'executing>=0.8.0,<1.0.0',

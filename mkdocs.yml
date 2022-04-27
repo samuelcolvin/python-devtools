@@ -1,6 +1,6 @@
 site_name: python-devtools
 site_description: Python's missing debug print command and other development tools.
-strict: true
+strict: false
 site_url: https://python-devtools.helpmanual.io/
 
 theme:
@@ -12,6 +12,18 @@ theme:
 
 repo_name: samuelcolvin/python-devtools
 repo_url: https://github.com/samuelcolvin/python-devtools
+
+#
+# FIXME: google_analytics is deprecated. This section must be replaced with
+#        something like this instead:
+#
+# analytics:
+#    gtag: G-123456
+#
+# Once this is replaced, re-enable strict mode at the top of this file.
+#
+# See https://github.com/mkdocs/mkdocs/issues/2252 for details.
+#
 google_analytics:
 - 'UA-62733018-4'
 - 'auto'

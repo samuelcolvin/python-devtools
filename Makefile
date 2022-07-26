@@ -21,11 +21,11 @@ lint:
 
 .PHONY: test
 test:
-	pytest --cov=devtools --cov-fail-under 0
+	coverage run -m pytest
 
 .PHONY: testcov
 testcov:
-	pytest --cov=devtools --cov-fail-under 0
+	coverage run -m pytest
 	@echo "building coverage html"
 	@coverage html
 

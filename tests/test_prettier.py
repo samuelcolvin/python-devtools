@@ -220,7 +220,6 @@ def test_counter():
 })>"""
 
 
-@pytest.mark.skipif(sys.version_info > (3, 7), reason='no datalcasses before 3.6')
 def test_dataclass():
     @dataclass
     class FooDataclass:

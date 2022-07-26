@@ -74,7 +74,7 @@ class PrettyFormat:
             ((list, set, frozenset), self._format_list_like),
             (bytearray, self._format_bytearray),
             (generator_types, self._format_generator),
-            # put this last as the check can be slow
+            # put these last as the check can be slow
             (LaxMapping, self._format_dict),
             (DataClassType, self._format_dataclass),
             (SQLAlchemyClassType, self._format_sqlalchemy_class),

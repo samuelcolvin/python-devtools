@@ -6,7 +6,7 @@
 [![versions](https://img.shields.io/pypi/pyversions/devtools.svg)](https://github.com/samuelcolvin/python-devtools)
 [![license](https://img.shields.io/github/license/samuelcolvin/python-devtools.svg)](https://github.com/samuelcolvin/python-devtools/blob/master/LICENSE)
 
-{!.version.md!}
+{{ version }}
 
 **Python's missing debug print command and other development tools.**
 
@@ -14,6 +14,6 @@
 {!examples/example.py!}
 ```
 
-{!examples/example.html!}
+{{ example_html(examples/example.py) }}
 
 Python devtools can do much more, see [Usage](./usage.md) for examples.

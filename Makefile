@@ -50,12 +50,10 @@ clean:
 .PHONY: docs
 docs:
 	flake8 --max-line-length=80 docs/examples/
-	python docs/build/main.py
 	mkdocs build
 
 .PHONY: docs-serve
 docs-serve:
-	python docs/build/main.py
 	mkdocs serve
 
 .PHONY: publish-docs

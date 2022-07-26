@@ -18,6 +18,7 @@ lint:
 	flake8 --max-complexity 10 --max-line-length 120 --ignore E203,W503 devtools tests docs/plugins.py
 	$(isort) --check-only --df
 	$(black) --check --diff
+	mypy devtools
 
 .PHONY: test
 test:

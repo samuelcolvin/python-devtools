@@ -83,3 +83,7 @@ color_output = true
 [tool.mypy]
 strict = true
 warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = ['executing.*']
+ignore_missing_imports = true

@@ -62,7 +62,7 @@ class Style(IntEnum):
     # this is a meta value used for the "Style" instance which is the "style" function
     function = -1
 
-    def __call__(self, input: 'Any', *styles: 'Style', reset: bool = True, apply: bool = True) -> str:
+    def __call__(self, input: 'Any', *styles: 'Union[Style, int, str]', reset: bool = True, apply: bool = True) -> str:
         """
         Styles text with ANSI styles and returns the new string.
 
@@ -91,7 +91,7 @@ class Style(IntEnum):
                     s = self.styles[s]
                 except KeyError:
                     raise ValueError(f'invalid style "{s}"')
-            codes.append(_style_as_int(s.value))
+            codes.append(_style_as_int(s.value))  # type: ignore
 
         if codes:
             r = _as_ansi(';'.join(codes)) + text
@@ -142,7 +142,7 @@ class StylePrint:
     def __call__(
         self,
         input: str,
-        *styles: Style,
+        *styles: 'Union[Style, int, str]',
         reset: bool = True,
         flush: bool = True,
         file: 'Any' = None,

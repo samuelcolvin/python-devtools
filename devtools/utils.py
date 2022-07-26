@@ -29,7 +29,7 @@ def isatty(stream: 'Any' = None) -> bool:
         return False
 
 
-def env_true(var_name: str, alt: 'Optional[bool]' = None) -> 'Optional[bool]':
+def env_true(var_name: str, alt: 'Optional[bool]' = None) -> 'Any':
     env = os.getenv(var_name, None)
     if env:
         return env.upper() in {'1', 'TRUE'}

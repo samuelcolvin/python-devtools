@@ -26,7 +26,7 @@ def print_code() -> int:
 def install() -> int:
     print('[WARNING: this command is experimental, report issues at github.com/samuelcolvin/python-devtools]\n')
 
-    if 'debug' in builtins.dir():
+    if hasattr(builtins, 'debug'):
         print('Looks like devtools is already installed.')
         return 0
 

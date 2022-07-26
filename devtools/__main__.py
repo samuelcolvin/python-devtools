@@ -12,7 +12,8 @@ try:
 except ImportError:
     pass
 else:
-    __builtins__['debug'] = debug"""
+    __builtins__['debug'] = debug
+"""
 
 
 def print_code() -> int:
@@ -28,29 +29,27 @@ def install() -> int:
         return 0
 
     try:
-        import sitecustomize
+        import sitecustomize  # type: ignore
     except ImportError:
         paths = [Path(p) for p in sys.path]
         try:
             path = next(p for p in paths if p.is_dir() and p.name == 'site-packages')
         except StopIteration:
             # what else makes sense to try?
-            print(f'unable to file a suitable path to save `sitecustomize.py` at from: {paths}')
+            print(f'unable to file a suitable path to save `sitecustomize.py` to from sys.path: {paths}')
             return 1
         else:
             install_path = path / 'sitecustomize.py'
     else:
         install_path = Path(sitecustomize.__file__)
 
-    writable = os.access(install_path, os.W_OK)
-
     print(f'Found path "{install_path}" to install devtools into __builtins__')
     print('To install devtools, run the following command:\n')
-    if writable:
+    if os.access(install_path, os.W_OK):
         print(f'    python -m devtools print-code >> {install_path}\n')
     else:
         print(f'    python -m devtools print-code | sudo tee -a {install_path} > /dev/null\n')
-        print('"sudo" is required because the path is not writable by the current user.')
+        print('Note: "sudo" is required because the path is not writable by the current user.')
 
     return 0
 

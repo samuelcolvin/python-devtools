@@ -3,7 +3,7 @@ requires = ['hatchling']
 build-backend = 'hatchling.build'
 
 [tool.hatch.version]
-path = "devtools/version.py"
+path = 'devtools/version.py'
 
 [project]
 name = 'devtools'
@@ -38,7 +38,7 @@ dependencies = [
     'asttokens>=2.0.0,<3.0.0',
 ]
 optional-dependencies = {pygments = ['Pygments>=2.2.0'] }
-dynamic = ["version"]
+dynamic = ['version']
 
 [project.urls]
 Homepage = 'https://github.com/samuelcolvin/python-devtools'

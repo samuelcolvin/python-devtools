@@ -1,6 +1,5 @@
 import os
 import string
-import sys
 from collections import Counter, OrderedDict, namedtuple
 from dataclasses import dataclass
 from typing import List

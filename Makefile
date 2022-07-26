@@ -4,7 +4,7 @@ black = black -S -l 120 --target-version py37 devtools docs/plugins.py
 
 .PHONY: install
 install:
-	python -m pip install -U setuptools pip wheel twine
+	python -m pip install -U setuptools pip wheel twine build
 	pip install -U -r requirements.txt
 	pip install -e .
 

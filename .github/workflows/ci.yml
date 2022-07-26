@@ -94,7 +94,7 @@ jobs:
           python-version: '3.10'
 
       - name: install
-        run: pip install -U build twine setuptools
+        run: make install
 
       - name: build
         run: python -m build

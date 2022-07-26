@@ -43,6 +43,11 @@ markdown_extensions:
 - codehilite
 - extra
 - attr_list
+- pymdownx.highlight:
+    anchor_linenums: true
+- pymdownx.inlinehilite
+- pymdownx.snippets
+- pymdownx.superfences
 
 plugins:
 - search

@@ -4,10 +4,10 @@ import os
 import re
 import sys
 import subprocess
+from importlib.machinery import SourceFileLoader
 from pathlib import Path
 
 import requests
-from setuptools.config import pyprojecttoml
 from ansi2html import Ansi2HTMLConverter
 
 from mkdocs.config import Config
@@ -77,7 +77,7 @@ def gen_examples_html(m: re.Match) -> str:
 
 def set_version(markdown: str, page: Page) -> str:
     if page.abs_url == '/':
-        version = pyprojecttoml.load_file('pyproject.toml')['project']['version']
+        version = SourceFileLoader('version', str(PROJECT_ROOT / 'devtools/version.py')).load_module()
         version_str = f'Documentation for version: **{version}**'
         markdown = re.sub(r'{{ *version *}}', version_str, markdown)
     return markdown

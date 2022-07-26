@@ -247,20 +247,20 @@ def test_exec(capsys):
 
 def test_colours():
     v = debug.format(range(6))
-    s = v.as_str(True)
+    s = v.str(True)
     assert s.startswith('\x1b[35mtests'), repr(s)
     s2 = normalise_output(strip_ansi(s))
-    assert s2 == normalise_output(v.as_str()), repr(s2)
+    assert s2 == normalise_output(v.str()), repr(s2)
 
 
 def test_colours_warnings(mocker):
     mocked_getframe = mocker.patch('sys._getframe')
     mocked_getframe.side_effect = ValueError()
     v = debug.format('x')
-    s = normalise_output(v.as_str(True))
+    s = normalise_output(v.str(True))
     assert s.startswith('\x1b[35m<unknown>'), repr(s)
     s2 = strip_ansi(s)
-    assert s2 == v.as_str(), repr(s2)
+    assert s2 == v.str(), repr(s2)
 
 
 def test_inspect_error(mocker):
@@ -285,7 +285,7 @@ def test_breakpoint(mocker):
 def test_starred_kwargs():
     v = {'foo': 1, 'bar': 2}
     v = debug.format(**v)
-    s = normalise_output(v.as_str())
+    s = normalise_output(v.str())
     assert set(s.split('\n')) == {
         'tests/test_main.py:<line no> test_starred_kwargs',
         '    foo: 1 (int)',

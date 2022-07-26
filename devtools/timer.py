@@ -6,6 +6,9 @@ MYPY = False
 if MYPY:
     from typing import Any, List, Optional, Set
 
+# required for type hinting because I (stupidly) added methods called `str`
+StrType = str
+
 
 class TimerResult:
     def __init__(self, name: 'Optional[str]' = None, verbose: bool = True) -> None:
@@ -23,14 +26,14 @@ class TimerResult:
         else:
             return -1
 
-    def as_str(self, dp: int = 3) -> str:
+    def str(self, dp: int = 3) -> StrType:
         if self._name:
             return f'{self._name}: {self.elapsed():0.{dp}f}s elapsed'
         else:
             return f'{self.elapsed():0.{dp}f}s elapsed'
 
-    def __str__(self) -> str:
-        return self.as_str()
+    def __str__(self) -> StrType:
+        return self.str()
 
 
 _SUMMARY_TEMPLATE = '{count} times: mean={mean:0.{dp}f}s stdev={stddev:0.{dp}f}s min={min:0.{dp}f}s max={max:0.{dp}f}s'
@@ -60,7 +63,7 @@ class Timer:
         r.capture()
         print_ = r.verbose if verbose is None else verbose
         if print_:
-            print(r.as_str(self.dp), file=self.file, flush=True)
+            print(r.str(self.dp), file=self.file, flush=True)
         return r
 
     def summary(self, verbose: bool = False) -> 'Set[float]':
@@ -69,7 +72,7 @@ class Timer:
             if not r.finish:
                 r.capture()
             if verbose:
-                print(f'    {r.as_str(self.dp)}', file=self.file)
+                print(f'    {r.str(self.dp)}', file=self.file)
             times.add(r.elapsed())
 
         if times:

@@ -18,6 +18,8 @@ pformat = PrettyFormat(
     width=int(os.getenv('PY_DEVTOOLS_WIDTH', 120)),
     yield_from_generators=env_true('PY_DEVTOOLS_YIELD_FROM_GEN', True),
 )
+# required for type hinting because I (stupidly) added methods called `str`
+StrType = str
 
 
 class DebugArgument:
@@ -35,7 +37,7 @@ class DebugArgument:
             self.extra.append(('len', length))
         self.extra += [(k, v) for k, v in extra.items() if v is not None]
 
-    def as_str(self, highlight: bool = False) -> str:
+    def str(self, highlight: bool = False) -> StrType:
         s = ''
         if self.name and not is_literal(self.name):
             s = f'{sformat(self.name, sformat.blue, apply=highlight)}: '
@@ -54,8 +56,8 @@ class DebugArgument:
             s += suffix
         return s
 
-    def __str__(self) -> str:
-        return self.as_str()
+    def __str__(self) -> StrType:
+        return self.str()
 
 
 class DebugOutput:
@@ -81,7 +83,7 @@ class DebugOutput:
         self.arguments = arguments
         self.warning = warning
 
-    def as_str(self, highlight: bool = False) -> str:
+    def str(self, highlight: bool = False) -> StrType:
         if highlight:
             prefix = (
                 f'{sformat(self.filename, sformat.magenta)}:{sformat(self.lineno, sformat.green)} '
@@ -93,12 +95,12 @@ class DebugOutput:
             prefix = f'{self.filename}:{self.lineno} {self.frame}'
             if self.warning:
                 prefix += f' ({self.warning})'
-        return f'{prefix}\n    ' + '\n    '.join(a.as_str(highlight) for a in self.arguments)
+        return f'{prefix}\n    ' + '\n    '.join(a.str(highlight) for a in self.arguments)
 
-    def __str__(self) -> str:
-        return self.as_str()
+    def __str__(self) -> StrType:
+        return self.str()
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> StrType:
         arguments = ' '.join(str(a) for a in self.arguments)
         return f'<DebugOutput {self.filename}:{self.lineno} {self.frame} arguments: {arguments}>'
 
@@ -112,7 +114,7 @@ class Debug:
 
     def __call__(self, *args: 'Any', file_: 'Any' = None, flush_: bool = True, **kwargs: 'Any') -> 'Any':
         d_out = self._process(args, kwargs)
-        s = d_out.as_str(use_highlight(self._highlight, file_))
+        s = d_out.str(use_highlight(self._highlight, file_))
         print(s, file=file_, flush=flush_)
         if kwargs:
             return (*args, kwargs)

@@ -17,11 +17,9 @@
 * display `dataclasses` properly, #88
 * uprev test dependencies, #81, #83, #90
 
-## v0.6.1
+## v0.6.1 (2020-10-22)
 
 compatibility with python 3.8.6
-
-## v0.6
 
 ## v0.6.0 (2020-07-29)
 
@@ -33,42 +31,30 @@ compatibility with python 3.8.6
 * colors in windows, #57
 * fix `debug(type(dict(...)))`, #62
 
-## v0.5.1
+## v0.5.1 (2019-10-09)
 
 * fix python tag in `setup.cfg`, #46
 
-## v0.5
+## v0.5.0 (2019-01-03)
 
 * support `MultiDict`, #34
 * support `__pretty__` method, #36
 
-## v0.4
+## v0.4.0 (2018-12-29)
 
 * remove use of `warnings`, include in output, #30
 * fix rendering errors #31
 * better str and bytes wrapping #32
 * add `len` everywhere possible, part of #16
 
-## v0.3
+## v0.3.0 (2017-10-11)
 
 * allow `async/await` arguments
 * fix subscript
 * fix weird named tuples eg. `mock > call_args`
 * add `timer`
 
-## v0.2
+## v0.2.0 (2017-09-14)
 
 * improve output
 * numerous bug fixes
-
-## v0.1
-
-_(no details available)_
-
-## v0.0.2
-
-_(no details available)_
-
-## v0.0.1
-
-_(no details available)_

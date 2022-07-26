@@ -65,7 +65,7 @@ def gen_examples_html(m: re.Match) -> str:
 def set_version(markdown: str, page: Page) -> str:
     if page.abs_url == '/':
         version = SourceFileLoader('version', str(PROJECT_ROOT / 'devtools/version.py')).load_module()
-        version_str = f'Documentation for version: **{version}**'
+        version_str = f'Documentation for version: **v{version.VERSION}**'
         markdown = re.sub(r'{{ *version *}}', version_str, markdown)
     return markdown
 

@@ -59,6 +59,7 @@ exclude_lines = [
     'raise NotImplementedError',
     'raise NotImplemented',
     'if TYPE_CHECKING:',
+    'if MYPY:',
     '@overload',
 ]
 

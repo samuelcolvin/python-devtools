@@ -3,6 +3,7 @@ from .ansi import *
 from .debug import *
 from .prettier import *
 from .timer import *
+
 try:
     from .version import VERSION
 except ImportError:

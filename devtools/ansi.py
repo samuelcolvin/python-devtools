@@ -6,10 +6,10 @@ __all__ = 'sformat', 'sprint'
 
 MYPY = False
 if MYPY:
-    from typing import Any, Union
+    from typing import Any, Mapping, Union
 
 
-def strip_ansi(value):
+def strip_ansi(value: str) -> str:
     import re
 
     return re.sub('\033\\[((?:\\d|;)*)([a-zA-Z])', '', value)
@@ -62,7 +62,7 @@ class Style(IntEnum):
     # this is a meta value used for the "Style" instance which is the "style" function
     function = -1
 
-    def __call__(self, input: 'Any', *styles: 'Style', reset: bool = True, apply: bool = True) -> str:
+    def __call__(self, input: 'Any', *styles: 'Union[Style, int, str]', reset: bool = True, apply: bool = True) -> str:
         """
         Styles text with ANSI styles and returns the new string.
 
@@ -91,7 +91,7 @@ class Style(IntEnum):
                     s = self.styles[s]
                 except KeyError:
                     raise ValueError(f'invalid style "{s}"')
-            codes.append(_style_as_int(s.value))
+            codes.append(_style_as_int(s.value))  # type: ignore
 
         if codes:
             r = _as_ansi(';'.join(codes)) + text
@@ -103,16 +103,16 @@ class Style(IntEnum):
         return r
 
     @property
-    def styles(self):
+    def styles(self) -> 'Mapping[str, Style]':
         return self.__class__.__members__
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self == self.function:
             return '<pseudo function sformat(text, *styles)>'
         else:
             return super().__repr__()
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self == self.function:
             return repr(self)
         else:
@@ -139,14 +139,22 @@ class StylePrint:
     for that mistake.
     """
 
-    def __call__(self, input, *styles, reset=True, flush=True, file=None, **print_kwargs):
+    def __call__(
+        self,
+        input: str,
+        *styles: 'Union[Style, int, str]',
+        reset: bool = True,
+        flush: bool = True,
+        file: 'Any' = None,
+        **print_kwargs: 'Any',
+    ) -> None:
         text = sformat(input, *styles, reset=reset, apply=isatty(file))
         print(text, flush=flush, file=file, **print_kwargs)
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> str:
         return getattr(sformat, item)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<pseudo function sprint(text, *styles)>'
 
 

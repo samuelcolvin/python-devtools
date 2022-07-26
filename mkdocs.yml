@@ -43,6 +43,11 @@ markdown_extensions:
 - codehilite
 - extra
 - attr_list
+- pymdownx.highlight:
+    anchor_linenums: true
+- pymdownx.inlinehilite
+- pymdownx.snippets
+- pymdownx.superfences
 
 plugins:
 - search
@@ -51,3 +56,8 @@ plugins:
     - build/*
     - examples/*
     - requirements.txt
+- mkdocs-simple-hooks:
+    hooks:
+      on_pre_build: 'docs.plugins:on_pre_build'
+      on_files: 'docs.plugins:on_files'
+      on_page_markdown: 'docs.plugins:on_page_markdown'

@@ -9,7 +9,7 @@ and readable way to print stuff during development. (If you know why this is, I'
 {!examples/example.py!}
 ```
 
-{!examples/example.html!}
+{{ example_html(examples/example.py) }}
 
 `debug` is like `print` after a good night's sleep and lots of coffee:
 
@@ -24,7 +24,7 @@ A more complex example of `debug` shows more of what it can do.
 {!examples/complex.py!}
 ```
 
-{!examples/complex.html!}
+{{ example_html(examples/complex.py) }}
 
 ### Returning the arguments
 
@@ -40,7 +40,7 @@ The returned arguments work as follows:
 {!examples/return_args.py!}
 ```
 
-{!examples/return_args.html!}
+{{ example_html(examples/return_args.py) }}
 
 ## Other debug tools
 
@@ -54,7 +54,7 @@ The debug namespace includes a number of other useful functions:
 {!examples/other.py!}
 ```
 
-{!examples/other.html!}
+{{ example_html(examples/other.py) }}
 
 ### Prettier print
 
@@ -69,7 +69,7 @@ in `debug()`, but it can also be used directly:
 {!examples/prettier.py!}
 ```
 
-{!examples/prettier.html!}
+{{ example_html(examples/prettier.py) }}
 
 For more details on prettier printing, see
 [`prettier.py`](https://github.com/samuelcolvin/python-devtools/blob/master/devtools/prettier.py).

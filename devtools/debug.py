@@ -10,7 +10,7 @@ __all__ = 'Debug', 'debug'
 MYPY = False
 if MYPY:
     from types import FrameType
-    from typing import Any, Generator, List, Optional
+    from typing import Any, Generator, List, Optional, Union
 
 pformat = PrettyFormat(
     indent_step=int(os.getenv('PY_DEVTOOLS_INDENT', 4)),
@@ -18,12 +18,14 @@ pformat = PrettyFormat(
     width=int(os.getenv('PY_DEVTOOLS_WIDTH', 120)),
     yield_from_generators=env_true('PY_DEVTOOLS_YIELD_FROM_GEN', True),
 )
+# required for type hinting because I (stupidly) added methods called `str`
+StrType = str
 
 
 class DebugArgument:
     __slots__ = 'value', 'name', 'extra'
 
-    def __init__(self, value, *, name=None, **extra):
+    def __init__(self, value: 'Any', *, name: 'Optional[str]' = None, **extra: 'Any') -> None:
         self.value = value
         self.name = name
         self.extra = []
@@ -35,7 +37,7 @@ class DebugArgument:
             self.extra.append(('len', length))
         self.extra += [(k, v) for k, v in extra.items() if v is not None]
 
-    def str(self, highlight=False) -> str:
+    def str(self, highlight: bool = False) -> StrType:
         s = ''
         if self.name and not is_literal(self.name):
             s = f'{sformat(self.name, sformat.blue, apply=highlight)}: '
@@ -54,7 +56,7 @@ class DebugArgument:
             s += suffix
         return s
 
-    def __str__(self) -> str:
+    def __str__(self) -> StrType:
         return self.str()
 
 
@@ -66,14 +68,22 @@ class DebugOutput:
     arg_class = DebugArgument
     __slots__ = 'filename', 'lineno', 'frame', 'arguments', 'warning'
 
-    def __init__(self, *, filename: str, lineno: int, frame: str, arguments: 'List[DebugArgument]', warning=None):
+    def __init__(
+        self,
+        *,
+        filename: str,
+        lineno: int,
+        frame: str,
+        arguments: 'List[DebugArgument]',
+        warning: 'Union[None, str, bool]' = None,
+    ) -> None:
         self.filename = filename
         self.lineno = lineno
         self.frame = frame
         self.arguments = arguments
         self.warning = warning
 
-    def str(self, highlight=False) -> str:
+    def str(self, highlight: bool = False) -> StrType:
         if highlight:
             prefix = (
                 f'{sformat(self.filename, sformat.magenta)}:{sformat(self.lineno, sformat.green)} '
@@ -87,10 +97,10 @@ class DebugOutput:
                 prefix += f' ({self.warning})'
         return f'{prefix}\n    ' + '\n    '.join(a.str(highlight) for a in self.arguments)
 
-    def __str__(self) -> str:
+    def __str__(self) -> StrType:
         return self.str()
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> StrType:
         arguments = ' '.join(str(a) for a in self.arguments)
         return f'<DebugOutput {self.filename}:{self.lineno} {self.frame} arguments: {arguments}>'
 
@@ -102,7 +112,7 @@ class Debug:
         self._show_warnings = env_bool(warnings, 'PY_DEVTOOLS_WARNINGS', True)
         self._highlight = highlight
 
-    def __call__(self, *args, file_=None, flush_=True, **kwargs) -> 'Any':
+    def __call__(self, *args: 'Any', file_: 'Any' = None, flush_: bool = True, **kwargs: 'Any') -> 'Any':
         d_out = self._process(args, kwargs)
         s = d_out.str(use_highlight(self._highlight, file_))
         print(s, file=file_, flush=flush_)
@@ -113,18 +123,18 @@ class Debug:
         else:
             return args
 
-    def format(self, *args, **kwargs) -> DebugOutput:
+    def format(self, *args: 'Any', **kwargs: 'Any') -> DebugOutput:
         return self._process(args, kwargs)
 
-    def breakpoint(self):
+    def breakpoint(self) -> None:
         import pdb
 
         pdb.Pdb(skip=['devtools.*']).set_trace()
 
-    def timer(self, name=None, *, verbose=True, file=None, dp=3) -> Timer:
+    def timer(self, name: 'Optional[str]' = None, *, verbose: bool = True, file: 'Any' = None, dp: int = 3) -> Timer:
         return Timer(name=name, verbose=verbose, file=file, dp=dp)
 
-    def _process(self, args, kwargs) -> DebugOutput:
+    def _process(self, args: 'Any', kwargs: 'Any') -> DebugOutput:
         """
         BEWARE: this must be called from a function exactly 2 levels below the top of the stack.
         """
@@ -181,13 +191,13 @@ class Debug:
             warning=self._show_warnings and warning,
         )
 
-    def _args_inspection_failed(self, args, kwargs):
+    def _args_inspection_failed(self, args: 'Any', kwargs: 'Any') -> 'Generator[DebugArgument, None, None]':
         for arg in args:
             yield self.output_class.arg_class(arg)
         for name, value in kwargs.items():
             yield self.output_class.arg_class(value, name=name)
 
-    def _process_args(self, ex, args, kwargs) -> 'Generator[DebugArgument, None, None]':
+    def _process_args(self, ex: 'Any', args: 'Any', kwargs: 'Any') -> 'Generator[DebugArgument, None, None]':
         import ast
 
         func_ast = ex.node

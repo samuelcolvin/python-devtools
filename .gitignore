@@ -19,3 +19,4 @@ old-version/
 *.swp
 /site/
 /site.zip
+/build/

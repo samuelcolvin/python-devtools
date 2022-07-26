@@ -1,8 +1,9 @@
-coverage==6.4.2
+coverage[toml]==6.4.2
 Pygments==2.12.0
 pytest==7.1.2
 pytest-mock==3.8.2
 pytest-sugar==0.9.5
+# these packages are used in tests so install the latest version
 pydantic
 asyncpg
 numpy

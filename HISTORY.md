@@ -1,3 +1,11 @@
+## v0.8.0 (2021-09-29)
+
+* test with python 3.10 #91
+* display `SQLAlchemy` objects nicely #94
+* fix tests on windows #93
+* show function `qualname` #95
+* cache pygments loading (significant speedup) #96
+
 ## v0.7.0 (2021-09-03)
 
 * switch to [`executing`](https://pypi.org/project/executing/) and [`asttokens`](https://pypi.org/project/asttokens/) 
@@ -8,6 +16,10 @@
 * display `Counter` and similar dict-like objects properly, #88
 * display `dataclasses` properly, #88
 * uprev test dependencies, #81, #83, #90
+
+## v0.6.1 (2020-10-22)
+
+compatibility with python 3.8.6
 
 ## v0.6.0 (2020-07-29)
 

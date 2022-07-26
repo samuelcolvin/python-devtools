@@ -133,13 +133,9 @@ class LaxMapping(metaclass=MetaLaxMapping):
 
 class MetaDataClassType(type):
     def __instancecheck__(self, instance: 'Any') -> bool:
-        try:
-            from dataclasses import _is_dataclass_instance
-        except ImportError:
-            # python 3.6
-            return False
-        else:
-            return _is_dataclass_instance(instance)
+        from dataclasses import is_dataclass
+
+        return is_dataclass(instance)
 
 
 class DataClassType(metaclass=MetaDataClassType):

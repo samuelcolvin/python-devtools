@@ -6,7 +6,7 @@ black = black -S -l 120 --target-version py37 devtools
 install:
 	python -m pip install -U setuptools pip wheel twine
 	pip install -U -r requirements.txt
-	pip install -e .
+	pip install .
 
 .PHONY: format
 format:
@@ -15,7 +15,7 @@ format:
 
 .PHONY: lint
 lint:
-	flake8 devtools/ tests/
+	flake8 --max-complexity 10 --max-line-length 120 --ignore E203,W503 devtools tests
 	$(isort) --check-only --df
 	$(black) --check --diff
 

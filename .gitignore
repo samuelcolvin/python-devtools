@@ -19,3 +19,5 @@ old-version/
 *.swp
 /site/
 /site.zip
+/devtools/version.py
+/build/

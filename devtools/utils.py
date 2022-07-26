@@ -88,7 +88,7 @@ def activate_win_color() -> bool:  # pragma: no cover
     mode = mask = ENABLE_VIRTUAL_TERMINAL_PROCESSING
     try:
         _set_conout_mode(mode, mask)
-    except WindowsError as e:
+    except WindowsError as e:  # type: ignore
         if e.winerror == ERROR_INVALID_PARAMETER:
             return False
         raise

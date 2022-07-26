@@ -1,0 +1,81 @@
+[build-system]
+requires = ['setuptools']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'devtools'
+version = '0.7.0'
+description = "Python's missing debug print command, and more."
+authors = [{name = 'Samuel Colvin', email = 's@muelcolvin.com'}]
+license = {file = 'LICENSE'}
+readme = 'README.md'
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Developers',
+    'Intended Audience :: Education',
+    'Intended Audience :: Information Technology',
+    'Intended Audience :: Science/Research',
+    'Intended Audience :: System Administrators',
+    'Operating System :: Unix',
+    'Operating System :: POSIX :: Linux',
+    'Environment :: Console',
+    'Environment :: MacOS X',
+    'License :: OSI Approved :: MIT License',
+    'Programming Language :: Python :: 3 :: Only',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+    'Topic :: Internet',
+    'Typing :: Typed',
+]
+requires-python = '>=3.7'
+dependencies = [
+    'executing>=0.8.0,<1.0.0',
+    'asttokens>=2.0.0,<3.0.0',
+]
+optional-dependencies = {pygments = ['Pygments>=2.2.0'] }
+
+[project.urls]
+Homepage = 'https://github.com/samuelcolvin/python-devtools'
+Documentation = 'https://python-devtools.helpmanual.io'
+Funding = 'https://github.com/sponsors/samuelcolvin'
+Source = 'https://github.com/samuelcolvin/python-devtools'
+Changelog = 'https://github.com/samuelcolvin/python-devtools/releases'
+
+[tool.pytest.ini_options]
+testpaths = 'tests'
+filterwarnings = 'error'
+
+[tool.coverage.run]
+source = ['devtools']
+branch = true
+
+[tool.coverage.report]
+precision = 2
+exclude_lines = [
+    'pragma: no cover',
+    'raise NotImplementedError',
+    'raise NotImplemented',
+    'if TYPE_CHECKING:',
+    '@overload',
+]
+
+[tool.black]
+color = true
+line-length = 120
+target-version = ['py37', 'py38', 'py39', 'py310']
+skip-string-normalization = true
+
+[tool.isort]
+line_length = 120
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+combine_as_imports = true
+color_output = true
+
+[tool.mypy]
+strict = true
+warn_return_any = false

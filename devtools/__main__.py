@@ -14,7 +14,7 @@ try:
 except ImportError:
     pass
 else:
-    setattr(builtins, "debug", debug)
+    setattr(builtins, 'debug', debug)
 """
 
 

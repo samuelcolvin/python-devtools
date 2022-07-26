@@ -6,7 +6,7 @@ __all__ = 'sformat', 'sprint'
 
 MYPY = False
 if MYPY:
-    from typing import Any, Dict, Mapping, Union
+    from typing import Any, Mapping, Union
 
 
 def strip_ansi(value: str) -> str:
@@ -140,7 +140,13 @@ class StylePrint:
     """
 
     def __call__(
-        self, input: str, *styles: Style, reset: bool = True, flush: bool = True, file: 'Any' = None, **print_kwargs: 'Any'
+        self,
+        input: str,
+        *styles: Style,
+        reset: bool = True,
+        flush: bool = True,
+        file: 'Any' = None,
+        **print_kwargs: 'Any',
     ) -> None:
         text = sformat(input, *styles, reset=reset, apply=isatty(file))
         print(text, flush=flush, file=file, **print_kwargs)

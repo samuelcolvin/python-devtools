@@ -4,7 +4,7 @@ __all__ = ('Timer',)
 
 MYPY = False
 if MYPY:
-    from typing import Any, Set, Optional, List
+    from typing import Any, List, Optional, Set
 
 
 class TimerResult:
@@ -44,7 +44,7 @@ class Timer:
         self._verbose = verbose
         self.results: 'List[TimerResult]' = []
 
-    def __call__(self, name: 'Optional[str]'=None, verbose: 'Optional[bool]'=None) -> 'Timer':
+    def __call__(self, name: 'Optional[str]' = None, verbose: 'Optional[bool]' = None) -> 'Timer':
         if name:
             self._name = name
         if verbose is not None:

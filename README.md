@@ -61,14 +61,8 @@ outputs:
 
 ## Usage without Import
 
-modify `/usr/lib/python3.8/sitecustomize.py` making `debug` available in any python 3.8 code
+devtools can be used without `from devtools import debug` if you add `debug` into `__builtins__`
+in `sitecustomize.py`.
 
-```py
-# add devtools debug to builtins
-try:
-    from devtools import debug
-except ImportError:
-    pass
-else:
-    __builtins__['debug'] = debug
-```
+For instructions on adding `debug` to `__builtins__`, 
+see the [installation docs](https://python-devtools.helpmanual.io/usage/#usage-without-import).

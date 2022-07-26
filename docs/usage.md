@@ -83,19 +83,43 @@ For more details on prettier printing, see
 For more details on ansi colours, see
 [ansi.py](https://github.com/samuelcolvin/python-devtools/blob/main/devtools/ansi.py).
 
-## Usage without import
+## Usage without Import
 
 We all know the annoyance of running code only to discover a missing import, this can be particularly
 frustrating when the function you're using isn't used except during development.
 
-You can setup your environment to make `debug` available at all times by editing `sitecustomize.py`,
-with ubuntu and python3.8 this file can be found at `/usr/lib/python3.8/sitecustomize.py` but you might
-need to look elsewhere depending on your OS/python version.
+devtool's `debug` function can be used without import if you add `debug` to `__builtins__`
+in `sitecustomize.py`.
 
-Add the following to `sitecustomize.py`
+Two ways to do this:
+
+### Automatic install
+
+!!! warning
+    This is experimental, please [create an issue](https://github.com/samuelcolvin/python-devtools/issues) 
+    if you encounter any problems.
+
+To install `debug` into `__builtins__` automatically, run:
+
+```bash
+python -m devtools install
+```
+
+This command won't write to any files, but it should print a command for you to run to add/edit `sitecustomize.py`.
+
+### Manual install
+
+To manually add `debug` to `__builtins__`, add the following to `sitecustomize.py` or any code
+which is always imported.
 
 ```py
-{!examples/sitecustomize.py!}
+# add devtools `debug` function to builtins
+try:
+    from devtools import debug
+except ImportError:
+    pass
+else:
+    __builtins__['debug'] = debug
 ```
 
 The `ImportError` exception is important since you'll want python to run fine even if *devtools* isn't installed.

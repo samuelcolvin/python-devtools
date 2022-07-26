@@ -7,7 +7,6 @@ import sys
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 
-import requests
 from ansi2html import Ansi2HTMLConverter
 from mkdocs.config import Config
 from mkdocs.structure.files import Files
@@ -36,24 +35,11 @@ def on_files(files: Files, config: Config) -> Files:
 
 
 def build_history():
-    output_file = THIS_DIR / '.history.md'
-    if output_file.exists():
-        return
-    logger.info('generating history from github releases...')
-    r = requests.get('https://api.github.com/repos/samuelcolvin/python-devtools/releases')
-    r.raise_for_status()
-    releases = r.json()
-
-    history = []
-    for release in releases:
-        body = release['body'].replace('\r\n', '\n').strip(' \n') or '_(no details available)_'
-        history.append(f'## {release["name"]}\n\n{body}')
-
-    history = '\n\n'.join(history)
+    history = (PROJECT_ROOT / 'HISTORY.md').read_text()
     history = re.sub(r'#(\d+)', r'[#\1](https://github.com/samuelcolvin/python-devtools/issues/\1)', history)
     history = re.sub(r'( +)@([\w\-]+)', r'\1[@\2](https://github.com/\2)', history, flags=re.I)
     history = re.sub('@@', '@', history)
-    output_file.write_text(history)
+    (THIS_DIR / '.history.md').write_text(history)
 
 
 def gen_example_html(markdown: str):

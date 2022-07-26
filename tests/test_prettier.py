@@ -1,6 +1,5 @@
 import os
 import string
-import sys
 from collections import Counter, OrderedDict, namedtuple
 from dataclasses import dataclass
 from typing import List
@@ -241,7 +240,6 @@ FooDataclass(
 )"""
 
 
-@pytest.mark.skipif(sys.version_info < (3, 7), reason='no dataclasses before 3.6')
 def test_nested_dataclasses():
     @dataclass
     class FooDataclass:

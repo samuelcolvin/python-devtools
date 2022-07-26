@@ -240,6 +240,29 @@ FooDataclass(
 )"""
 
 
+def test_nested_dataclasses():
+    @dataclass
+    class FooDataclass:
+        x: int
+
+    @dataclass
+    class BarDataclass:
+        a: float
+        b: FooDataclass
+
+    f = FooDataclass(123)
+    b = BarDataclass(10.0, f)
+    v = pformat(b)
+    print(v)
+    assert v == """\
+BarDataclass(
+    a=10.0,
+    b=FooDataclass(
+        x=123,
+    ),
+)"""
+
+
 @pytest.mark.skipif(numpy is None, reason='numpy not installed')
 def test_indent_numpy():
     v = pformat({'numpy test': numpy.array(range(20))})

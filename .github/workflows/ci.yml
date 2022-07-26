@@ -96,9 +96,6 @@ jobs:
       - name: install
         run: pip install -U build twine setuptools
 
-      - name: set version
-        run: python .github/set_version.py
-
       - name: build
         run: python -m build
 

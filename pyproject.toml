@@ -1,10 +1,12 @@
 [build-system]
-requires = ['setuptools']
-build-backend = 'setuptools.build_meta'
+requires = ['hatchling']
+build-backend = 'hatchling.build'
+
+[tool.hatch.version]
+path = "devtools/version.py"
 
 [project]
 name = 'devtools'
-version = '0.7.0'
 description = "Python's missing debug print command, and more."
 authors = [{name = 'Samuel Colvin', email = 's@muelcolvin.com'}]
 license = {file = 'LICENSE'}
@@ -36,6 +38,7 @@ dependencies = [
     'asttokens>=2.0.0,<3.0.0',
 ]
 optional-dependencies = {pygments = ['Pygments>=2.2.0'] }
+dynamic = ["version"]
 
 [project.urls]
 Homepage = 'https://github.com/samuelcolvin/python-devtools'

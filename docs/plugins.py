@@ -2,14 +2,13 @@
 import logging
 import os
 import re
-import sys
 import subprocess
+import sys
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 
 import requests
 from ansi2html import Ansi2HTMLConverter
-
 from mkdocs.config import Config
 from mkdocs.structure.files import Files
 from mkdocs.structure.pages import Page

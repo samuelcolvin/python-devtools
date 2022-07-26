@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := all
-isort = isort devtools tests
-black = black -S -l 120 --target-version py37 devtools
+isort = isort devtools tests docs/plugins.py
+black = black -S -l 120 --target-version py37 devtools docs/plugins.py
 
 .PHONY: install
 install:
@@ -15,7 +15,7 @@ format:
 
 .PHONY: lint
 lint:
-	flake8 --max-complexity 10 --max-line-length 120 --ignore E203,W503 devtools tests
+	flake8 --max-complexity 10 --max-line-length 120 --ignore E203,W503 devtools tests docs/plugins.py
 	$(isort) --check-only --df
 	$(black) --check --diff
 

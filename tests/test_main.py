@@ -212,12 +212,10 @@ def test_eval():
 
 def test_warnings_disabled():
     debug_ = Debug(warnings=False)
-    with pytest.warns(None) as warnings:
-        v1 = eval('debug_.format(1)')
-        assert str(v1) == '<string>:1 <module>\n    1 (int)'
-        v2 = debug_.format(1)
-        assert 'test_warnings_disabled\n    1 (int)' in str(v2)
-    assert len(warnings) == 0
+    v1 = eval('debug_.format(1)')
+    assert str(v1) == '<string>:1 <module>\n    1 (int)'
+    v2 = debug_.format(1)
+    assert 'test_warnings_disabled\n    1 (int)' in str(v2)
 
 
 def test_eval_kwargs():

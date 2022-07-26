@@ -1,3 +1,9 @@
+## v0.9.0 (2022-07-26)
+
+* fix format of nested dataclasses, #99 thanks @aliereno
+* Moving to `pyproject.toml`, complete type hints and test with mypy, #107
+* add `install` command to add `debug` to `__builtins__`, #108
+
 ## v0.8.0 (2021-09-29)
 
 * test with python 3.10 #91

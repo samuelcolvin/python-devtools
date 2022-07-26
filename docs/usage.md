@@ -72,7 +72,7 @@ in `debug()`, but it can also be used directly:
 {{ example_html(examples/prettier.py) }}
 
 For more details on prettier printing, see
-[`prettier.py`](https://github.com/samuelcolvin/python-devtools/blob/master/devtools/prettier.py).
+[`prettier.py`](https://github.com/samuelcolvin/python-devtools/blob/main/devtools/prettier.py).
 
 ## ANSI terminal colours
 
@@ -81,7 +81,7 @@ For more details on prettier printing, see
 ```
 
 For more details on ansi colours, see
-[ansi.py](https://github.com/samuelcolvin/python-devtools/blob/master/devtools/ansi.py).
+[ansi.py](https://github.com/samuelcolvin/python-devtools/blob/main/devtools/ansi.py).
 
 ## Usage without import
 

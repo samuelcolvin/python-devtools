@@ -23,7 +23,7 @@ pformat = PrettyFormat(
 class DebugArgument:
     __slots__ = 'value', 'name', 'extra'
 
-    def __init__(self, value: Any, *, name: 'Optional[str]' = None, **extra: 'Any') -> None:
+    def __init__(self, value: 'Any', *, name: 'Optional[str]' = None, **extra: 'Any') -> None:
         self.value = value
         self.name = name
         self.extra = []

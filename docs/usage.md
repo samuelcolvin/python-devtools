@@ -89,7 +89,7 @@ We all know the annoyance of running code only to discover a missing import, thi
 frustrating when the function you're using isn't used except during development.
 
 You can setup your environment to make `debug` available at all times by editing `sitecustomize.py`,
-with ubuntu and python3.6 this file can be found at `/usr/lib/python3.6/sitecustomize.py` but you might
+with ubuntu and python3.8 this file can be found at `/usr/lib/python3.8/sitecustomize.py` but you might
 need to look elsewhere depending on your OS/python version.
 
 Add the following to `sitecustomize.py`

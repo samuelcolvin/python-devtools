@@ -12,9 +12,16 @@ theme:
 
 repo_name: samuelcolvin/python-devtools
 repo_url: https://github.com/samuelcolvin/python-devtools
-google_analytics:
-- 'UA-62733018-4'
-- 'auto'
+
+extra:
+  analytics:
+    provider: google
+    property: UA-62733018-4
+  social:
+  - icon: fontawesome/brands/github-alt
+    link: https://github.com/samuelcolvin/python-devtools
+  - icon: fontawesome/brands/twitter
+    link: https://twitter.com/samuel_colvin
 
 extra_css:
 - 'theme/customization.css'

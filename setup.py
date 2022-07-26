@@ -30,7 +30,6 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
@@ -49,7 +48,7 @@ setup(
     url='https://github.com/samuelcolvin/python-devtools',
     license='MIT',
     packages=['devtools'],
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     install_requires=[
         'executing>=0.8.0,<1.0.0',
         'asttokens>=2.0.0,<3.0.0',

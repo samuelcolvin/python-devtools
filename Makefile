@@ -6,7 +6,7 @@ black = black -S -l 120 --target-version py37 devtools
 install:
 	python -m pip install -U setuptools pip wheel twine
 	pip install -U -r requirements.txt
-	pip install .
+	pip install -e .
 
 .PHONY: format
 format:

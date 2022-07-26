@@ -54,6 +54,7 @@ filterwarnings = 'error'
 [tool.coverage.run]
 source = ['devtools']
 branch = true
+omit = ['devtools/__main__.py']
 
 [tool.coverage.report]
 precision = 2

@@ -34,7 +34,7 @@ classifiers = [
 ]
 requires-python = '>=3.7'
 dependencies = [
-    'executing>=0.8.0,<1.0.0',
+    'executing>=0.9.1,<1.0.0',
     'asttokens>=2.0.0,<3.0.0',
 ]
 optional-dependencies = {pygments = ['Pygments>=2.2.0'] }

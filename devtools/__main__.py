@@ -1,3 +1,4 @@
+import builtins
 import os
 import sys
 from pathlib import Path
@@ -7,12 +8,13 @@ from .version import VERSION
 # language=python
 install_code = """
 # add devtools `debug` function to builtins
+import builtins
 try:
     from devtools import debug
 except ImportError:
     pass
 else:
-    __builtins__['debug'] = debug
+    setattr(builtins, 'debug', debug)
 """
 
 
@@ -24,7 +26,7 @@ def print_code() -> int:
 def install() -> int:
     print('[WARNING: this command is experimental, report issues at github.com/samuelcolvin/python-devtools]\n')
 
-    if 'debug' in __builtins__.__dict__:
+    if hasattr(builtins, 'debug'):
         print('Looks like devtools is already installed.')
         return 0
 

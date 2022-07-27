@@ -114,12 +114,13 @@ which is always imported.
 
 ```py
 # add devtools `debug` function to builtins
+import builtins
 try:
     from devtools import debug
 except ImportError:
     pass
 else:
-    __builtins__['debug'] = debug
+    setattr(builtins, 'debug', debug)
 ```
 
 The `ImportError` exception is important since you'll want python to run fine even if *devtools* isn't installed.

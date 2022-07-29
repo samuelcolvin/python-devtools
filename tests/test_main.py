@@ -177,7 +177,6 @@ def test_kwargs_orderless():
     }
 
 
-@pytest.mark.xfail(sys.version_info >= (3, 10), reason='https://github.com/alexmojaki/executing/issues/40')
 def test_simple_vars():
     v = debug.format('test', 1, 2)
     s = normalise_output(str(v))

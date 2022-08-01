@@ -47,7 +47,6 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - run: pip install -U pip wheel
     - run: pip install -r tests/requirements.txt
     - run: pip install .
     - run: pip freeze

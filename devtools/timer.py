@@ -66,7 +66,7 @@ class Timer:
             print(r.str(self.dp), file=self.file, flush=True)
         return r
 
-    def summary(self, verbose: bool = False) -> 'Set[float]':
+    def summary(self, verbose: bool = False) -> 'List[float]':
         times = []
         for r in self.results:
             if not r.finish:

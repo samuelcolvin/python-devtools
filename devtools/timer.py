@@ -4,7 +4,7 @@ __all__ = ('Timer',)
 
 MYPY = False
 if MYPY:
-    from typing import Any, List, Optional, Set
+    from typing import Any, List, Optional
 
 # required for type hinting because I (stupidly) added methods called `str`
 StrType = str

@@ -1,4 +1,4 @@
-from time import time
+from time import perf_counter
 
 __all__ = ('Timer',)
 
@@ -15,10 +15,10 @@ class TimerResult:
         self._name = name
         self.verbose = verbose
         self.finish: 'Optional[float]' = None
-        self.start = time()
+        self.start = perf_counter()
 
     def capture(self) -> None:
-        self.finish = time()
+        self.finish = perf_counter()
 
     def elapsed(self) -> float:
         if self.finish:
@@ -67,13 +67,13 @@ class Timer:
         return r
 
     def summary(self, verbose: bool = False) -> 'Set[float]':
-        times = set()
+        times = []
         for r in self.results:
             if not r.finish:
                 r.capture()
             if verbose:
                 print(f'    {r.str(self.dp)}', file=self.file)
-            times.add(r.elapsed())
+            times.append(r.elapsed())
 
         if times:
             from statistics import mean, stdev

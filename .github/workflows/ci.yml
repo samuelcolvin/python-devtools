@@ -13,9 +13,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.10'
 
@@ -30,7 +30,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, macos, windows]
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
 
     env:
       PYTHON: ${{ matrix.python-version }}
@@ -40,10 +40,10 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: set up python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -56,7 +56,7 @@ jobs:
 
     - run: coverage xml
 
-    - uses: codecov/codecov-action@v2.0.3
+    - uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
         env_vars: EXTRAS,PYTHON,OS
@@ -69,25 +69,35 @@ jobs:
 
     - run: coverage xml
 
-    - uses: codecov/codecov-action@v2.0.3
+    - uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
         env_vars: EXTRAS,PYTHON,OS
       env:
         EXTRAS: no
 
+  # https://github.com/marketplace/actions/alls-green#why used for branch protection checks
+  check:
+    if: always()
+    needs: [test, lint]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
+
   deploy:
     needs:
-      - test
-      - lint
+      - check
     if: "success() && startsWith(github.ref, 'refs/tags/')"
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: set up python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 

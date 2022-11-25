@@ -116,7 +116,10 @@ class Style(IntEnum):
         if self == self.function:
             return repr(self)
         else:
-            return super().__str__()
+            # this matches `super().__str__()` in python 3.7 - 3.10
+            # required since IntEnum.__str__ was changed in 3.11,
+            # see https://docs.python.org/3/library/enum.html#enum.IntEnum
+            return f'{self.__class__.__name__}.{self._name_}'
 
 
 def _style_as_int(v: 'Union[Style, int]') -> str:

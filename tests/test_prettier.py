@@ -28,7 +28,11 @@ except ImportError:
 
 try:
     from sqlalchemy import Column, Integer, String
-    from sqlalchemy.ext.declarative import declarative_base
+    try:
+        from sqlalchemy.orm import declarative_base
+    except ImportError:
+        from sqlalchemy.ext.declarative import declarative_base
+
     SQLAlchemyBase = declarative_base()
 except ImportError:
     SQLAlchemyBase = None

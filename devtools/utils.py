@@ -161,10 +161,7 @@ class MetaSQLAlchemyClassType(type):
 
         if DeclarativeBase is not None:
             if DeclarativeMeta is not None:
-                return (
-                    isinstance(instance.__class__, DeclarativeMeta)
-                    or isinstance(instance, DeclarativeBase)
-                )
+                return isinstance(instance.__class__, DeclarativeMeta) or isinstance(instance, DeclarativeBase)
 
             return isinstance(instance, DeclarativeBase)
 

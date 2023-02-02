@@ -159,13 +159,10 @@ class MetaSQLAlchemyClassType(type):
         except ImportError:
             DeclarativeMeta = None
 
-        if DeclarativeBase is not None:
-            if DeclarativeMeta is not None:
-                return isinstance(instance.__class__, DeclarativeMeta) or isinstance(instance, DeclarativeBase)
-
-            return isinstance(instance, DeclarativeBase)
-
-        return False
+        return (
+            (DeclarativeBase is not None and isinstance(instance, DeclarativeBase))
+            or (DeclarativeMeta is not None and isinstance(instance.__class__, DeclarativeMeta))
+        )
 
 
 class SQLAlchemyClassType(metaclass=MetaSQLAlchemyClassType):

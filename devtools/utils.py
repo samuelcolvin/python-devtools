@@ -152,16 +152,17 @@ class MetaSQLAlchemyClassType(type):
         try:
             from sqlalchemy.orm import DeclarativeBase  # type: ignore
         except ImportError:
-            DeclarativeBase = None
+            pass
+        else:
+            if isinstance(instance, DeclarativeBase):
+                return True
 
         try:
             from sqlalchemy.ext.declarative import DeclarativeMeta  # type: ignore
         except ImportError:
-            DeclarativeMeta = None
-
-        return (DeclarativeBase is not None and isinstance(instance, DeclarativeBase)) or (
-            DeclarativeMeta is not None and isinstance(instance.__class__, DeclarativeMeta)
-        )
+            pass
+        else:
+            return isinstance(instance.__class__, DeclarativeMeta)
 
 
 class SQLAlchemyClassType(metaclass=MetaSQLAlchemyClassType):

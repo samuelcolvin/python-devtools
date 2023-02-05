@@ -164,6 +164,8 @@ class MetaSQLAlchemyClassType(type):
         else:
             return isinstance(instance.__class__, DeclarativeMeta)
 
+        return False
+
 
 class SQLAlchemyClassType(metaclass=MetaSQLAlchemyClassType):
     pass

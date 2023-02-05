@@ -13,7 +13,7 @@ except ImportError:
     cache = lru_cache()
 
 try:
-    from sqlalchemy import inspect as sa_inspect
+    from sqlalchemy import inspect as sa_inspect  # type: ignore
 except ImportError:
     sa_inspect = None
 

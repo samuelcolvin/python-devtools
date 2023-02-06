@@ -12,6 +12,11 @@ except ImportError:
 
     cache = lru_cache()
 
+try:
+    from sqlalchemy import inspect as sa_inspect  # type: ignore
+except ImportError:
+    sa_inspect = None
+
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 MYPY = False
 if MYPY:
@@ -239,8 +244,14 @@ class PrettyFormat:
         self._format_fields(value, value.__dict__.items(), indent_current, indent_new)
 
     def _format_sqlalchemy_class(self, value: 'Any', _: str, indent_current: int, indent_new: int) -> None:
+        if sa_inspect is not None:
+            state = sa_inspect(value)
+            deferred = state.unloaded
+        else:
+            deferred = set()
+
         fields = [
-            (field, getattr(value, field))
+            (field, getattr(value, field) if field not in deferred else "<deferred>")
             for field in dir(value)
             if not (field.startswith('_') or field in ['metadata', 'registry'])
         ]

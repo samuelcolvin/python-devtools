@@ -51,7 +51,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - run: pip install -r requirements/testing.txt -r requirements/pyproject.txt
-    - run: pip install .
+
     - run: pip freeze
 
     - name: test with extras

@@ -1,6 +1,7 @@
 from __future__ import annotations as _annotations
 
 import ast
+import builtins
 import sys
 import textwrap
 from contextvars import ContextVar
@@ -14,6 +15,8 @@ from typing import TYPE_CHECKING, Any, Callable, Generator, Sized
 
 import pytest
 from executing import Source
+
+from . import debug
 
 if TYPE_CHECKING:
     pass
@@ -79,7 +82,9 @@ def pytest_addoption(parser: Any) -> None:
 @pytest.fixture(scope='session', autouse=True)
 def insert_assert_add_to_builtins() -> None:
     try:
-        __builtins__['insert_assert'] = insert_assert
+        setattr(builtins, 'insert_assert', insert_assert)
+        # we also install debug here since the default script doesn't install it
+        setattr(builtins, 'debug', debug)
     except TypeError:
         # happens on pypy
         pass

@@ -8,13 +8,17 @@ from .version import VERSION
 # language=python
 install_code = """
 # add devtools `debug` function to builtins
-import builtins
-try:
-    from devtools import debug
-except ImportError:
-    pass
-else:
-    setattr(builtins, 'debug', debug)
+import sys
+# we don't install here for pytest as it breaks pytest, it is
+# installed later by a pytest fixture
+if not sys.argv[0].endswith('pytest'):
+    import builtins
+    try:
+        from devtools import debug
+    except ImportError:
+        pass
+    else:
+        setattr(builtins, 'debug', debug)
 """
 
 

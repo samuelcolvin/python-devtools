@@ -17,14 +17,20 @@ def test_simple():
     v = debug.format(len(a))
     s = normalise_output(str(v))
     # print(s)
-    assert ('tests/test_expr_render.py:<line no> test_simple\n' '    len(a): 3 (int)') == s
+    assert (
+        'tests/test_expr_render.py:<line no> test_simple\n'
+        '    len(a): 3 (int)'
+    ) == s
 
 
 def test_subscription():
     a = {1: 2}
     v = debug.format(a[1])
     s = normalise_output(str(v))
-    assert ('tests/test_expr_render.py:<line no> test_subscription\n' '    a[1]: 2 (int)') == s
+    assert (
+        'tests/test_expr_render.py:<line no> test_subscription\n'
+        '    a[1]: 2 (int)'
+    ) == s
 
 
 def test_exotic_types():
@@ -42,14 +48,14 @@ def test_exotic_types():
         (a for a in aa),
     )
     s = normalise_output(str(v))
-    print(f'\n---\n{v}\n---')
+    print('\n---\n{}\n---'.format(v))
 
     # Generator expression source changed in 3.8 to include parentheses, see:
     # https://github.com/gristlabs/asttokens/pull/50
     # https://bugs.python.org/issue31241
-    genexpr_source = 'a for a in aa'
+    genexpr_source = "a for a in aa"
     if sys.version_info[:2] > (3, 7):
-        genexpr_source = f'({genexpr_source})'
+        genexpr_source = f"({genexpr_source})"
 
     assert (
         "tests/test_expr_render.py:<line no> test_exotic_types\n"
@@ -75,38 +81,61 @@ def test_exotic_types():
 
 
 def test_newline():
-    v = debug.format(foobar(1, 2, 3))
-    s = normalise_output(str(v))
-    # print(s)
-    assert ('tests/test_expr_render.py:<line no> test_newline\n' '    foobar(1, 2, 3): 6 (int)') == s
-
-
-def test_trailing_bracket():
-    v = debug.format(foobar(1, 2, 3))
-    s = normalise_output(str(v))
-    # print(s)
-    assert ('tests/test_expr_render.py:<line no> test_trailing_bracket\n' '    foobar(1, 2, 3): 6 (int)') == s
-
-
-def test_multiline():
-    v = debug.format(foobar(1, 2, 3))
-    s = normalise_output(str(v))
-    # print(s)
-    assert ('tests/test_expr_render.py:<line no> test_multiline\n' '    foobar(1, 2, 3): 6 (int)') == s
-
-
-def test_multiline_trailing_bracket():
-    v = debug.format(foobar(1, 2, 3))
+    v = debug.format(
+        foobar(1, 2, 3))
     s = normalise_output(str(v))
     # print(s)
     assert (
-        'tests/test_expr_render.py:<line no> test_multiline_trailing_bracket\n' '    foobar(1, 2, 3 ): 6 (int)'
+        'tests/test_expr_render.py:<line no> test_newline\n'
+        '    foobar(1, 2, 3): 6 (int)'
+    ) == s
+
+
+def test_trailing_bracket():
+    v = debug.format(
+        foobar(1, 2, 3)
+    )
+    s = normalise_output(str(v))
+    # print(s)
+    assert (
+        'tests/test_expr_render.py:<line no> test_trailing_bracket\n'
+        '    foobar(1, 2, 3): 6 (int)'
+    ) == s
+
+
+def test_multiline():
+    v = debug.format(
+        foobar(1,
+               2,
+               3)
+    )
+    s = normalise_output(str(v))
+    # print(s)
+    assert (
+        'tests/test_expr_render.py:<line no> test_multiline\n'
+        '    foobar(1, 2, 3): 6 (int)'
+    ) == s
+
+
+def test_multiline_trailing_bracket():
+    v = debug.format(
+        foobar(1, 2, 3
+               ))
+    s = normalise_output(str(v))
+    # print(s)
+    assert (
+        'tests/test_expr_render.py:<line no> test_multiline_trailing_bracket\n'
+        '    foobar(1, 2, 3 ): 6 (int)'
     ) == s
 
 
 @pytest.mark.skipif(sys.version_info < (3, 6), reason='kwarg order is not guaranteed for 3.5')
 def test_kwargs():
-    v = debug.format(foobar(1, 2, 3), a=6, b=7)
+    v = debug.format(
+        foobar(1, 2, 3),
+        a=6,
+        b=7
+    )
     s = normalise_output(str(v))
     assert (
         'tests/test_expr_render.py:<line no> test_kwargs\n'
@@ -118,7 +147,12 @@ def test_kwargs():
 
 @pytest.mark.skipif(sys.version_info < (3, 6), reason='kwarg order is not guaranteed for 3.5')
 def test_kwargs_multiline():
-    v = debug.format(foobar(1, 2, 3), a=6, b=7)
+    v = debug.format(
+        foobar(1, 2,
+               3),
+        a=6,
+        b=7
+    )
     s = normalise_output(str(v))
     assert (
         'tests/test_expr_render.py:<line no> test_kwargs_multiline\n'
@@ -130,15 +164,29 @@ def test_kwargs_multiline():
 
 def test_multiple_trailing_lines():
     v = debug.format(
-        foobar(1, 2, 3),
+        foobar(
+            1, 2, 3
+        ),
     )
     s = normalise_output(str(v))
-    assert ('tests/test_expr_render.py:<line no> test_multiple_trailing_lines\n    foobar( 1, 2, 3 ): 6 (int)') == s
+    assert (
+        'tests/test_expr_render.py:<line no> test_multiple_trailing_lines\n    foobar( 1, 2, 3 ): 6 (int)'
+    ) == s
 
 
 def test_very_nested_last_statement():
     def func():
-        return debug.format(abs(abs(abs(abs(-1)))))
+        return debug.format(
+            abs(
+                abs(
+                    abs(
+                        abs(
+                            -1
+                        )
+                    )
+                )
+            )
+        )
 
     v = func()
     # check only the original code is included in the warning
@@ -151,7 +199,19 @@ def test_very_nested_last_statement():
 
 def test_syntax_warning():
     def func():
-        return debug.format(abs(abs(abs(abs(abs(-1))))))
+        return debug.format(
+            abs(
+                abs(
+                    abs(
+                        abs(
+                            abs(
+                                -1
+                            )
+                        )
+                    )
+                )
+            )
+        )
 
     v = func()
     # check only the original code is included in the warning
@@ -167,7 +227,19 @@ def test_no_syntax_warning():
     debug_ = Debug(warnings=False)
 
     def func():
-        return debug_.format(abs(abs(abs(abs(abs(-1))))))
+        return debug_.format(
+            abs(
+                abs(
+                    abs(
+                        abs(
+                            abs(
+                                -1
+                            )
+                        )
+                    )
+                )
+            )
+        )
 
     v = func()
     s = normalise_output(str(v))
@@ -188,7 +260,10 @@ def test_await():
     v = loop.run_until_complete(bar())
     loop.close()
     s = normalise_output(str(v))
-    assert ('tests/test_expr_render.py:<line no> test_await.<locals>.bar\n' '    await foo(): 1 (int)') == s
+    assert (
+        'tests/test_expr_render.py:<line no> test_await.<locals>.bar\n'
+        '    await foo(): 1 (int)'
+    ) == s
 
 
 def test_other_debug_arg():
@@ -197,7 +272,10 @@ def test_other_debug_arg():
 
     # check only the original code is included in the warning
     s = normalise_output(str(v))
-    assert s == ('tests/test_expr_render.py:<line no> test_other_debug_arg\n' '    [1, 2] (list) len=2')
+    assert s == (
+        'tests/test_expr_render.py:<line no> test_other_debug_arg\n'
+        '    [1, 2] (list) len=2'
+    )
 
 
 def test_other_debug_arg_not_literal():
@@ -208,7 +286,8 @@ def test_other_debug_arg_not_literal():
 
     s = normalise_output(str(v))
     assert s == (
-        'tests/test_expr_render.py:<line no> test_other_debug_arg_not_literal\n' '    [x, y]: [1, 2] (list) len=2'
+        'tests/test_expr_render.py:<line no> test_other_debug_arg_not_literal\n'
+        '    [x, y]: [1, 2] (list) len=2'
     )
 
 
@@ -235,4 +314,7 @@ def test_format_inside_error():
         v = str(e)
 
     s = normalise_output(str(v))
-    assert s == ('tests/test_expr_render.py:<line no> test_format_inside_error\n' '    [x, y]: [1, 2] (list) len=2')
+    assert s == (
+        'tests/test_expr_render.py:<line no> test_format_inside_error\n'
+        '    [x, y]: [1, 2] (list) len=2'
+    )

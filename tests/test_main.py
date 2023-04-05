@@ -2,7 +2,7 @@ import re
 import sys
 from collections.abc import Generator
 from pathlib import Path
-from subprocess import PIPE, run
+from subprocess import run
 
 import pytest
 
@@ -19,9 +19,7 @@ def test_print(capsys):
     stdout, stderr = capsys.readouterr()
     print(stdout)
     assert normalise_output(stdout) == (
-        'tests/test_main.py:<line no> test_print\n'
-        '    a: 1 (int)\n'
-        '    b: 2 (int)\n'
+        'tests/test_main.py:<line no> test_print\n' '    a: 1 (int)\n' '    b: 2 (int)\n'
     )
     assert stderr == ''
     assert result == (1, 2)
@@ -64,7 +62,7 @@ def test_print_generator(capsys):
 
 def test_format():
     a = b'i might bite'
-    b = "hello this is a test"
+    b = 'hello this is a test'
     v = debug.format(a, b)
     s = normalise_output(str(v))
     print(s)
@@ -81,7 +79,8 @@ def test_format():
 )
 def test_print_subprocess(tmpdir):
     f = tmpdir.join('test.py')
-    f.write("""\
+    f.write(
+        """\
 from devtools import debug
 
 def test_func(v):
@@ -92,9 +91,10 @@ print('running debug...')
 debug(foobar)
 test_func(42)
 print('debug run.')
-    """)
+    """
+    )
     env = {'PYTHONPATH': str(Path(__file__).parent.parent.resolve())}
-    p = run([sys.executable, str(f)], stdout=PIPE, stderr=PIPE, universal_newlines=True, env=env)
+    p = run([sys.executable, str(f)], capture_output=True, text=True, env=env)
     assert p.stderr == ''
     assert p.returncode == 0, (p.stderr, p.stdout)
     assert p.stdout.replace(str(f), '/path/to/test.py') == (
@@ -113,10 +113,10 @@ def test_odd_path(mocker):
     mocked_relative_to = mocker.patch('pathlib.Path.relative_to')
     mocked_relative_to.side_effect = ValueError()
     v = debug.format('test')
-    if sys.platform == "win32":
-        pattern = r"\w:\\.*?\\"
+    if sys.platform == 'win32':
+        pattern = r'\w:\\.*?\\'
     else:
-        pattern = r"/.*?/"
+        pattern = r'/.*?/'
     pattern += r"test_main.py:\d{2,} test_odd_path\n    'test' \(str\) len=4"
     assert re.search(pattern, str(v)), v
 
@@ -129,10 +129,7 @@ def test_small_call_frame():
         3,
     )
     assert normalise_output(str(v)) == (
-        'tests/test_main.py:<line no> test_small_call_frame\n'
-        '    1 (int)\n'
-        '    2 (int)\n'
-        '    3 (int)'
+        'tests/test_main.py:<line no> test_small_call_frame\n' '    1 (int)\n' '    2 (int)\n' '    3 (int)'
     )
 
 
@@ -143,12 +140,9 @@ def test_small_call_frame_warning():
         2,
         3,
     )
-    print('\n---\n{}\n---'.format(v))
+    print(f'\n---\n{v}\n---')
     assert normalise_output(str(v)) == (
-        'tests/test_main.py:<line no> test_small_call_frame_warning\n'
-        '    1 (int)\n'
-        '    2 (int)\n'
-        '    3 (int)'
+        'tests/test_main.py:<line no> test_small_call_frame_warning\n' '    1 (int)\n' '    2 (int)\n' '    3 (int)'
     )
 
 
@@ -171,7 +165,7 @@ def test_kwargs_orderless():
     v = debug.format(first=a, second='literal')
     s = normalise_output(str(v))
     assert set(s.split('\n')) == {
-        "tests/test_main.py:<line no> test_kwargs_orderless",
+        'tests/test_main.py:<line no> test_kwargs_orderless',
         "    first: 'variable' (str) len=8 variable=a",
         "    second: 'literal' (str) len=7",
     }
@@ -181,10 +175,7 @@ def test_simple_vars():
     v = debug.format('test', 1, 2)
     s = normalise_output(str(v))
     assert s == (
-        "tests/test_main.py:<line no> test_simple_vars\n"
-        "    'test' (str) len=4\n"
-        "    1 (int)\n"
-        "    2 (int)"
+        "tests/test_main.py:<line no> test_simple_vars\n" "    'test' (str) len=4\n" "    1 (int)\n" "    2 (int)"
     )
     r = normalise_output(repr(v))
     assert r == (
@@ -222,18 +213,14 @@ def test_eval_kwargs():
     v = eval('debug.format(1, apple="pear")')
 
     assert set(str(v).split('\n')) == {
-        "<string>:1 <module> (no code context for debug call, code inspection impossible)",
-        "    1 (int)",
+        '<string>:1 <module> (no code context for debug call, code inspection impossible)',
+        '    1 (int)',
         "    apple: 'pear' (str) len=4",
     }
 
 
 def test_exec(capsys):
-    exec(
-        'a = 1\n'
-        'b = 2\n'
-        'debug(b, a + b)'
-    )
+    exec('a = 1\n' 'b = 2\n' 'debug(b, a + b)')
 
     stdout, stderr = capsys.readouterr()
     assert stdout == (
@@ -314,8 +301,7 @@ def test_multiple_debugs():
     v = debug.format([i * 2 for i in range(2)])
     s = normalise_output(str(v))
     assert s == (
-        'tests/test_main.py:<line no> test_multiple_debugs\n'
-        '    [i * 2 for i in range(2)]: [0, 2] (list) len=2'
+        'tests/test_main.py:<line no> test_multiple_debugs\n' '    [i * 2 for i in range(2)]: [0, 2] (list) len=2'
     )
 
 

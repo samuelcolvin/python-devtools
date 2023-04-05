@@ -1,23 +1,21 @@
 .DEFAULT_GOAL := all
-isort = isort devtools tests docs/plugins.py
-black = black -S -l 120 --target-version py37 devtools docs/plugins.py
+sources = devtools tests docs/plugins.py
 
 .PHONY: install
 install:
-	python -m pip install -U setuptools pip wheel twine build
+	python -m pip install -U pip
 	pip install -U -r requirements.txt
 	pip install -e .
 
 .PHONY: format
 format:
-	$(isort)
-	$(black)
+	black $(sources)
+	ruff $(sources) --fix --exit-zero
 
 .PHONY: lint
 lint:
-	flake8 --max-complexity 10 --max-line-length 120 --ignore E203,W503 devtools tests docs/plugins.py
-	$(isort) --check-only --df
-	$(black) --check --diff
+	black $(sources) --check --diff
+	ruff $(sources)
 	mypy devtools
 
 .PHONY: test

@@ -64,5 +64,5 @@ outputs:
 devtools can be used without `from devtools import debug` if you add `debug` into `__builtins__`
 in `sitecustomize.py`.
 
-For instructions on adding `debug` to `__builtins__`, 
+For instructions on adding `debug` to `__builtins__`,
 see the [installation docs](https://python-devtools.helpmanual.io/usage/#usage-without-import).

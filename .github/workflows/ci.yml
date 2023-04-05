@@ -21,7 +21,11 @@ jobs:
 
     - run: pip install -r requirements/linting.txt -r requirements/pyproject.txt
 
-    - run: make lint
+    - run: mypy devtools
+
+    - uses: pre-commit/action@v3.0.0
+      with:
+        extra_args: --all-files --verbose
 
   test:
     name: test py${{ matrix.python-version }} on ${{ matrix.os }}

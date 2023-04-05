@@ -14,7 +14,7 @@
 
 ## v0.7.0 (2021-09-03)
 
-* switch to [`executing`](https://pypi.org/project/executing/) and [`asttokens`](https://pypi.org/project/asttokens/) 
+* switch to [`executing`](https://pypi.org/project/executing/) and [`asttokens`](https://pypi.org/project/asttokens/)
   for finding and printing debug arguments, #82, thanks @alexmojaki
 * correct changelog links, #76, thanks @Cielquan
 * return `debug()` arguments, #87

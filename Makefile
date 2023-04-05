@@ -3,9 +3,10 @@ sources = devtools tests docs/plugins.py
 
 .PHONY: install
 install:
-	python -m pip install -U pip
+	python -m pip install -U pip pre-commit
 	pip install -U -r requirements/all.txt
 	pip install -e .
+	pre-commit install
 
 .PHONY: refresh-lockfiles
 refresh-lockfiles:

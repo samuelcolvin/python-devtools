@@ -6,6 +6,6 @@ pytest-pretty
 # these packages are used in tests so install the latest version
 pydantic
 asyncpg
-numpy
-multidict
+numpy; python_version>='3.8'
+multidict; python_version>='3.8'
 sqlalchemy

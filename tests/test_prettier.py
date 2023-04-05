@@ -1,6 +1,7 @@
 import ast
 import os
 import string
+import sys
 from collections import Counter, OrderedDict, namedtuple
 from dataclasses import dataclass
 from typing import List
@@ -460,6 +461,7 @@ def test_sqlalchemy_object():
     )
 
 
+@pytest.mark.skipif(sys.version_info < (3, 9), reason='no indent on older versions')
 def test_ast_expr():
     assert pformat(ast.parse('print(1, 2, round(3))', mode='eval')) == (
         "Expression("
@@ -477,5 +479,6 @@ def test_ast_expr():
     )
 
 
+@pytest.mark.skipif(sys.version_info < (3, 9), reason='no indent on older versions')
 def test_ast_module():
     assert pformat(ast.parse('print(1, 2, round(3))')).startswith('Module(\n    body=[')

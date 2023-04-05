@@ -25,7 +25,7 @@ __all__ = ('insert_assert',)
 class ToReplace:
     file: Path
     start_line: int
-    end_line: int
+    end_line: int | None
     code: str
 
 
@@ -46,7 +46,7 @@ def insert_assert(value: Any) -> int:
         raise RuntimeError(
             f'insert_assert() was unable to find the frame from which it was called, called with:\n{python_code}'
         )
-    ast_arg = ex.node.args[0]
+    ast_arg = ex.node.args[0]  # type: ignore[attr-defined]
     if isinstance(ast_arg, ast.Name):
         arg = ast_arg.id
     else:
@@ -101,13 +101,13 @@ def insert_assert_fixture() -> Callable[[Any], int]:
     return insert_assert
 
 
-def pytest_report_teststatus(report: pytest.TestReport, config: pytest.Config):
+def pytest_report_teststatus(report: pytest.TestReport, config: pytest.Config) -> Any:
     if report.when == 'teardown' and report.failed and 'devtools-insert-assert:' in repr(report.longrepr):
         return 'insert assert', 'i', ('INSERT ASSERT', {'cyan': True})
 
 
 @pytest.fixture(scope='session', autouse=True)
-def insert_assert_session(pytestconfig: pytest.Config) -> None:
+def insert_assert_session(pytestconfig: pytest.Config) -> Generator[None, None, None]:
     """
     Actual logic for updating code examples.
     """

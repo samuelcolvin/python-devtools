@@ -3,3 +3,4 @@ mypy==0.971
 ruff
 # required so mypy can find stubs
 sqlalchemy
+pytest

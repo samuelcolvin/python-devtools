@@ -44,9 +44,9 @@ class SkipPretty(Exception):
 @cache
 def get_pygments() -> 'Tuple[Any, Any, Any]':
     try:
-        import pygments  # type: ignore
-        from pygments.formatters import Terminal256Formatter  # type: ignore
-        from pygments.lexers import PythonLexer  # type: ignore
+        import pygments
+        from pygments.formatters import Terminal256Formatter
+        from pygments.lexers import PythonLexer
     except ImportError:  # pragma: no cover
         return None, None, None
     else:

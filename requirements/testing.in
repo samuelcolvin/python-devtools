@@ -4,10 +4,11 @@ pytest
 pytest-mock
 pytest-pretty
 # these packages are used in tests so install the latest version
-pydantic
 # no binaries for 3.7
 asyncpg; python_version>='3.8'
+black
+multidict; python_version>='3.8'
 # no version is compatible with 3.7 and 3.11
 numpy; python_version>='3.8'
-multidict; python_version>='3.8'
+pydantic
 sqlalchemy

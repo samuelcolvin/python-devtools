@@ -1,5 +1,4 @@
 import builtins
-import os
 import sys
 from pathlib import Path
 
@@ -51,11 +50,11 @@ def install() -> int:
 
     print(f'Found path "{install_path}" to install devtools into __builtins__')
     print('To install devtools, run the following command:\n')
-    if os.access(install_path, os.W_OK):
-        print(f'    python -m devtools print-code >> {install_path}\n')
-    else:
+    print(f'    python -m devtools print-code >> {install_path}\n')
+    if not install_path.is_relative_to(Path.home()):
+        print('or maybe\n')
         print(f'    python -m devtools print-code | sudo tee -a {install_path} > /dev/null\n')
-        print('Note: "sudo" is required because the path is not writable by the current user.')
+        print('Note: "sudo" might be required because the path is in your home directory.')
 
     return 0
 

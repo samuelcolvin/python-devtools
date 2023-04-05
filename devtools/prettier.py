@@ -13,9 +13,9 @@ except ImportError:
     cache = lru_cache()
 
 try:
-    from sqlalchemy import inspect as sa_inspect  # type: ignore
+    from sqlalchemy import inspect as sa_inspect
 except ImportError:
-    sa_inspect = None
+    sa_inspect = None  # type: ignore[assignment]
 
 __all__ = 'PrettyFormat', 'pformat', 'pprint'
 MYPY = False
@@ -251,7 +251,7 @@ class PrettyFormat:
             deferred = set()
 
         fields = [
-            (field, getattr(value, field) if field not in deferred else "<deferred>")
+            (field, getattr(value, field) if field not in deferred else '<deferred>')
             for field in dir(value)
             if not (field.startswith('_') or field in ['metadata', 'registry'])
         ]

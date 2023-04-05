@@ -19,10 +19,13 @@ jobs:
       with:
         python-version: '3.10'
 
-    - run: pip install -r tests/requirements-linting.txt
-    - run: pip install .
+    - run: pip install -r requirements/linting.txt -r requirements/pyproject.txt
 
-    - run: make lint
+    - run: mypy devtools
+
+    - uses: pre-commit/action@v3.0.0
+      with:
+        extra_args: --all-files --verbose
 
   test:
     name: test py${{ matrix.python-version }} on ${{ matrix.os }}
@@ -47,7 +50,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - run: pip install -r tests/requirements.txt
+    - run: pip install -r requirements/testing.txt -r requirements/pyproject.txt
     - run: pip install .
     - run: pip freeze
 
@@ -102,7 +105,7 @@ jobs:
           python-version: '3.10'
 
       - name: install
-        run: make install
+        run: pip install build twine
 
       - name: build
         run: python -m build

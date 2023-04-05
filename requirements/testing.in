@@ -1,0 +1,11 @@
+coverage[toml]
+pygments
+pytest
+pytest-mock
+pytest-pretty
+# these packages are used in tests so install the latest version
+pydantic
+asyncpg
+numpy; python_version>='3.8'
+multidict; python_version>='3.8'
+sqlalchemy

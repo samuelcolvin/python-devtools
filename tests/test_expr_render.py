@@ -48,14 +48,14 @@ def test_exotic_types():
         (a for a in aa),
     )
     s = normalise_output(str(v))
-    print('\n---\n{}\n---'.format(v))
+    print(f'\n---\n{v}\n---')
 
     # Generator expression source changed in 3.8 to include parentheses, see:
     # https://github.com/gristlabs/asttokens/pull/50
     # https://bugs.python.org/issue31241
-    genexpr_source = "a for a in aa"
+    genexpr_source = 'a for a in aa'
     if sys.version_info[:2] > (3, 7):
-        genexpr_source = f"({genexpr_source})"
+        genexpr_source = f'({genexpr_source})'
 
     assert (
         "tests/test_expr_render.py:<line no> test_exotic_types\n"

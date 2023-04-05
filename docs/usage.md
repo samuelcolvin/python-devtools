@@ -96,7 +96,7 @@ Two ways to do this:
 ### Automatic install
 
 !!! warning
-    This is experimental, please [create an issue](https://github.com/samuelcolvin/python-devtools/issues) 
+    This is experimental, please [create an issue](https://github.com/samuelcolvin/python-devtools/issues)
     if you encounter any problems.
 
 To install `debug` into `__builtins__` automatically, run:

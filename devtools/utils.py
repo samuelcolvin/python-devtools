@@ -93,7 +93,7 @@ def activate_win_color() -> bool:  # pragma: no cover
     mode = mask = ENABLE_VIRTUAL_TERMINAL_PROCESSING
     try:
         _set_conout_mode(mode, mask)
-    except WindowsError as e:  # type: ignore
+    except OSError as e:
         if e.winerror == ERROR_INVALID_PARAMETER:
             return False
         raise
@@ -150,7 +150,7 @@ class DataClassType(metaclass=MetaDataClassType):
 class MetaSQLAlchemyClassType(type):
     def __instancecheck__(self, instance: 'Any') -> bool:
         try:
-            from sqlalchemy.orm import DeclarativeBase  # type: ignore
+            from sqlalchemy.orm import DeclarativeBase
         except ImportError:
             pass
         else:
@@ -158,7 +158,7 @@ class MetaSQLAlchemyClassType(type):
                 return True
 
         try:
-            from sqlalchemy.ext.declarative import DeclarativeMeta  # type: ignore
+            from sqlalchemy.ext.declarative import DeclarativeMeta
         except ImportError:
             pass
         else:

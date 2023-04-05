@@ -71,18 +71,21 @@ exclude_lines = [
 [tool.black]
 color = true
 line-length = 120
-target-version = ['py37', 'py38', 'py39', 'py310']
+target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
 skip-string-normalization = true
+extend-exclude = ['tests/test_expr_render.py']
 
-[tool.isort]
-line_length = 120
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-combine_as_imports = true
-color_output = true
+[tool.ruff]
+line-length = 120
+exclude = ['cases_update']
+extend-select = ['Q', 'RUF100', 'C90', 'UP', 'I']
+flake8-quotes = {inline-quotes = 'single', multiline-quotes = 'double'}
+mccabe = { max-complexity = 14 }
+isort = { known-first-party = ['devtools'] }
+target-version = 'py37'
 
 [tool.mypy]
+show_error_codes = true
 strict = true
 warn_return_any = false
 

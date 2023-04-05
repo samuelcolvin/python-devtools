@@ -55,7 +55,7 @@ def gen_examples_html(m: re.Match) -> str:
     conv = Ansi2HTMLConverter()
     name = THIS_DIR / Path(m.group(1))
 
-    logger.info("running %s to generate HTML...", name)
+    logger.info('running %s to generate HTML...', name)
     p = subprocess.run((sys.executable, str(name)), stdout=subprocess.PIPE, check=True)
     html = conv.convert(p.stdout.decode(), full=False).strip('\r\n')
     html = html.replace('docs/build/../examples/', '')

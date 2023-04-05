@@ -23,12 +23,15 @@ def test_simple():
     my_cls = CustomCls()
 
     v = pformat(my_cls)
-    assert v == """\
+    assert (
+        v
+        == """\
 Thing(
     [],
     [0],
     [0, 1],
 )"""
+    )
 
 
 def test_skip():

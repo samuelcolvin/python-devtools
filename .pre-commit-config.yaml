@@ -1,0 +1,25 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.3.0
+  hooks:
+  - id: check-yaml
+  - id: check-toml
+  - id: end-of-file-fixer
+  - id: trailing-whitespace
+
+- repo: local
+  hooks:
+  - id: ruff
+    name: Ruff
+    entry: ruff
+    args: [--fix, --exit-non-zero-on-fix]
+    types: [python]
+    language: system
+    files: ^devtools/|^tests/
+  - id: black
+    name: Black
+    entry: black
+    types: [python]
+    language: system
+    files: ^devtools/|^tests/
+    exclude: test_expr_render.py

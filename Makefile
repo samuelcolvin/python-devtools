@@ -63,7 +63,7 @@ clean:
 
 .PHONY: docs
 docs:
-	flake8 --max-line-length=80 docs/examples/
+	ruff --line-length=80 docs/examples/
 	mkdocs build
 
 .PHONY: docs-serve

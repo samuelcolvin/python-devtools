@@ -30,6 +30,26 @@ jobs:
       with:
         extra_args: --all-files --verbose
 
+  docs-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - run: pip install -r requirements/docs.txt -r requirements/pyproject.txt
+    - run: pip install .
+
+    - run: make docs
+
+    - name: Store docs site
+      uses: actions/upload-artifact@v3
+      with:
+        name: docs
+        path: site
+
   test:
     name: test py${{ matrix.python-version }} on ${{ matrix.os }}
     strategy:
@@ -85,7 +105,7 @@ jobs:
   # https://github.com/marketplace/actions/alls-green#why used for branch protection checks
   check:
     if: always()
-    needs: [test, lint]
+    needs: [test, lint, docs-build]
     runs-on: ubuntu-latest
     steps:
       - name: Decide whether the needed jobs succeeded or failed
@@ -107,6 +127,17 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: get docs
+        uses: actions/download-artifact@v3
+        with:
+          name: docs
+          path: site
+
+      - name: check GITHUB_REF matches package version
+        uses: samuelcolvin/check-python-version@v3
+        with:
+          version_file_path: devtools/version.py
+
       - name: install
         run: pip install build twine
 
@@ -122,6 +153,10 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.pypi_token }}
 
       - name: publish docs
-        run: make publish-docs
+        if: '!fromJSON(steps.check-tag.outputs.IS_PRERELEASE)'
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          apiToken: ${{ secrets.cloudflare_api_token }}
+          command: pages publish --project-name=python-devtools --branch=main site
         env:
-          NETLIFY: ${{ secrets.netlify_token }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.cloudflare_account_id }}

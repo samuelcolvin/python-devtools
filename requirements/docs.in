@@ -1,7 +1,9 @@
-ansi2html==1.8.0
-mkdocs==1.3.1
-mkdocs-exclude==1.0.2
-mkdocs-material==8.3.9
-mkdocs-simple-hooks==0.1.5
-markdown-include==0.7.0
+ansi2html
+mkdocs
+mkdocs-exclude
+mkdocs-material
+mkdocs-simple-hooks
+markdown-include
 pygments
+ruff
+numpy

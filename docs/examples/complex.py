@@ -1,5 +1,6 @@
-from devtools import debug
 import numpy as np
+
+from devtools import debug
 
 foo = {
     'foo': np.array(range(20)),

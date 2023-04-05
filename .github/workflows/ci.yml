@@ -39,8 +39,8 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: install
-      run: pip install -r requirements/docs.txt
+    - run: pip install -r requirements/docs.txt -r requirements/pyproject.txt
+    - run: pip install .
 
     - run: make docs
 
@@ -157,6 +157,6 @@ jobs:
         uses: cloudflare/wrangler-action@2.0.0
         with:
           apiToken: ${{ secrets.cloudflare_api_token }}
-          command: pages publish --project-name=devtools-docs --branch=main site
+          command: pages publish --project-name=python-devtools --branch=main site
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.cloudflare_account_id }}

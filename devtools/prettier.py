@@ -243,7 +243,11 @@ class PrettyFormat:
         self._str_lines(lines, indent_current, indent_new)
 
     def _format_ast_expression(self, value: ast.AST, _: str, indent_current: int, indent_new: int) -> None:
-        s = ast.dump(value, indent=self._indent_step)
+        try:
+            s = ast.dump(value, indent=self._indent_step)
+        except TypeError:
+            # no indent before 3.9
+            s = ast.dump(value)
         lines = s.splitlines(True)
         self._stream.write(lines[0])
         for line in lines[1:]:

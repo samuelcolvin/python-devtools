@@ -6,3 +6,4 @@ mkdocs-simple-hooks
 markdown-include
 pygments
 ruff
+numpy

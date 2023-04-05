@@ -48,6 +48,9 @@ Funding = 'https://github.com/sponsors/samuelcolvin'
 Source = 'https://github.com/samuelcolvin/python-devtools'
 Changelog = 'https://github.com/samuelcolvin/python-devtools/releases'
 
+[project.entry-points.pytest11]
+devtools = 'devtools.pytest_plugin'
+
 [tool.pytest.ini_options]
 testpaths = 'tests'
 filterwarnings = 'error'

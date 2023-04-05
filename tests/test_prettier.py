@@ -1,5 +1,7 @@
+import ast
 import os
 import string
+import sys
 from collections import Counter, OrderedDict, namedtuple
 from dataclasses import dataclass
 from typing import List
@@ -457,3 +459,26 @@ def test_sqlalchemy_object():
         "    nickname='test',\n"
         ")"
     )
+
+
+@pytest.mark.skipif(sys.version_info < (3, 9), reason='no indent on older versions')
+def test_ast_expr():
+    assert pformat(ast.parse('print(1, 2, round(3))', mode='eval')) == (
+        "Expression("
+        "\n    body=Call("
+        "\n        func=Name(id='print', ctx=Load()),"
+        "\n        args=["
+        "\n            Constant(value=1),"
+        "\n            Constant(value=2),"
+        "\n            Call("
+        "\n                func=Name(id='round', ctx=Load()),"
+        "\n                args=["
+        "\n                    Constant(value=3)],"
+        "\n                keywords=[])],"
+        "\n        keywords=[]))"
+    )
+
+
+@pytest.mark.skipif(sys.version_info < (3, 9), reason='no indent on older versions')
+def test_ast_module():
+    assert pformat(ast.parse('print(1, 2, round(3))')).startswith('Module(\n    body=[')

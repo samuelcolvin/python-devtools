@@ -1,5 +1,5 @@
 black
-mypy==0.971
+mypy
 ruff
 # required so mypy can find stubs
 sqlalchemy

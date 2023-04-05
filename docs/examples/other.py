@@ -20,7 +20,7 @@ t2.capture()
 # if used repeatedly a summary is available
 t3 = debug.timer()
 for i in [1e4, 1e6, 1e7]:
-    with t3('sum {}'.format(i), verbose=False):
+    with t3(f'sum {i}', verbose=False):
         sum(range(int(i)))
 
 t3.summary(verbose=True)

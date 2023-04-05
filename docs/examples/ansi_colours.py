@@ -1,4 +1,4 @@
-from devtools import sprint, sformat
+from devtools import sformat, sprint
 
 sprint('this is red', sprint.red)
 

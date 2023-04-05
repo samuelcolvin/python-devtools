@@ -1,5 +1,6 @@
-from devtools import PrettyFormat, pprint, pformat
 import numpy as np
+
+from devtools import PrettyFormat, pformat, pprint
 
 v = {
     'foo': {'whatever': [3, 2, 1]},

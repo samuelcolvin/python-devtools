@@ -1,3 +1,12 @@
+## v0.10.0 (2022-11-28)
+
+* Use secure builtins standard module, instead of the `__builtins__` by @0xsirsaif in #109
+* upgrade executing to fix 3.10 by @samuelcolvin in #110
+* Fix windows build by @samuelcolvin in #111
+* Allow executing dependency to be >1.0.0 by @staticf0x in #115
+* more precise timer summary by @banteg in #113
+* Python 3.11 by @samuelcolvin in #118
+
 ## v0.9.0 (2022-07-26)
 
 * fix format of nested dataclasses, #99 thanks @aliereno

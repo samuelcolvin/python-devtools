@@ -12,10 +12,11 @@ from functools import lru_cache
 from itertools import groupby
 from pathlib import Path
 from types import FrameType
-from typing import TYPE_CHECKING, Any, Callable, Generator, Literal, Sized
+from typing import TYPE_CHECKING, Any, Callable, Generator, Sized
 
 import pytest
 from executing import Source
+from typing_extensions import Literal
 
 from . import debug
 
@@ -31,7 +32,7 @@ class ToReplace:
     start_line: int
     end_line: int | None
     code: str
-    instruction_type: Literal["insert_assert", "insert_pytest_raises"]
+    instruction_type: Literal['insert_assert', 'insert_pytest_raises']
 
 
 to_replace: list[ToReplace] = []
@@ -66,7 +67,7 @@ def insert_assert(value: Any) -> int:
             ex.node.lineno,
             ex.node.end_lineno,
             python_code,
-            "insert_assert",
+            'insert_assert',
         )
     )
     calls = test_replacement_calls.get() + 1
@@ -83,9 +84,9 @@ def insert_pytest_raises():
     format_code = load_black()
     ex = Source.for_frame(call_frame).executing(call_frame)
     if not ex.statements:  # pragma: no cover
-        raise RuntimeError(f'insert_pytest_raises() was unable to find the frame from which it was called')
+        raise RuntimeError('insert_pytest_raises() was unable to find the frame from which it was called')
     if len(ex.statements) > 1 or len(ex.statements[0].items) > 1:
-        raise RuntimeError(f'insert_pytest_raises() was called alongside other statements, this is not supported')
+        raise RuntimeError('insert_pytest_raises() was called alongside other statements, this is not supported')
     try:
         yield
     except Exception as e:
@@ -99,7 +100,7 @@ def insert_pytest_raises():
                 statement.lineno,
                 statement.items[0].context_expr.end_lineno,
                 python_code,
-                "insert_pytest_raises",
+                'insert_pytest_raises',
             )
         )
         calls = test_replacement_calls.get() + 1
@@ -203,7 +204,8 @@ def insert_assert_session(pytestconfig: pytest.Config) -> Generator[None, None, 
         files += 1
     prefix = 'Printed' if print_instead else 'Replaced'
     summary.append(
-        f'{prefix} {len(to_replace)} insert_assert() and insert_pytest_raises() call{plural(to_replace)} in {files} file{plural(files)}'
+        f'{prefix} {len(to_replace)} insert_assert() and insert_pytest_raises() call{plural(to_replace)}'
+        f' in {files} file{plural(files)}'
     )
     if dup_count:
         summary.append(

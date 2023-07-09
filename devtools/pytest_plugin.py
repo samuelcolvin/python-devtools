@@ -76,7 +76,7 @@ def insert_assert(value: Any) -> int:
 
 
 @contextlib.contextmanager
-def insert_pytest_raises():
+def insert_pytest_raises() -> Generator[None, Any, int]:
     call_frame: FrameType = sys._getframe(2)
     if sys.version_info < (3, 8):  # pragma: no cover
         raise RuntimeError('insert_pytest_raises() requires Python 3.8+')
@@ -86,6 +86,7 @@ def insert_pytest_raises():
     if not ex.statements:  # pragma: no cover
         raise RuntimeError('insert_pytest_raises() was unable to find the frame from which it was called')
     statement = ex.statements.pop()
+    assert isinstance(statement, ast.With), "insert_pytest_raises() was called outside of a 'with' statement"
     if len(ex.statements) > 0 or len(statement.items) > 1:
         raise RuntimeError('insert_pytest_raises() was called alongside other statements, this is not supported')
     try:
@@ -106,6 +107,8 @@ def insert_pytest_raises():
         calls = test_replacement_calls.get() + 1
         test_replacement_calls.set(calls)
         return calls
+    else:
+        raise RuntimeError('insert_pytest_raises() was called but no exception was raised')
 
 
 def pytest_addoption(parser: Any) -> None:
@@ -154,7 +157,7 @@ def insert_assert_fixture() -> Callable[[Any], int]:
 
 
 def pytest_report_teststatus(report: pytest.TestReport, config: pytest.Config) -> Any:
-    if report.when == 'teardown' and report.failed and 'devtools-insert-assert:' in repr(report.longrepr):
+    if report.when == 'teardown' and report.failed and 'devtools-test-replacement:' in repr(report.longrepr):
         return 'insert assert', 'i', ('INSERT ASSERT', {'cyan': True})
 
 
@@ -204,7 +207,7 @@ def insert_assert_session(pytestconfig: pytest.Config) -> Generator[None, None, 
         files += 1
     prefix = 'Printed' if print_instead else 'Replaced'
     summary.append(
-        f'{prefix} {len(to_replace)} insert_assert() and insert_pytest_raises() call{plural(to_replace)}'
+        f'{prefix} {len(to_replace)} insert_assert() and/or insert_pytest_raises() call{plural(to_replace)}'
         f' in {files} file{plural(files)}'
     )
     if dup_count:

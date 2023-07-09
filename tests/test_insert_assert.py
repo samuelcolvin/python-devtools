@@ -65,7 +65,7 @@ def test_insert_assert_print(pytester_pretty, capsys):
     assert test_file.read_text() == default_test
     captured = capsys.readouterr()
     assert 'test_insert_assert_print.py - 6:' in captured.out
-    assert 'Printed 1 insert_assert() call in 1 file\n' in captured.out
+    assert 'Printed 1 insert_assert() and/or insert_pytest_raises() call in 1 file\n' in captured.out
 
 
 def test_insert_assert_fail(pytester_pretty):

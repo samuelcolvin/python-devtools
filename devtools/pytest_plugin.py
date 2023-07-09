@@ -85,12 +85,12 @@ def insert_pytest_raises():
     ex = Source.for_frame(call_frame).executing(call_frame)
     if not ex.statements:  # pragma: no cover
         raise RuntimeError('insert_pytest_raises() was unable to find the frame from which it was called')
-    if len(ex.statements) > 1 or len(ex.statements[0].items) > 1:
+    statement = ex.statements.pop()
+    if len(ex.statements) > 0 or len(statement.items) > 1:
         raise RuntimeError('insert_pytest_raises() was called alongside other statements, this is not supported')
     try:
         yield
     except Exception as e:
-        statement = ex.statements.pop()
         assert isinstance(statement, ast.With), "insert_pytest_raises() was called outside of a 'with' statement"
         python_code = format_code(f'with pytest.raises({type(e).__name__}, match=re.escape({repr(str(e))})):\n')
         python_code = textwrap.indent(python_code, statement.col_offset * ' ')

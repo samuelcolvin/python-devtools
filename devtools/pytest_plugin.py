@@ -2,6 +2,7 @@ from __future__ import annotations as _annotations
 
 import ast
 import builtins
+import contextlib
 import sys
 import textwrap
 from contextvars import ContextVar
@@ -11,7 +12,7 @@ from functools import lru_cache
 from itertools import groupby
 from pathlib import Path
 from types import FrameType
-from typing import TYPE_CHECKING, Any, Callable, Generator, Sized
+from typing import TYPE_CHECKING, Any, Callable, Generator, Literal, Sized
 
 import pytest
 from executing import Source
@@ -30,11 +31,12 @@ class ToReplace:
     start_line: int
     end_line: int | None
     code: str
+    instruction_type: Literal["insert_assert", "insert_pytest_raises"]
 
 
 to_replace: list[ToReplace] = []
-insert_assert_calls: ContextVar[int] = ContextVar('insert_assert_calls', default=0)
-insert_assert_summary: ContextVar[list[str]] = ContextVar('insert_assert_summary')
+test_replacement_calls: ContextVar[int] = ContextVar('insert_assert_calls', default=0)
+test_replacement_summary: ContextVar[list[str]] = ContextVar('insert_assert_summary')
 
 
 def insert_assert(value: Any) -> int:
@@ -58,10 +60,51 @@ def insert_assert(value: Any) -> int:
     python_code = format_code(f'# insert_assert({arg})\nassert {arg} == {custom_repr(value)}')
 
     python_code = textwrap.indent(python_code, ex.node.col_offset * ' ')
-    to_replace.append(ToReplace(Path(call_frame.f_code.co_filename), ex.node.lineno, ex.node.end_lineno, python_code))
-    calls = insert_assert_calls.get() + 1
-    insert_assert_calls.set(calls)
+    to_replace.append(
+        ToReplace(
+            Path(call_frame.f_code.co_filename),
+            ex.node.lineno,
+            ex.node.end_lineno,
+            python_code,
+            "insert_assert",
+        )
+    )
+    calls = test_replacement_calls.get() + 1
+    test_replacement_calls.set(calls)
     return calls
+
+
+@contextlib.contextmanager
+def insert_pytest_raises():
+    call_frame: FrameType = sys._getframe(2)
+    if sys.version_info < (3, 8):  # pragma: no cover
+        raise RuntimeError('insert_pytest_raises() requires Python 3.8+')
+
+    format_code = load_black()
+    ex = Source.for_frame(call_frame).executing(call_frame)
+    if not ex.statements:  # pragma: no cover
+        raise RuntimeError(f'insert_pytest_raises() was unable to find the frame from which it was called')
+    if len(ex.statements) > 1 or len(ex.statements[0].items) > 1:
+        raise RuntimeError(f'insert_pytest_raises() was called alongside other statements, this is not supported')
+    try:
+        yield
+    except Exception as e:
+        statement = ex.statements.pop()
+        assert isinstance(statement, ast.With), "insert_pytest_raises() was called outside of a 'with' statement"
+        python_code = format_code(f'with pytest.raises({type(e).__name__}, match=re.escape({repr(str(e))})):\n')
+        python_code = textwrap.indent(python_code, statement.col_offset * ' ')
+        to_replace.append(
+            ToReplace(
+                Path(call_frame.f_code.co_filename),
+                statement.lineno,
+                statement.items[0].context_expr.end_lineno,
+                python_code,
+                "insert_pytest_raises",
+            )
+        )
+        calls = test_replacement_calls.get() + 1
+        test_replacement_calls.set(calls)
+        return calls
 
 
 def pytest_addoption(parser: Any) -> None:
@@ -83,6 +126,7 @@ def pytest_addoption(parser: Any) -> None:
 def insert_assert_add_to_builtins() -> None:
     try:
         setattr(builtins, 'insert_assert', insert_assert)
+        setattr(builtins, 'insert_pytest_raises', insert_pytest_raises)
         # we also install debug here since the default script doesn't install it
         setattr(builtins, 'debug', debug)
     except TypeError:
@@ -91,14 +135,16 @@ def insert_assert_add_to_builtins() -> None:
 
 
 @pytest.fixture(autouse=True)
-def insert_assert_maybe_fail(pytestconfig: pytest.Config) -> Generator[None, None, None]:
-    insert_assert_calls.set(0)
+def test_replacements_maybe_fail(pytestconfig: pytest.Config) -> Generator[None, None, None]:
+    test_replacement_calls.set(0)
     yield
     print_instead = pytestconfig.getoption('insert_assert_print')
     if not print_instead:
-        count = insert_assert_calls.get()
+        count = test_replacement_calls.get()
         if count:
-            pytest.fail(f'devtools-insert-assert: {count} assert{plural(count)} will be inserted', pytrace=False)
+            pytest.fail(
+                f'devtools-test-replacement: {count} test replacement{plural(count)} will be inserted', pytrace=False
+            )
 
 
 @pytest.fixture(name='insert_assert')
@@ -157,19 +203,19 @@ def insert_assert_session(pytestconfig: pytest.Config) -> Generator[None, None, 
         files += 1
     prefix = 'Printed' if print_instead else 'Replaced'
     summary.append(
-        f'{prefix} {len(to_replace)} insert_assert() call{plural(to_replace)} in {files} file{plural(files)}'
+        f'{prefix} {len(to_replace)} insert_assert() and insert_pytest_raises() call{plural(to_replace)} in {files} file{plural(files)}'
     )
     if dup_count:
         summary.append(
             f'\n{dup_count} insert skipped because an assert statement on that line had already be inserted!'
         )
 
-    insert_assert_summary.set(summary)
+    test_replacement_summary.set(summary)
     to_replace.clear()
 
 
 def pytest_terminal_summary() -> None:
-    summary = insert_assert_summary.get(None)
+    summary = test_replacement_summary.get(None)
     if summary:
         print('\n'.join(summary))
 

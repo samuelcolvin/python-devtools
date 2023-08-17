@@ -255,6 +255,30 @@ BarDataclass(
     )
 
 
+def test_dataclass_slots():
+    try:
+        dec = dataclass(slots=True)
+    except TypeError:
+        pytest.skip('dataclasses.slots not available')
+
+    @dec
+    class FooDataclass:
+        x: int
+        y: str
+
+    f = FooDataclass(123, 'bar')
+    v = pformat(f)
+    print(v)
+    assert (
+        v
+        == """\
+FooDataclass(
+    x=123,
+    y='bar',
+)"""
+    )
+
+
 @pytest.mark.skipif(numpy is None, reason='numpy not installed')
 def test_indent_numpy():
     v = pformat({'numpy test': numpy.array(range(20))})

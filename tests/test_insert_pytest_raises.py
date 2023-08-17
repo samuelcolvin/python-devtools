@@ -111,8 +111,6 @@ def test_insert_pytest_raises_frame_not_found(pytester_pretty, capsys):
     pytester_pretty.makeconftest(config)
     pytester_pretty.makepyfile(
         """\
-import pytest, re
-
 def test_raise_keyerror(insert_pytest_raises):
     eval('insert_pytest_raises().__enter__()')
 """
@@ -130,8 +128,6 @@ def test_insert_pytest_raises_called_outside_with(pytester_pretty, capsys):
     pytester_pretty.makeconftest(config)
     pytester_pretty.makepyfile(
         """\
-import pytest, re
-
 def test_raise_keyerror(insert_pytest_raises):
     assert insert_pytest_raises().__enter__() == 1
 """
@@ -147,7 +143,7 @@ def test_insert_pytest_raises_called_with_other_with_statements(pytester_pretty,
     pytester_pretty.makeconftest(config)
     pytester_pretty.makepyfile(
         """\
-import pytest, re, contextlib
+import contextlib
 
 def test_raise_keyerror(insert_pytest_raises):
     with contextlib.nullcontext(), insert_pytest_raises():
@@ -161,3 +157,19 @@ def test_raise_keyerror(insert_pytest_raises):
         'RuntimeError: insert_pytest_raises() was called alongside other statements, this is not supported\n'
         in captured.out
     )
+
+
+def test_insert_pytest_raises_called_with_no_exception(pytester_pretty, capsys):
+    os.environ.pop('CI', None)
+    pytester_pretty.makeconftest(config)
+    pytester_pretty.makepyfile(
+        """\
+def test_raise_keyerror(insert_pytest_raises):
+    with insert_pytest_raises():
+        assert True
+"""
+    )
+    result = pytester_pretty.runpytest()
+    result.assert_outcomes(failed=1)
+    captured = capsys.readouterr()
+    assert 'RuntimeError: insert_pytest_raises() was called but no exception was raised\n' in captured.out

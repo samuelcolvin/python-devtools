@@ -56,7 +56,7 @@ pygments==2.15.0
     # via
     #   -r docs.in
     #   mkdocs-material
-pymdown-extensions==9.10
+pymdown-extensions==10.0
     # via mkdocs-material
 python-dateutil==2.8.2
     # via ghp-import

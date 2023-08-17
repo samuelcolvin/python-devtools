@@ -1,3 +1,7 @@
+## v0.12.1 (2023-08-17)
+
+fix docs release
+
 ## v0.12.0 (2023-08-17)
 
 * build docs on CI by @samuelcolvin in #127

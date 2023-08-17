@@ -4,4 +4,4 @@ mkdocs-exclude==1.0.2
 mkdocs-material==8.3.9
 mkdocs-simple-hooks==0.1.5
 markdown-include==0.7.0
-pygments==2.13.0
+pygments==2.15.0

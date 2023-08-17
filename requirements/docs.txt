@@ -52,7 +52,7 @@ numpy==1.24.2
     # via -r docs.in
 packaging==23.0
     # via mkdocs
-pygments==2.14.0
+pygments==2.15.0
     # via
     #   -r docs.in
     #   mkdocs-material

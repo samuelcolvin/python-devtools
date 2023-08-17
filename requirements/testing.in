@@ -1,5 +1,4 @@
 coverage[toml]
-pygments
 pytest
 pytest-mock
 pytest-pretty

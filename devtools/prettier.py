@@ -254,7 +254,12 @@ class PrettyFormat:
             self._stream.write(indent_current * self._c + line)
 
     def _format_dataclass(self, value: 'Any', _: str, indent_current: int, indent_new: int) -> None:
-        self._format_fields(value, value.__dict__.items(), indent_current, indent_new)
+        try:
+            field_items = value.__dict__.items()
+        except AttributeError:
+            # slots
+            field_items = ((f, getattr(value, f)) for f in value.__slots__)
+        self._format_fields(value, field_items, indent_current, indent_new)
 
     def _format_sqlalchemy_class(self, value: 'Any', _: str, indent_current: int, indent_new: int) -> None:
         if sa_inspect is not None:

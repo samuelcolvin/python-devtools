@@ -95,7 +95,8 @@ def insert_pytest_raises() -> Generator[None, Any, int]:
         yield
     except Exception as e:
         python_code = format_code(
-            f'# with insert_pytest_raises():\nwith pytest.raises({type(e).__name__}, match=re.escape({repr(str(e))})):\n'
+            f'# with insert_pytest_raises():\n'
+            f'with pytest.raises({type(e).__name__}, match=re.escape({repr(str(e))})):\n'
         )
         python_code = textwrap.indent(python_code, statement.col_offset * ' ')
         to_replace.append(
@@ -215,19 +216,21 @@ def insert_assert_session(pytestconfig: pytest.Config) -> Generator[None, None, 
         files += 1
     prefix = 'Printed' if print_instead else 'Replaced'
 
-    insert_assert_count = len([item for item in to_replace if item.instruction_type == "insert_assert"])
-    insert_pytest_raises_count = len([item for item in to_replace if item.instruction_type == "insert_pytest_raises"])
+    insert_assert_count = len([item for item in to_replace if item.instruction_type == 'insert_assert'])
+    insert_pytest_raises_count = len([item for item in to_replace if item.instruction_type == 'insert_pytest_raises'])
     if insert_assert_count:
         summary.append(
             f'{prefix} {insert_assert_count} insert_assert() call{plural(to_replace)} in {files} file{plural(files)}'
         )
     if insert_pytest_raises_count:
         summary.append(
-            f'{prefix} {insert_pytest_raises_count} insert_pytest_raises() call{plural(to_replace)} in {files} file{plural(files)}'
+            f'{prefix} {insert_pytest_raises_count} insert_pytest_raises()'
+            f' call{plural(to_replace)} in {files} file{plural(files)}'
         )
     if dup_count:
         summary.append(
-            f'\n{dup_count} insert{plural(dup_count)} skipped because an assert statement on that line had already be inserted!'
+            f'\n{dup_count} insert{plural(dup_count)}'
+            ' skipped because an assert statement on that line had already be inserted!'
         )
 
     test_replacement_summary.set(summary)

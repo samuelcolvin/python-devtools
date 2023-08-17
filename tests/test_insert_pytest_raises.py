@@ -3,8 +3,6 @@ import sys
 
 import pytest
 
-from devtools.pytest_plugin import load_black
-
 pytestmark = pytest.mark.skipif(sys.version_info < (3, 8), reason='requires Python 3.8+')
 
 
@@ -160,6 +158,6 @@ def test_raise_keyerror(insert_pytest_raises):
     result.assert_outcomes(failed=1)
     captured = capsys.readouterr()
     assert (
-        "RuntimeError: insert_pytest_raises() was called alongside other statements, this is not supported\n"
+        'RuntimeError: insert_pytest_raises() was called alongside other statements, this is not supported\n'
         in captured.out
     )

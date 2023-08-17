@@ -37,8 +37,10 @@ requires-python = '>=3.7'
 dependencies = [
     'executing>=1.1.1',
     'asttokens>=2.0.0,<3.0.0',
+    'Pygments>=2.15.0',
 ]
-optional-dependencies = {pygments = ['Pygments>=2.2.0'] }
+# keep this meaningless group around to avoid breaking installs using `pip install devtools[pygments]`
+optional-dependencies = {pygments = [] }
 dynamic = ['version']
 
 [project.urls]

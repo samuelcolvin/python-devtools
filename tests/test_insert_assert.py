@@ -101,6 +101,46 @@ def test_deep(pytester_pretty):
     )
 
 
+def test_enum(pytester_pretty, capsys):
+    os.environ.pop('CI', None)
+    pytester_pretty.makeconftest(config)
+    # language=Python
+    pytester_pretty.makepyfile(
+        """
+from enum import Enum
+class Foo(Enum):
+    A = 1
+    B = 2
+def test_deep(insert_assert):
+    x = Foo.A
+    insert_assert(x)
+    """
+    )
+    result = pytester_pretty.runpytest('--insert-assert-print')
+    result.assert_outcomes(passed=1)
+    captured = capsys.readouterr()
+    assert '    assert x == Foo.A\n' in captured.out
+
+
+def test_insert_assert_black(tmp_path):
+    old_wd = os.getcwd()
+    try:
+        os.chdir(tmp_path)
+        (tmp_path / 'pyproject.toml').write_text(
+            """\
+[tool.black]
+target-version = ["py39"]
+skip-string-normalization = true"""
+        )
+        load_black.cache_clear()
+    finally:
+        os.chdir(old_wd)
+
+    f = load_black()
+    # no string normalization
+    assert f("'foobar'") == "'foobar'\n"
+
+
 def test_insert_assert_repeat(pytester_pretty, capsys):
     os.environ.pop('CI', None)
     pytester_pretty.makeconftest(config)

@@ -47,7 +47,7 @@ def insert_assert(value: Any) -> int:
 
     format_code = load_black()
     ex = Source.for_frame(call_frame).executing(call_frame)
-    if ex.node is None:  # pragma: no cover
+    if ex.node is None:
         python_code = format_code(str(custom_repr(value)))
         raise RuntimeError(
             f'insert_assert() was unable to find the frame from which it was called, called with:\n{python_code}'
@@ -77,23 +77,26 @@ def insert_assert(value: Any) -> int:
 
 @contextlib.contextmanager
 def insert_pytest_raises() -> Generator[None, Any, int]:
+    # We use frame 2 because frame 1 is the context manager itself
     call_frame: FrameType = sys._getframe(2)
     if sys.version_info < (3, 8):  # pragma: no cover
         raise RuntimeError('insert_pytest_raises() requires Python 3.8+')
 
     format_code = load_black()
     ex = Source.for_frame(call_frame).executing(call_frame)
-    if not ex.statements:  # pragma: no cover
+    if not ex.statements:
         raise RuntimeError('insert_pytest_raises() was unable to find the frame from which it was called')
-    statement = ex.statements.pop()
-    assert isinstance(statement, ast.With), "insert_pytest_raises() was called outside of a 'with' statement"
-    if len(ex.statements) > 0 or len(statement.items) > 1:
+    statement = next(iter(ex.statements))
+    if not isinstance(statement, ast.With):
+        raise RuntimeError("insert_pytest_raises() was called outside of a 'with' statement")
+    if len(ex.statements) > 1 or len(statement.items) > 1:
         raise RuntimeError('insert_pytest_raises() was called alongside other statements, this is not supported')
     try:
         yield
     except Exception as e:
-        assert isinstance(statement, ast.With), "insert_pytest_raises() was called outside of a 'with' statement"
-        python_code = format_code(f'with pytest.raises({type(e).__name__}, match=re.escape({repr(str(e))})):\n')
+        python_code = format_code(
+            f'# with insert_pytest_raises():\nwith pytest.raises({type(e).__name__}, match=re.escape({repr(str(e))})):\n'
+        )
         python_code = textwrap.indent(python_code, statement.col_offset * ' ')
         to_replace.append(
             ToReplace(
@@ -156,6 +159,11 @@ def insert_assert_fixture() -> Callable[[Any], int]:
     return insert_assert
 
 
+@pytest.fixture(name='insert_pytest_raises')
+def insert_pytest_raises_fixture() -> Callable[[], contextlib._GeneratorContextManager[None]]:
+    return insert_pytest_raises
+
+
 def pytest_report_teststatus(report: pytest.TestReport, config: pytest.Config) -> Any:
     if report.when == 'teardown' and report.failed and 'devtools-test-replacement:' in repr(report.longrepr):
         return 'insert assert', 'i', ('INSERT ASSERT', {'cyan': True})
@@ -206,13 +214,20 @@ def insert_assert_session(pytestconfig: pytest.Config) -> Generator[None, None, 
             file.write_text('\n'.join(lines))
         files += 1
     prefix = 'Printed' if print_instead else 'Replaced'
-    summary.append(
-        f'{prefix} {len(to_replace)} insert_assert() and/or insert_pytest_raises() call{plural(to_replace)}'
-        f' in {files} file{plural(files)}'
-    )
+
+    insert_assert_count = len([item for item in to_replace if item.instruction_type == "insert_assert"])
+    insert_pytest_raises_count = len([item for item in to_replace if item.instruction_type == "insert_pytest_raises"])
+    if insert_assert_count:
+        summary.append(
+            f'{prefix} {insert_assert_count} insert_assert() call{plural(to_replace)} in {files} file{plural(files)}'
+        )
+    if insert_pytest_raises_count:
+        summary.append(
+            f'{prefix} {insert_pytest_raises_count} insert_pytest_raises() call{plural(to_replace)} in {files} file{plural(files)}'
+        )
     if dup_count:
         summary.append(
-            f'\n{dup_count} insert skipped because an assert statement on that line had already be inserted!'
+            f'\n{dup_count} insert{plural(dup_count)} skipped because an assert statement on that line had already be inserted!'
         )
 
     test_replacement_summary.set(summary)

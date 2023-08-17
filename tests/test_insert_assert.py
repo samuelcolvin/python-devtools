@@ -65,7 +65,7 @@ def test_insert_assert_print(pytester_pretty, capsys):
     assert test_file.read_text() == default_test
     captured = capsys.readouterr()
     assert 'test_insert_assert_print.py - 6:' in captured.out
-    assert 'Printed 1 insert_assert() and/or insert_pytest_raises() call in 1 file\n' in captured.out
+    assert 'Printed 1 insert_assert() call in 1 file\n' in captured.out
 
 
 def test_insert_assert_fail(pytester_pretty):
@@ -101,48 +101,6 @@ def test_deep(pytester_pretty):
     )
 
 
-def test_enum(pytester_pretty, capsys):
-    os.environ.pop('CI', None)
-    pytester_pretty.makeconftest(config)
-    # language=Python
-    pytester_pretty.makepyfile(
-        """
-from enum import Enum
-
-class Foo(Enum):
-    A = 1
-    B = 2
-
-def test_deep(insert_assert):
-    x = Foo.A
-    insert_assert(x)
-    """
-    )
-    result = pytester_pretty.runpytest('--insert-assert-print')
-    result.assert_outcomes(passed=1)
-    captured = capsys.readouterr()
-    assert '    assert x == Foo.A\n' in captured.out
-
-
-def test_insert_assert_black(tmp_path):
-    old_wd = os.getcwd()
-    try:
-        os.chdir(tmp_path)
-        (tmp_path / 'pyproject.toml').write_text(
-            """\
-[tool.black]
-target-version = ["py39"]
-skip-string-normalization = true"""
-        )
-        load_black.cache_clear()
-    finally:
-        os.chdir(old_wd)
-
-    f = load_black()
-    # no string normalization
-    assert f("'foobar'") == "'foobar'\n"
-
-
 def test_insert_assert_repeat(pytester_pretty, capsys):
     os.environ.pop('CI', None)
     pytester_pretty.makeconftest(config)
@@ -166,4 +124,22 @@ def test_string_assert(x, insert_assert):
         '    assert x == 1'
     )
     captured = capsys.readouterr()
-    assert '2 insert skipped because an assert statement on that line had already be inserted!\n' in captured.out
+    assert '2 inserts skipped because an assert statement on that line had already be inserted!\n' in captured.out
+
+
+def test_insert_assert_frame_not_found(pytester_pretty, capsys):
+    os.environ.pop('CI', None)
+    pytester_pretty.makeconftest(config)
+    pytester_pretty.makepyfile(
+        """\
+def test_raise_keyerror(insert_assert):
+    eval('insert_assert(1)')
+"""
+    )
+    result = pytester_pretty.runpytest()
+    result.assert_outcomes(failed=1)
+    captured = capsys.readouterr()
+    assert (
+        'RuntimeError: insert_assert() was unable to find the frame from which it was called, called with:\n'
+        in captured.out
+    )

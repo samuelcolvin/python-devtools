@@ -1,3 +1,17 @@
+## v0.12.0 (2023-08-17)
+
+* build docs on CI by @samuelcolvin in #127
+* Update usage to reflect the recent addition of the pytest plugin by @tomhamiltonstubber in #128
+* support dataclasses with slots by @samuelcolvin in #136
+* Make `Pygments` required #137
+
+## v0.11.0 (2023-04-05)
+
+* added support for sqlalchemy2 by @the-vty in #120
+* switch to ruff by @samuelcolvin in #124
+* support displaying ast types by @samuelcolvin in #125
+* Insert assert by @samuelcolvin in #126
+
 ## v0.10.0 (2022-11-28)
 
 * Use secure builtins standard module, instead of the `__builtins__` by @0xsirsaif in #109

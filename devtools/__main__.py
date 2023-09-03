@@ -7,8 +7,7 @@ from .version import VERSION
 # language=python
 install_code = """
 # add devtools `debug` function to builtins
-# we don't want to import devtools until it's required
-# since it breaks pytest, hence this proxy
+# we don't want to import devtools until it's required since it breaks pytest, hence this proxy
 class DebugProxy:
     def __init__(self):
         self._debug = None
@@ -20,7 +19,13 @@ class DebugProxy:
 
     def __call__(self, *args, **kwargs):
         self._import_debug()
+        kwargs['frame_depth_'] = 3
         return self._debug(*args, **kwargs)
+
+    def format(self, *args, **kwargs):
+        self._import_debug()
+        kwargs['frame_depth_'] = 3
+        return self._debug.format(*args, **kwargs)
 
     def __getattr__(self, item):
         self._import_debug()
@@ -53,10 +58,10 @@ def install() -> int:
         install_path = Path(sitecustomize.__file__)
 
     if hasattr(builtins, 'debug'):
-        print(f'Looks like devtools is already installed at `{install_path}`.')
+        print(f'Looks like devtools is already installed, probably in `{install_path}`.')
         return 0
 
-    print(f'Found path `{install_path}` to install devtools into __builtins__')
+    print(f'Found path `{install_path}` to install devtools into `builtins`')
     print('To install devtools, run the following command:\n')
     print(f'    python -m devtools print-code >> {install_path}\n')
     if not install_path.is_relative_to(Path.home()):
@@ -73,5 +78,5 @@ if __name__ == '__main__':
     elif 'print-code' in sys.argv:
         sys.exit(print_code())
     else:
-        print(f'python-devtools v{VERSION}, CLI usage: python -m devtools [install|print-code]')
+        print(f'python-devtools v{VERSION}, CLI usage: `python -m devtools install|print-code`')
         sys.exit(1)

@@ -25,7 +25,7 @@ update-lockfiles:
 .PHONY: format
 format:
 	black $(sources)
-	ruff $(sources) --fix --exit-zero
+	ruff $(sources) --fix-only
 
 .PHONY: lint
 lint:

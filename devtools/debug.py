@@ -112,8 +112,15 @@ class Debug:
         self._show_warnings = env_bool(warnings, 'PY_DEVTOOLS_WARNINGS', True)
         self._highlight = highlight
 
-    def __call__(self, *args: 'Any', file_: 'Any' = None, flush_: bool = True, **kwargs: 'Any') -> 'Any':
-        d_out = self._process(args, kwargs)
+    def __call__(
+        self,
+        *args: 'Any',
+        file_: 'Any' = None,
+        flush_: bool = True,
+        frame_depth_: int = 2,
+        **kwargs: 'Any',
+    ) -> 'Any':
+        d_out = self._process(args, kwargs, frame_depth_)
         s = d_out.str(use_highlight(self._highlight, file_))
         print(s, file=file_, flush=flush_)
         if kwargs:
@@ -123,8 +130,8 @@ class Debug:
         else:
             return args
 
-    def format(self, *args: 'Any', **kwargs: 'Any') -> DebugOutput:
-        return self._process(args, kwargs)
+    def format(self, *args: 'Any', frame_depth_: int = 2, **kwargs: 'Any') -> DebugOutput:
+        return self._process(args, kwargs, frame_depth_)
 
     def breakpoint(self) -> None:
         import pdb
@@ -134,13 +141,13 @@ class Debug:
     def timer(self, name: 'Optional[str]' = None, *, verbose: bool = True, file: 'Any' = None, dp: int = 3) -> Timer:
         return Timer(name=name, verbose=verbose, file=file, dp=dp)
 
-    def _process(self, args: 'Any', kwargs: 'Any') -> DebugOutput:
+    def _process(self, args: 'Any', kwargs: 'Any', frame_depth: int) -> DebugOutput:
         """
-        BEWARE: this must be called from a function exactly 2 levels below the top of the stack.
+        BEWARE: this must be called from a function exactly `frame_depth` levels below the top of the stack.
         """
         # HELP: any errors other than ValueError from _getframe? If so please submit an issue
         try:
-            call_frame: 'FrameType' = sys._getframe(2)
+            call_frame: 'FrameType' = sys._getframe(frame_depth)
         except ValueError:
             # "If [ValueError] is deeper than the call stack, ValueError is raised"
             return self.output_class(

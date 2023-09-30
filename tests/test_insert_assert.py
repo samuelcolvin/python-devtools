@@ -2,13 +2,13 @@ import os
 import sys
 
 import pytest
+from pytest_pretty import ansi_escape
 
 from devtools.pytest_plugin import load_black
 
 pytestmark = pytest.mark.skipif(sys.version_info < (3, 8), reason='requires Python 3.8+')
 
 
-config = "pytest_plugins = ['devtools.pytest_plugin']"
 # language=Python
 default_test = """\
 def test_ok():
@@ -22,7 +22,6 @@ def test_string_assert(insert_assert):
 
 def test_insert_assert(pytester_pretty):
     os.environ.pop('CI', None)
-    pytester_pretty.makeconftest(config)
     test_file = pytester_pretty.makepyfile(default_test)
     result = pytester_pretty.runpytest()
     result.assert_outcomes(passed=2)
@@ -40,7 +39,6 @@ def test_insert_assert(pytester_pretty):
 
 def test_insert_assert_no_pretty(pytester):
     os.environ.pop('CI', None)
-    pytester.makeconftest(config)
     test_file = pytester.makepyfile(default_test)
     result = pytester.runpytest('-p', 'no:pretty')
     result.assert_outcomes(passed=2)
@@ -57,7 +55,6 @@ def test_insert_assert_no_pretty(pytester):
 
 def test_insert_assert_print(pytester_pretty, capsys):
     os.environ.pop('CI', None)
-    pytester_pretty.makeconftest(config)
     test_file = pytester_pretty.makepyfile(default_test)
     # assert r == 0
     result = pytester_pretty.runpytest('--insert-assert-print')
@@ -70,17 +67,15 @@ def test_insert_assert_print(pytester_pretty, capsys):
 
 def test_insert_assert_fail(pytester_pretty):
     os.environ.pop('CI', None)
-    pytester_pretty.makeconftest(config)
     test_file = pytester_pretty.makepyfile(default_test)
     # assert r == 0
     result = pytester_pretty.runpytest()
-    assert result.parseoutcomes() == {'passed': 2, 'warning': 1, 'insert': 1}
+    assert result.parseoutcomes() == {'passed': 2, 'insert': 1}
     assert test_file.read_text() != default_test
 
 
 def test_deep(pytester_pretty):
     os.environ.pop('CI', None)
-    pytester_pretty.makeconftest(config)
     # language=Python
     test_file = pytester_pretty.makepyfile(
         """
@@ -103,7 +98,6 @@ def test_deep(pytester_pretty):
 
 def test_enum(pytester_pretty, capsys):
     os.environ.pop('CI', None)
-    pytester_pretty.makeconftest(config)
     # language=Python
     pytester_pretty.makepyfile(
         """
@@ -121,7 +115,8 @@ def test_deep(insert_assert):
     result = pytester_pretty.runpytest('--insert-assert-print')
     result.assert_outcomes(passed=1)
     captured = capsys.readouterr()
-    assert '    assert x == Foo.A\n' in captured.out
+    out = ansi_escape.sub('', captured.out).strip()  # clean colors
+    assert '    assert x == Foo.A\n' in out
 
 
 def test_insert_assert_black(tmp_path):
@@ -145,7 +140,6 @@ skip-string-normalization = true"""
 
 def test_insert_assert_repeat(pytester_pretty, capsys):
     os.environ.pop('CI', None)
-    pytester_pretty.makeconftest(config)
     test_file = pytester_pretty.makepyfile(
         """\
 import pytest

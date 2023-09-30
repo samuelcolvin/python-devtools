@@ -10,7 +10,7 @@ black==23.3.0
     # via -r requirements/linting.in
 click==8.1.3
     # via black
-exceptiongroup==1.1.1
+exceptiongroup==1.1.3
     # via pytest
 iniconfig==2.0.0
     # via pytest
@@ -30,7 +30,7 @@ platformdirs==3.2.0
     # via black
 pluggy==1.0.0
     # via pytest
-pytest==7.2.2
+pytest==7.4.2
     # via -r requirements/linting.in
 ruff==0.0.261
     # via -r requirements/linting.in
@@ -41,7 +41,7 @@ tomli==2.0.1
     #   black
     #   mypy
     #   pytest
-typing-extensions==4.5.0
+typing-extensions==4.8.0
     # via
     #   mypy
     #   sqlalchemy

@@ -61,15 +61,119 @@ def test_print_generator(capsys):
     assert list(result) == []
 
 
-@pff.parametrize(
-    indirect=['tmp_files'],
+@pytest.mark.parametrize(
+    ['py_script', 'stdout'], [
+        (
+'''\
+from devtools import debug
+
+def test_func(v):
+    debug('in test func', v)
+
+foobar = 'hello world'
+print('running debug...')
+debug(foobar)
+test_func(42)
+print('debug run.')
+''',
+'''\
+running debug...
+/path/to/test.py:8 <module>
+    foobar: 'hello world' (str) len=11
+/path/to/test.py:4 test_func
+    'in test func' (str) len=12
+    v: 42 (int)
+debug run.
+''',
+        ), (
+'''\
+from devtools import debug
+
+def f(x):
+    debug(x, trace_=True)
+    g(x)
+
+def g(x):
+    debug(x, trace_=True)
+
+x = 42
+debug(x, trace_=True)
+f(x)
+''',
+'''\
+/path/to/test.py:11 <module>
+    x: 42 (int)
+/path/to/test.py:12 <module>
+/path/to/test.py:4 f
+    x: 42 (int)
+/path/to/test.py:12 <module>
+/path/to/test.py:5 f
+/path/to/test.py:8 g
+    x: 42 (int)
+'''
+        ), (
+'''\
+from devtools import debug
+
+def f(x):
+    print(debug.format(x, trace_=True))
+    g(x)
+
+def g(x):
+    print(debug.format(x, trace_=True))
+
+x = 42
+print(debug.format(x, trace_=True))
+f(x)
+''',
+'''\
+/path/to/test.py:11 <module>
+    x: 42 (int)
+/path/to/test.py:12 <module>
+/path/to/test.py:4 f
+    x: 42 (int)
+/path/to/test.py:12 <module>
+/path/to/test.py:5 f
+/path/to/test.py:8 g
+    x: 42 (int)
+''',
+        ), (
+'''\
+from devtools import debug
+
+def f(x):
+    debug.trace(x)
+    g(x)
+
+def g(x):
+    debug.trace(x)
+
+x = 42
+debug.trace(x)
+f(x)
+''',
+'''\
+/path/to/test.py:11 <module>
+    x: 42 (int)
+/path/to/test.py:12 <module>
+/path/to/test.py:4 f
+    x: 42 (int)
+/path/to/test.py:12 <module>
+/path/to/test.py:5 f
+/path/to/test.py:8 g
+    x: 42 (int)
+'''
+        ),
+    ],
 )
 @pytest.mark.xfail(
     sys.platform == 'win32',
     reason='Fatal Python error: _Py_HashRandomization_Init: failed to get random numbers to initialize Python',
 )
-def test_print_subprocess(tmp_files, stdout):
-    f = tmp_files / 'test.py'
+def test_print_subprocess(py_script, stdout, tmp_path):
+    f = tmp_path / 'test.py'
+    f.write_text(py_script)
+
     p = run(
         [sys.executable, str(f)],
         capture_output=True,

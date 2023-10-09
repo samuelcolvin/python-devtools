@@ -22,47 +22,6 @@ pformat = PrettyFormat(
 StrType = str
 
 
-class DebugFrame:
-    __slots__ = 'function', 'path', 'lineno'
-
-    @staticmethod
-    def from_call_frame(call_frame: 'FrameType') -> 'DebugFrame':
-        from pathlib import Path
-
-        function = call_frame.f_code.co_name
-
-        path = Path(call_frame.f_code.co_filename)
-        if path.is_absolute():
-            # make the path relative
-            cwd = Path('.').resolve()
-            try:
-                path = path.relative_to(cwd)
-            except ValueError:
-                # happens if filename path is not within CWD
-                pass
-
-        lineno = call_frame.f_lineno
-
-        return DebugFrame(function, str(path), lineno)
-
-    def __init__(self, function: str, path: str, lineno: int):
-        self.function = function
-        self.path = path
-        self.lineno = lineno
-
-    def __str__(self) -> StrType:
-        return self.str()
-
-    def str(self, highlight: bool = False) -> StrType:
-        if highlight:
-            return (
-                f'{sformat(self.path, sformat.magenta)}:{sformat(self.lineno, sformat.green)} '
-                f'{sformat(self.function, sformat.green, sformat.italic)}'
-            )
-        else:
-            return f'{self.path}:{self.lineno} {self.function}'
-
-
 class DebugArgument:
     __slots__ = 'value', 'name', 'extra'
 
@@ -129,7 +88,7 @@ class DebugOutput:
             else:
                 prefix += f' ({self.warning})'
 
-        return prefix + '\n    ' + '\n    '.join(a.str(highlight) for a in self.arguments)
+        return f'{prefix}\n    ' + '\n    '.join(a.str(highlight) for a in self.arguments)
 
     def __str__(self) -> StrType:
         return self.str()
@@ -202,8 +161,7 @@ class Debug:
         try:
             call_frame: 'FrameType' = sys._getframe(frame_depth)
         except ValueError:
-            # "If [the given frame depth] is deeper than the call stack,
-            # ValueError is raised"
+            # "If [ValueError] is deeper than the call stack, ValueError is raised"
             return self.output_class(
                 call_context=[DebugFrame(function='', path='<unknown>', lineno=0)],
                 arguments=list(self._args_inspection_failed(args, kwargs)),
@@ -260,6 +218,47 @@ class Debug:
 
         for name, value in kwargs.items():
             yield self.output_class.arg_class(value, name=name, variable=kw_arg_names.get(name))
+
+
+class DebugFrame:
+    __slots__ = 'function', 'path', 'lineno'
+
+    def __init__(self, function: str, path: str, lineno: int):
+        self.function = function
+        self.path = path
+        self.lineno = lineno
+
+    @staticmethod
+    def from_call_frame(call_frame: 'FrameType') -> 'DebugFrame':
+        from pathlib import Path
+
+        function = call_frame.f_code.co_name
+
+        path = Path(call_frame.f_code.co_filename)
+        if path.is_absolute():
+            # make the path relative
+            cwd = Path('.').resolve()
+            try:
+                path = path.relative_to(cwd)
+            except ValueError:
+                # happens if filename path is not within CWD
+                pass
+
+        lineno = call_frame.f_lineno
+
+        return DebugFrame(function, str(path), lineno)
+
+    def __str__(self) -> StrType:
+        return self.str()
+
+    def str(self, highlight: bool = False) -> StrType:
+        if highlight:
+            return (
+                f'{sformat(self.path, sformat.magenta)}:{sformat(self.lineno, sformat.green)} '
+                f'{sformat(self.function, sformat.green, sformat.italic)}'
+            )
+        else:
+            return f'{self.path}:{self.lineno} {self.function}'
 
 
 def _make_call_context(call_frame: 'Optional[FrameType]', trace: bool) -> 'List[DebugFrame]':

@@ -2,8 +2,6 @@ coverage[toml]
 pytest
 pytest-mock
 pytest-pretty
-pytest-tmp-files
-parametrize-from-file
 # these packages are used in tests so install the latest version
 # no binaries for 3.7
 asyncpg; python_version>='3.8'

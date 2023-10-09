@@ -22,9 +22,9 @@ test_print_subprocess:
       > debug run.
       >
   -
-    # Need to test the trace feature in a subprocess, because otherwise the 
-    # stack trace would include a bunch of pytest frames.  These frames would 
-    # make the tests unreliable, because they could easily change between 
+    # Need to test the trace feature in a subprocess, because otherwise the
+    # stack trace would include a bunch of pytest frames.  These frames would
+    # make the tests unreliable, because they could easily change between
     # different versions of python.
 
     id: trace-call
@@ -107,5 +107,3 @@ test_print_subprocess:
       > /path/to/test.py:8 g
       >     x: 42 (int)
       >
-
-

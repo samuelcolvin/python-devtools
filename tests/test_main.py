@@ -4,8 +4,8 @@ from collections.abc import Generator
 from pathlib import Path
 from subprocess import run
 
-import pytest
 import parametrize_from_file as pff
+import pytest
 
 from devtools import Debug, debug
 from devtools.ansi import strip_ansi

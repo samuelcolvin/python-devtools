@@ -1,0 +1,111 @@
+test_print_subprocess:
+  -
+    tmp_files:
+      test.py:
+        > from devtools import debug
+        >
+        > def test_func(v):
+        >     debug('in test func', v)
+        >
+        > foobar = 'hello world'
+        > print('running debug...')
+        > debug(foobar)
+        > test_func(42)
+        > print('debug run.')
+    stdout:
+      > running debug...
+      > /path/to/test.py:8 <module>
+      >     foobar: 'hello world' (str) len=11
+      > /path/to/test.py:4 test_func
+      >     'in test func' (str) len=12
+      >     v: 42 (int)
+      > debug run.
+      >
+  -
+    # Need to test the trace feature in a subprocess, because otherwise the 
+    # stack trace would include a bunch of pytest frames.  These frames would 
+    # make the tests unreliable, because they could easily change between 
+    # different versions of python.
+
+    id: trace-call
+    tmp_files:
+      test.py:
+        > from devtools import debug
+        >
+        > def f(x):
+        >     debug(x, trace_=True)
+        >     g(x)
+        >
+        > def g(x):
+        >     debug(x, trace_=True)
+        >
+        > x = 42
+        > debug(x, trace_=True)
+        > f(x)
+    stdout:
+      > /path/to/test.py:11 <module>
+      >     x: 42 (int)
+      > /path/to/test.py:12 <module>
+      > /path/to/test.py:4 f
+      >     x: 42 (int)
+      > /path/to/test.py:12 <module>
+      > /path/to/test.py:5 f
+      > /path/to/test.py:8 g
+      >     x: 42 (int)
+      >
+  -
+    id: trace-format
+    tmp_files:
+      test.py:
+        > from devtools import debug
+        >
+        > def f(x):
+        >     print(debug.format(x, trace_=True))
+        >     g(x)
+        >
+        > def g(x):
+        >     print(debug.format(x, trace_=True))
+        >
+        > x = 42
+        > print(debug.format(x, trace_=True))
+        > f(x)
+    stdout:
+      > /path/to/test.py:11 <module>
+      >     x: 42 (int)
+      > /path/to/test.py:12 <module>
+      > /path/to/test.py:4 f
+      >     x: 42 (int)
+      > /path/to/test.py:12 <module>
+      > /path/to/test.py:5 f
+      > /path/to/test.py:8 g
+      >     x: 42 (int)
+      >
+  -
+    id: trace-method
+    tmp_files:
+      test.py:
+        > from devtools import debug
+        >
+        > def f(x):
+        >     debug.trace(x)
+        >     g(x)
+        >
+        > def g(x):
+        >     debug.trace(x)
+        >
+        > x = 42
+        > debug.trace(x)
+        > f(x)
+    stdout:
+      > /path/to/test.py:11 <module>
+      >     x: 42 (int)
+      > /path/to/test.py:12 <module>
+      > /path/to/test.py:4 f
+      >     x: 42 (int)
+      > /path/to/test.py:12 <module>
+      > /path/to/test.py:5 f
+      > /path/to/test.py:8 g
+      >     x: 42 (int)
+      >
+
+

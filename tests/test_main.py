@@ -5,6 +5,7 @@ from pathlib import Path
 from subprocess import run
 
 import pytest
+import parametrize_from_file as pff
 
 from devtools import Debug, debug
 from devtools.ansi import strip_ansi
@@ -60,6 +61,28 @@ def test_print_generator(capsys):
     assert list(result) == []
 
 
+@pff.parametrize(
+    indirect=['tmp_files'],
+)
+@pytest.mark.xfail(
+    sys.platform == 'win32',
+    reason='Fatal Python error: _Py_HashRandomization_Init: failed to get random numbers to initialize Python',
+)
+def test_print_subprocess(tmp_files, stdout):
+    f = tmp_files / 'test.py'
+    p = run(
+        [sys.executable, str(f)],
+        capture_output=True,
+        text=True,
+        env={
+            'PYTHONPATH': str(Path(__file__).parents[1].resolve()),
+        },
+    )
+    assert p.stderr == ''
+    assert p.returncode == 0, (p.stderr, p.stdout)
+    assert p.stdout.replace(str(f), '/path/to/test.py') == stdout
+
+
 def test_format():
     a = b'i might bite'
     b = 'hello this is a test'
@@ -70,41 +93,6 @@ def test_format():
         "tests/test_main.py:<line no> test_format\n"
         "    a: b'i might bite' (bytes) len=12\n"
         "    b: 'hello this is a test' (str) len=20"
-    )
-
-
-@pytest.mark.xfail(
-    sys.platform == 'win32',
-    reason='Fatal Python error: _Py_HashRandomization_Init: failed to get random numbers to initialize Python',
-)
-def test_print_subprocess(tmpdir):
-    f = tmpdir.join('test.py')
-    f.write(
-        """\
-from devtools import debug
-
-def test_func(v):
-    debug('in test func', v)
-
-foobar = 'hello world'
-print('running debug...')
-debug(foobar)
-test_func(42)
-print('debug run.')
-    """
-    )
-    env = {'PYTHONPATH': str(Path(__file__).parent.parent.resolve())}
-    p = run([sys.executable, str(f)], capture_output=True, text=True, env=env)
-    assert p.stderr == ''
-    assert p.returncode == 0, (p.stderr, p.stdout)
-    assert p.stdout.replace(str(f), '/path/to/test.py') == (
-        "running debug...\n"
-        "/path/to/test.py:8 <module>\n"
-        "    foobar: 'hello world' (str) len=11\n"
-        "/path/to/test.py:4 test_func\n"
-        "    'in test func' (str) len=12\n"
-        "    v: 42 (int)\n"
-        "debug run.\n"
     )
 
 

@@ -22,6 +22,47 @@ pformat = PrettyFormat(
 StrType = str
 
 
+class DebugFrame:
+    __slots__ = 'function', 'path', 'lineno'
+
+    @staticmethod
+    def from_call_frame(call_frame: 'FrameType') -> 'DebugFrame':
+        from pathlib import Path
+
+        function = call_frame.f_code.co_name
+
+        path = Path(call_frame.f_code.co_filename)
+        if path.is_absolute():
+            # make the path relative
+            cwd = Path('.').resolve()
+            try:
+                path = path.relative_to(cwd)
+            except ValueError:
+                # happens if filename path is not within CWD
+                pass
+
+        lineno = call_frame.f_lineno
+
+        return DebugFrame(function, str(path), lineno)
+
+    def __init__(self, function: str, path: str, lineno: int):
+        self.function = function
+        self.path = path
+        self.lineno = lineno
+
+    def __str__(self) -> StrType:
+        return self.str()
+
+    def str(self, highlight: bool = False) -> StrType:
+        if highlight:
+            return (
+                f'{sformat(self.path, sformat.magenta)}:{sformat(self.lineno, sformat.green)} '
+                f'{sformat(self.function, sformat.green, sformat.italic)}'
+            )
+        else:
+            return f'{self.path}:{self.lineno} {self.function}'
+
+
 class DebugArgument:
     __slots__ = 'value', 'name', 'extra'
 
@@ -66,43 +107,37 @@ class DebugOutput:
     """
 
     arg_class = DebugArgument
-    __slots__ = 'filename', 'lineno', 'frame', 'arguments', 'warning'
+    __slots__ = 'call_context', 'arguments', 'warning'
 
     def __init__(
         self,
         *,
-        filename: str,
-        lineno: int,
-        frame: str,
+        call_context: 'List[DebugFrame]',
         arguments: 'List[DebugArgument]',
         warning: 'Union[None, str, bool]' = None,
     ) -> None:
-        self.filename = filename
-        self.lineno = lineno
-        self.frame = frame
+        self.call_context = call_context
         self.arguments = arguments
         self.warning = warning
 
     def str(self, highlight: bool = False) -> StrType:
-        if highlight:
-            prefix = (
-                f'{sformat(self.filename, sformat.magenta)}:{sformat(self.lineno, sformat.green)} '
-                f'{sformat(self.frame, sformat.green, sformat.italic)}'
-            )
-            if self.warning:
+        prefix = '\n'.join(x.str(highlight) for x in self.call_context)
+
+        if self.warning:
+            if highlight:
                 prefix += sformat(f' ({self.warning})', sformat.dim)
-        else:
-            prefix = f'{self.filename}:{self.lineno} {self.frame}'
-            if self.warning:
+            else:
                 prefix += f' ({self.warning})'
-        return f'{prefix}\n    ' + '\n    '.join(a.str(highlight) for a in self.arguments)
+
+        return prefix + '\n    ' + '\n    '.join(a.str(highlight) for a in self.arguments)
 
     def __str__(self) -> StrType:
         return self.str()
 
     def __repr__(self) -> StrType:
+        context = self.call_context[-1]
         arguments = ' '.join(str(a) for a in self.arguments)
-        return f'<DebugOutput {self.filename}:{self.lineno} {self.frame} arguments: {arguments}>'
+        return f'<DebugOutput {context.path}:{context.lineno} {context.function} arguments: {arguments}>'
 
 
 class Debug:
@@ -118,9 +153,10 @@ class Debug:
         file_: 'Any' = None,
         flush_: bool = True,
         frame_depth_: int = 2,
+        trace_: bool = False,
         **kwargs: 'Any',
     ) -> 'Any':
-        d_out = self._process(args, kwargs, frame_depth_)
+        d_out = self._process(args, kwargs, frame_depth_, trace_)
         s = d_out.str(use_highlight(self._highlight, file_))
         print(s, file=file_, flush=flush_)
         if kwargs:
@@ -130,8 +166,25 @@ class Debug:
         else:
             return args
 
-    def format(self, *args: 'Any', frame_depth_: int = 2, **kwargs: 'Any') -> DebugOutput:
-        return self._process(args, kwargs, frame_depth_)
+    def trace(
+        self,
+        *args: 'Any',
+        file_: 'Any' = None,
+        flush_: bool = True,
+        frame_depth_: int = 2,
+        **kwargs: 'Any',
+    ) -> 'Any':
+        return self.__call__(
+            *args,
+            file_=file_,
+            flush_=flush_,
+            frame_depth_=frame_depth_ + 1,
+            trace_=True,
+            **kwargs,
+        )
+
+    def format(self, *args: 'Any', frame_depth_: int = 2, trace_: bool = False, **kwargs: 'Any') -> DebugOutput:
+        return self._process(args, kwargs, frame_depth_, trace_)
 
     def breakpoint(self) -> None:
         import pdb
@@ -141,7 +194,7 @@ class Debug:
     def timer(self, name: 'Optional[str]' = None, *, verbose: bool = True, file: 'Any' = None, dp: int = 3) -> Timer:
         return Timer(name=name, verbose=verbose, file=file, dp=dp)
 
-    def _process(self, args: 'Any', kwargs: 'Any', frame_depth: int) -> DebugOutput:
+    def _process(self, args: 'Any', kwargs: 'Any', frame_depth: int, trace: bool) -> DebugOutput:
         """
         BEWARE: this must be called from a function exactly `frame_depth` levels below the top of the stack.
         """
@@ -149,30 +202,16 @@ class Debug:
         try:
             call_frame: 'FrameType' = sys._getframe(frame_depth)
         except ValueError:
-            # "If [ValueError] is deeper than the call stack, ValueError is raised"
+            # "If [the given frame depth] is deeper than the call stack,
+            # ValueError is raised"
             return self.output_class(
-                filename='<unknown>',
-                lineno=0,
-                frame='',
+                call_context=[DebugFrame(function='', path='<unknown>', lineno=0)],
                 arguments=list(self._args_inspection_failed(args, kwargs)),
                 warning=self._show_warnings and 'error parsing code, call stack too shallow',
             )
 
-        function = call_frame.f_code.co_name
+        call_context = _make_call_context(call_frame, trace)
 
-        from pathlib import Path
-
-        path = Path(call_frame.f_code.co_filename)
-        if path.is_absolute():
-            # make the path relative
-            cwd = Path('.').resolve()
-            try:
-                path = path.relative_to(cwd)
-            except ValueError:
-                # happens if filename path is not within CWD
-                pass
-
-        lineno = call_frame.f_lineno
         warning = None
 
         import executing
@@ -183,7 +222,7 @@ class Debug:
             arguments = list(self._args_inspection_failed(args, kwargs))
         else:
             ex = source.executing(call_frame)
-            function = ex.code_qualname()
+            call_context[-1].function = ex.code_qualname()
             if not ex.node:
                 warning = 'executing failed to find the calling node'
                 arguments = list(self._args_inspection_failed(args, kwargs))
@@ -191,9 +230,7 @@ class Debug:
                 arguments = list(self._process_args(ex, args, kwargs))
 
         return self.output_class(
-            filename=str(path),
-            lineno=lineno,
-            frame=function,
+            call_context=call_context,
             arguments=arguments,
             warning=self._show_warnings and warning,
         )
@@ -223,6 +260,20 @@ class Debug:
 
         for name, value in kwargs.items():
             yield self.output_class.arg_class(value, name=name, variable=kw_arg_names.get(name))
+
+
+def _make_call_context(call_frame: 'Optional[FrameType]', trace: bool) -> 'List[DebugFrame]':
+    call_context: 'List[DebugFrame]' = []
+
+    while call_frame:
+        frame_info = DebugFrame.from_call_frame(call_frame)
+        call_context.insert(0, frame_info)
+        call_frame = call_frame.f_back
+
+        if not trace:
+            break
+
+    return call_context
 
 
 debug = Debug()

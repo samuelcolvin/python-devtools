@@ -4,7 +4,6 @@ from collections.abc import Generator
 from pathlib import Path
 from subprocess import run
 
-import parametrize_from_file as pff
 import pytest
 
 from devtools import Debug, debug
@@ -62,9 +61,10 @@ def test_print_generator(capsys):
 
 
 @pytest.mark.parametrize(
-    ['py_script', 'stdout'], [
+    ['py_script', 'stdout'],
+    [
         (
-'''\
+            """\
 from devtools import debug
 
 def test_func(v):
@@ -75,8 +75,8 @@ print('running debug...')
 debug(foobar)
 test_func(42)
 print('debug run.')
-''',
-'''\
+""",
+            """\
 running debug...
 /path/to/test.py:8 <module>
     foobar: 'hello world' (str) len=11
@@ -84,9 +84,10 @@ running debug...
     'in test func' (str) len=12
     v: 42 (int)
 debug run.
-''',
-        ), (
-'''\
+""",
+        ),
+        (
+            """\
 from devtools import debug
 
 def f(x):
@@ -99,8 +100,8 @@ def g(x):
 x = 42
 debug(x, trace_=True)
 f(x)
-''',
-'''\
+""",
+            """\
 /path/to/test.py:11 <module>
     x: 42 (int)
 /path/to/test.py:12 <module>
@@ -110,9 +111,10 @@ f(x)
 /path/to/test.py:5 f
 /path/to/test.py:8 g
     x: 42 (int)
-'''
-        ), (
-'''\
+""",
+        ),
+        (
+            """\
 from devtools import debug
 
 def f(x):
@@ -125,8 +127,8 @@ def g(x):
 x = 42
 print(debug.format(x, trace_=True))
 f(x)
-''',
-'''\
+""",
+            """\
 /path/to/test.py:11 <module>
     x: 42 (int)
 /path/to/test.py:12 <module>
@@ -136,9 +138,10 @@ f(x)
 /path/to/test.py:5 f
 /path/to/test.py:8 g
     x: 42 (int)
-''',
-        ), (
-'''\
+""",
+        ),
+        (
+            """\
 from devtools import debug
 
 def f(x):
@@ -151,8 +154,8 @@ def g(x):
 x = 42
 debug.trace(x)
 f(x)
-''',
-'''\
+""",
+            """\
 /path/to/test.py:11 <module>
     x: 42 (int)
 /path/to/test.py:12 <module>
@@ -162,7 +165,7 @@ f(x)
 /path/to/test.py:5 f
 /path/to/test.py:8 g
     x: 42 (int)
-'''
+""",
         ),
     ],
 )

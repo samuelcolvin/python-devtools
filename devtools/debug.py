@@ -10,7 +10,7 @@ __all__ = 'Debug', 'debug'
 MYPY = False
 if MYPY:
     from types import FrameType
-    from typing import Any, Generator, List, Optional, Union, Callable
+    from typing import Any, Callable, Generator, List, Optional, Union
 
 pformat = PrettyFormat(
     indent_step=int(os.getenv('PY_DEVTOOLS_INDENT', 4)),
@@ -108,7 +108,13 @@ class DebugOutput:
 class Debug:
     output_class = DebugOutput
 
-    def __init__(self, *, warnings: 'Optional[bool]' = None, highlight: 'Optional[bool]' = None, logger_function: 'Optional[Callable[[str], None]]' = None):
+    def __init__(
+            self,
+            *,
+            warnings: 'Optional[bool]' = None,
+            highlight: 'Optional[bool]' = None,
+            logger_function: 'Optional[Callable[[str], None]]' = None,
+    ):
         self._show_warnings = env_bool(warnings, 'PY_DEVTOOLS_WARNINGS', True)
         self._highlight = highlight
         self._logger_function = logger_function

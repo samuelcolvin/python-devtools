@@ -10,7 +10,7 @@ __all__ = 'Debug', 'debug'
 MYPY = False
 if MYPY:
     from types import FrameType
-    from typing import Any, Generator, List, Optional, Union
+    from typing import Any, Generator, List, Optional, Union, Callable
 
 pformat = PrettyFormat(
     indent_step=int(os.getenv('PY_DEVTOOLS_INDENT', 4)),
@@ -108,9 +108,10 @@ class DebugOutput:
 class Debug:
     output_class = DebugOutput
 
-    def __init__(self, *, warnings: 'Optional[bool]' = None, highlight: 'Optional[bool]' = None):
+    def __init__(self, *, warnings: 'Optional[bool]' = None, highlight: 'Optional[bool]' = None, logger_function: 'Callable[[str], None]' = None):
         self._show_warnings = env_bool(warnings, 'PY_DEVTOOLS_WARNINGS', True)
         self._highlight = highlight
+        self._logger_function = logger_function
 
     def __call__(
         self,
@@ -122,7 +123,10 @@ class Debug:
     ) -> 'Any':
         d_out = self._process(args, kwargs, frame_depth_)
         s = d_out.str(use_highlight(self._highlight, file_))
-        print(s, file=file_, flush=flush_)
+        if self._logger_function:
+            self._logger_function(s)
+        else:
+            print(s, file=file_, flush=flush_)
         if kwargs:
             return (*args, kwargs)
         elif len(args) == 1:

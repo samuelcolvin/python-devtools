@@ -204,8 +204,7 @@ def test_dict(insert_assert):
     result = pytester_pretty.runpytest()
     result.assert_outcomes(passed=1)
     assert test_file.read_text() == (
-        """
-def test_dict(insert_assert):
+        """def test_dict(insert_assert):
     old_data = {
         "foo": 1,
         "bar": [
@@ -243,6 +242,5 @@ def test_dict(insert_assert):
             {"name": "ARQ"},
         ],
         "baz": 6,
-    }
-"""
+    }"""
     )

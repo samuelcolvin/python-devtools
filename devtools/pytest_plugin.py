@@ -37,15 +37,41 @@ insert_assert_calls: ContextVar[int] = ContextVar('insert_assert_calls', default
 insert_assert_summary: ContextVar[list[str]] = ContextVar('insert_assert_summary')
 
 
-def insert_assert(value: Any) -> int:
+def sort_data_from_source(source: Any, value: Any) -> Any:
+    if isinstance(value, dict) and isinstance(source, dict):
+        new_value = {}
+        used_keys = set()
+        for k, v in source.items():
+            if k in value:
+                new_value[k] = sort_data_from_source(v, value[k])
+            used_keys.add(k)
+        for k, v in value.items():
+            if k not in used_keys:
+                new_value[k] = v
+        return new_value
+    elif isinstance(value, list) and isinstance(source, list):
+        new_value = []
+        for i, v in enumerate(value):
+            if i < len(source):
+                new_value.append(sort_data_from_source(source[i], v))
+            else:
+                new_value.append(v)
+        return new_value
+    else:
+        return value
+
+
+def insert_assert(value: Any, prev: Any = None) -> int:
     call_frame: FrameType = sys._getframe(1)
     if sys.version_info < (3, 8):  # pragma: no cover
         raise RuntimeError('insert_assert() requires Python 3.8+')
-
+    if prev:
+        use_value = sort_data_from_source(prev, value)
+    else: use_value = value
     format_code = load_black()
     ex = Source.for_frame(call_frame).executing(call_frame)
     if ex.node is None:  # pragma: no cover
-        python_code = format_code(str(custom_repr(value)))
+        python_code = format_code(str(custom_repr(use_value)))
         raise RuntimeError(
             f'insert_assert() was unable to find the frame from which it was called, called with:\n{python_code}'
         )
@@ -55,7 +81,7 @@ def insert_assert(value: Any) -> int:
     else:
         arg = ' '.join(map(str.strip, ex.source.asttokens().get_text(ast_arg).splitlines()))
 
-    python_code = format_code(f'# insert_assert({arg})\nassert {arg} == {custom_repr(value)}')
+    python_code = format_code(f'# insert_assert({arg})\nassert {arg} == {custom_repr(use_value)}')
 
     python_code = textwrap.indent(python_code, ex.node.col_offset * ' ')
     to_replace.append(ToReplace(Path(call_frame.f_code.co_filename), ex.node.lineno, ex.node.end_lineno, python_code))

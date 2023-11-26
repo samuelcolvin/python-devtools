@@ -39,24 +39,24 @@ insert_assert_summary: ContextVar[list[str]] = ContextVar('insert_assert_summary
 
 def sort_data_from_source(source: Any, value: Any) -> Any:
     if isinstance(value, dict) and isinstance(source, dict):
-        new_value = {}
+        new_dict = {}
         used_keys = set()
         for k, v in source.items():
             if k in value:
-                new_value[k] = sort_data_from_source(v, value[k])
+                new_dict[k] = sort_data_from_source(v, value[k])
             used_keys.add(k)
         for k, v in value.items():
             if k not in used_keys:
-                new_value[k] = v
-        return new_value
+                new_dict[k] = v
+        return new_dict
     elif isinstance(value, list) and isinstance(source, list):
-        new_value = []
+        new_list: list[Any] = []
         for i, v in enumerate(value):
             if i < len(source):
-                new_value.append(sort_data_from_source(source[i], v))
+                new_list.append(sort_data_from_source(source[i], v))
             else:
-                new_value.append(v)
-        return new_value
+                new_list.append(v)
+        return new_list
     else:
         return value
 

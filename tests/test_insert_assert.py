@@ -167,3 +167,82 @@ def test_string_assert(x, insert_assert):
     )
     captured = capsys.readouterr()
     assert '2 insert skipped because an assert statement on that line had already be inserted!\n' in captured.out
+
+
+def test_insert_assert_sort_data(pytester_pretty):
+    os.environ.pop('CI', None)
+    pytester_pretty.makeconftest(config)
+    test_file = pytester_pretty.makepyfile(
+        """
+def test_dict(insert_assert):
+    old_data = {
+        "foo": 1,
+        "bar": [
+            {"name": "Pydantic", "tags": ["validation", "json"]},
+            {"name": "FastAPI", "description": "Web API framework in Python"},
+            {"name": "SQLModel"},
+        ],
+        "baz": 3,
+    }
+    new_data = {
+        "bar": [
+            {
+                "description": "Data validation library",
+                "tags": ["validation", "json"],
+                "name": "Pydantic",
+            },
+            {"name": "FastAPI", "description": "Web API framework in Python"},
+            {"description": "DBs and Python", "name": "SQLModel"},
+            {"name": "ARQ"},
+        ],
+        "baz": 6,
+        "foo": 12,
+    }
+    insert_assert(new_data, old_data)
+"""
+    )
+    result = pytester_pretty.runpytest()
+    result.assert_outcomes(passed=1)
+    assert test_file.read_text() == (
+        """
+def test_dict(insert_assert):
+    old_data = {
+        "foo": 1,
+        "bar": [
+            {"name": "Pydantic", "tags": ["validation", "json"]},
+            {"name": "FastAPI", "description": "Web API framework in Python"},
+            {"name": "SQLModel"},
+        ],
+        "baz": 3,
+    }
+    new_data = {
+        "bar": [
+            {
+                "description": "Data validation library",
+                "tags": ["validation", "json"],
+                "name": "Pydantic",
+            },
+            {"name": "FastAPI", "description": "Web API framework in Python"},
+            {"description": "DBs and Python", "name": "SQLModel"},
+            {"name": "ARQ"},
+        ],
+        "baz": 6,
+        "foo": 12,
+    }
+    # insert_assert(new_data)
+    assert new_data == {
+        "foo": 12,
+        "bar": [
+            {
+                "name": "Pydantic",
+                "tags": ["validation", "json"],
+                "description": "Data validation library",
+            },
+            {"name": "FastAPI", "description": "Web API framework in Python"},
+            {"name": "SQLModel", "description": "DBs and Python"},
+            {"name": "ARQ"},
+        ],
+        "baz": 6,
+    }
+"""
+    )

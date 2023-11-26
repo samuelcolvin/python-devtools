@@ -222,16 +222,16 @@ def test_dict(insert_assert):
                 "tags": ["validation", "json"],
                 "name": "Pydantic",
             },
-            {"name": "FastAPI", "description": "Web API framework in Python"},
+            {"description": "Web API framework in Python", "name": "FastAPI"},
             {"description": "DBs and Python", "name": "SQLModel"},
             {"name": "ARQ"},
         ],
         "baz": 6,
-        "foo": 12,
+        "foo": 1,
     }
     # insert_assert(new_data)
     assert new_data == {
-        "foo": 12,
+        "foo": 1,
         "bar": [
             {
                 "name": "Pydantic",

@@ -67,7 +67,8 @@ def insert_assert(value: Any, prev: Any = None) -> int:
         raise RuntimeError('insert_assert() requires Python 3.8+')
     if prev:
         use_value = sort_data_from_source(prev, value)
-    else: use_value = value
+    else:
+        use_value = value
     format_code = load_black()
     ex = Source.for_frame(call_frame).executing(call_frame)
     if ex.node is None:  # pragma: no cover

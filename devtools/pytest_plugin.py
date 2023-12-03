@@ -50,7 +50,7 @@ def insert_assert(value: Any) -> int:
             'insert_assert() was unable to find the frame from which it was called.\n\n'
             "Sometimes this happens when there's an assert statement with a an error "
             'message with multiple lines, like: '
-            "\n\nassert foo == bar, (\n    'foo should be\n    equal to bar'\n)\n\n"
+            "\n\nassert foo == bar, (\n    'foo should be '\n    'equal to bar'\n)\n\n"
             'You can try commenting out that assert statement while you run '
             'insert_assert() and then uncommenting it afterwards.\n\n'
             f'insert_assert was called with:\n{python_code}'

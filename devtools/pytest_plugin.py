@@ -47,7 +47,13 @@ def insert_assert(value: Any) -> int:
     if ex.node is None:  # pragma: no cover
         python_code = format_code(str(custom_repr(value)))
         raise RuntimeError(
-            f'insert_assert() was unable to find the frame from which it was called, called with:\n{python_code}'
+            'insert_assert() was unable to find the frame from which it was called.\n\n'
+            "Sometimes this happens when there's an assert statement with a an error "
+            'message with multiple lines, like: '
+            "\n\nassert foo == bar, (\n    'foo should be\n    equal to bar'\n)\n\n"
+            'You can try commenting out that assert statement while you run '
+            'insert_assert() and then uncommenting it afterwards.\n\n'
+            f'insert_assert was called with:\n{python_code}'
         )
     ast_arg = ex.node.args[0]  # type: ignore[attr-defined]
     if isinstance(ast_arg, ast.Name):

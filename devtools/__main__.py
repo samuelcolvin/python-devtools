@@ -64,7 +64,9 @@ def install() -> int:
     print(f'Found path `{install_path}` to install devtools into `builtins`')
     print('To install devtools, run the following command:\n')
     print(f'    python -m devtools print-code >> {install_path}\n')
-    if not install_path.is_relative_to(Path.home()):
+    try:
+        install_path.relative_to(Path.home())
+    except ValueError:
         print('or maybe\n')
         print(f'    python -m devtools print-code | sudo tee -a {install_path} > /dev/null\n')
         print('Note: "sudo" might be required because the path is in your home directory.')

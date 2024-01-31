@@ -60,27 +60,11 @@ def test_print_generator(capsys):
     assert list(result) == []
 
 
-def test_format():
-    a = b'i might bite'
-    b = 'hello this is a test'
-    v = debug.format(a, b)
-    s = normalise_output(str(v))
-    print(s)
-    assert s == (
-        "tests/test_main.py:<line no> test_format\n"
-        "    a: b'i might bite' (bytes) len=12\n"
-        "    b: 'hello this is a test' (str) len=20"
-    )
-
-
-@pytest.mark.xfail(
-    sys.platform == 'win32',
-    reason='Fatal Python error: _Py_HashRandomization_Init: failed to get random numbers to initialize Python',
-)
-def test_print_subprocess(tmpdir):
-    f = tmpdir.join('test.py')
-    f.write(
-        """\
+@pytest.mark.parametrize(
+    ['py_script', 'stdout'],
+    [
+        (
+            """\
 from devtools import debug
 
 def test_func(v):
@@ -91,20 +75,131 @@ print('running debug...')
 debug(foobar)
 test_func(42)
 print('debug run.')
-    """
+""",
+            """\
+running debug...
+/path/to/test.py:8 <module>
+    foobar: 'hello world' (str) len=11
+/path/to/test.py:4 test_func
+    'in test func' (str) len=12
+    v: 42 (int)
+debug run.
+""",
+        ),
+        (
+            """\
+from devtools import debug
+
+def f(x):
+    debug(x, trace_=True)
+    g(x)
+
+def g(x):
+    debug(x, trace_=True)
+
+x = 42
+debug(x, trace_=True)
+f(x)
+""",
+            """\
+/path/to/test.py:11 <module>
+    x: 42 (int)
+/path/to/test.py:12 <module>
+/path/to/test.py:4 f
+    x: 42 (int)
+/path/to/test.py:12 <module>
+/path/to/test.py:5 f
+/path/to/test.py:8 g
+    x: 42 (int)
+""",
+        ),
+        (
+            """\
+from devtools import debug
+
+def f(x):
+    print(debug.format(x, trace_=True))
+    g(x)
+
+def g(x):
+    print(debug.format(x, trace_=True))
+
+x = 42
+print(debug.format(x, trace_=True))
+f(x)
+""",
+            """\
+/path/to/test.py:11 <module>
+    x: 42 (int)
+/path/to/test.py:12 <module>
+/path/to/test.py:4 f
+    x: 42 (int)
+/path/to/test.py:12 <module>
+/path/to/test.py:5 f
+/path/to/test.py:8 g
+    x: 42 (int)
+""",
+        ),
+        (
+            """\
+from devtools import debug
+
+def f(x):
+    debug.trace(x)
+    g(x)
+
+def g(x):
+    debug.trace(x)
+
+x = 42
+debug.trace(x)
+f(x)
+""",
+            """\
+/path/to/test.py:11 <module>
+    x: 42 (int)
+/path/to/test.py:12 <module>
+/path/to/test.py:4 f
+    x: 42 (int)
+/path/to/test.py:12 <module>
+/path/to/test.py:5 f
+/path/to/test.py:8 g
+    x: 42 (int)
+""",
+        ),
+    ],
+)
+@pytest.mark.xfail(
+    sys.platform == 'win32',
+    reason='Fatal Python error: _Py_HashRandomization_Init: failed to get random numbers to initialize Python',
+)
+def test_print_subprocess(py_script, stdout, tmp_path):
+    f = tmp_path / 'test.py'
+    f.write_text(py_script)
+
+    p = run(
+        [sys.executable, str(f)],
+        capture_output=True,
+        text=True,
+        env={
+            'PYTHONPATH': str(Path(__file__).parents[1].resolve()),
+        },
     )
-    env = {'PYTHONPATH': str(Path(__file__).parent.parent.resolve())}
-    p = run([sys.executable, str(f)], capture_output=True, text=True, env=env)
     assert p.stderr == ''
     assert p.returncode == 0, (p.stderr, p.stdout)
-    assert p.stdout.replace(str(f), '/path/to/test.py') == (
-        "running debug...\n"
-        "/path/to/test.py:8 <module>\n"
-        "    foobar: 'hello world' (str) len=11\n"
-        "/path/to/test.py:4 test_func\n"
-        "    'in test func' (str) len=12\n"
-        "    v: 42 (int)\n"
-        "debug run.\n"
+    assert p.stdout.replace(str(f), '/path/to/test.py') == stdout
+
+
+def test_format():
+    a = b'i might bite'
+    b = 'hello this is a test'
+    v = debug.format(a, b)
+    s = normalise_output(str(v))
+    print(s)
+    assert s == (
+        "tests/test_main.py:<line no> test_format\n"
+        "    a: b'i might bite' (bytes) len=12\n"
+        "    b: 'hello this is a test' (str) len=20"
     )
 
 

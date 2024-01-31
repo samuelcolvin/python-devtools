@@ -18,3 +18,4 @@ old-version/
 /site/
 /site.zip
 /build/
+.venv

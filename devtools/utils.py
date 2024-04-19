@@ -3,6 +3,7 @@ import sys
 
 __all__ = (
     'isatty',
+    'bg_dark_or_light',
     'env_true',
     'env_bool',
     'use_highlight',
@@ -109,6 +110,26 @@ def use_highlight(highlight: 'Optional[bool]' = None, file_: 'Any' = None) -> bo
     if sys.platform == 'win32':  # pragma: no cover
         return isatty(file_) and activate_win_color()
     return isatty(file_)
+
+
+def bg_dark_or_light() -> 'Optional[str]':
+    """
+    Returns:
+        'dark' if the terminal background is dark,
+        'light' if the terminal background is light, or
+        None if the terminal background color is unknown.
+    """
+    colorfgbg = os.environ.get('COLORFGBG', '')
+    try:
+        _, bg_str = colorfgbg.split(';')
+        bg = int(bg_str)
+    except ValueError:
+        return None
+    if 0 <= bg <= 6 or bg == 8:
+        return 'dark'
+    elif bg == 7 or 9 <= bg <= 15:
+        return 'light'
+    return None
 
 
 def is_literal(s: 'Any') -> bool:

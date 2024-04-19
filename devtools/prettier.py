@@ -4,7 +4,7 @@ import os
 from collections import OrderedDict
 from collections.abc import Generator
 
-from .utils import DataClassType, LaxMapping, SQLAlchemyClassType, env_true, isatty
+from .utils import DataClassType, LaxMapping, SQLAlchemyClassType, bg_dark_or_light, env_true, isatty
 
 try:
     from functools import cache
@@ -32,6 +32,8 @@ DEFAULT_WIDTH = int(os.getenv('PY_DEVTOOLS_WIDTH', 120))
 MISSING = object()
 PRETTY_KEY = '__prettier_formatted_value__'
 
+PYGMENTS_STYLE = os.getenv('PY_DEVTOOLS_STYLE', {'dark': 'vim', 'light': 'sas', None: 'default'}[bg_dark_or_light()])
+
 
 def fmt(v: 'Any') -> 'Any':
     return {PRETTY_KEY: v}
@@ -50,7 +52,7 @@ def get_pygments() -> 'Tuple[Any, Any, Any]':
     except ImportError:  # pragma: no cover
         return None, None, None
     else:
-        return pygments, PythonLexer(), Terminal256Formatter(style='vim')
+        return pygments, PythonLexer(), Terminal256Formatter(style=PYGMENTS_STYLE)
 
 
 # common generator types (this is not exhaustive: things like chain are not include to avoid the import)

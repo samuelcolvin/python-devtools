@@ -134,9 +134,14 @@ class Debug:
         return self._process(args, kwargs, frame_depth_)
 
     def breakpoint(self) -> None:
-        import pdb
-
-        pdb.Pdb(skip=['devtools.*']).set_trace()
+        """
+        Launch IPython debugger if installed. Otherwise, launch pdb.
+        """
+        try:
+            from IPython.terminal.debugger import TerminalPdb as Pdb
+        except ImportError:
+            from pdb import Pdb
+        Pdb(skip=['devtools.*']).set_trace()
 
     def timer(self, name: 'Optional[str]' = None, *, verbose: bool = True, file: 'Any' = None, dp: int = 3) -> Timer:
         return Timer(name=name, verbose=verbose, file=file, dp=dp)

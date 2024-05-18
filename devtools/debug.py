@@ -138,7 +138,7 @@ class Debug:
         Launch IPython debugger if installed. Otherwise, launch pdb.
         """
         try:
-            from IPython.terminal.debugger import TerminalPdb as Pdb
+            from IPython.terminal.debugger import TerminalPdb as Pdb  # type: ignore
         except ImportError:
             from pdb import Pdb
         Pdb(skip=['devtools.*']).set_trace()

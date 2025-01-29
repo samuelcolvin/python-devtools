@@ -51,7 +51,7 @@ def gen_example_html(markdown: str):
 def gen_examples_html(m: re.Match) -> str:
     sys.path.append(str(THIS_DIR.resolve()))
 
-    os.environ.update(PY_DEVTOOLS_HIGHLIGHT='true', PY_DEVTOOLS_WIDTH='80')
+    os.environ.update(PY_DEVTOOLS_HIGHLIGHT='true', PY_DEVTOOLS_STYLE='vim', PY_DEVTOOLS_WIDTH='80')
     conv = Ansi2HTMLConverter()
     name = THIS_DIR / Path(m.group(1))
 

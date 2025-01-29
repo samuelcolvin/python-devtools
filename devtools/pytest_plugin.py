@@ -175,11 +175,12 @@ def pytest_terminal_summary() -> None:
 
 
 def custom_repr(value: Any) -> Any:
-    if isinstance(value, (list, tuple, set, frozenset)):
+    # This hack helps us handle mock.call objects
+    if type(value) in (list, tuple, set, frozenset):
         return value.__class__(map(custom_repr, value))
     elif isinstance(value, dict):
         return value.__class__((custom_repr(k), custom_repr(v)) for k, v in value.items())
-    if isinstance(value, Enum):
+    elif isinstance(value, Enum):
         return PlainRepr(f'{value.__class__.__name__}.{value.name}')
     else:
         return PlainRepr(repr(value))

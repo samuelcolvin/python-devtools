@@ -108,11 +108,9 @@ def test_enum(pytester_pretty, capsys):
     pytester_pretty.makepyfile(
         """
 from enum import Enum
-
 class Foo(Enum):
     A = 1
     B = 2
-
 def test_deep(insert_assert):
     x = Foo.A
     insert_assert(x)
@@ -166,4 +164,22 @@ def test_string_assert(x, insert_assert):
         '    assert x == 1'
     )
     captured = capsys.readouterr()
-    assert '2 insert skipped because an assert statement on that line had already be inserted!\n' in captured.out
+    assert '2 inserts skipped because an assert statement on that line had already be inserted!\n' in captured.out
+
+
+def test_insert_assert_frame_not_found(pytester_pretty, capsys):
+    os.environ.pop('CI', None)
+    pytester_pretty.makeconftest(config)
+    pytester_pretty.makepyfile(
+        """\
+def test_raise_keyerror(insert_assert):
+    eval('insert_assert(1)')
+"""
+    )
+    result = pytester_pretty.runpytest()
+    result.assert_outcomes(failed=1)
+    captured = capsys.readouterr()
+    assert (
+        'RuntimeError: insert_assert() was unable to find the frame from which it was called, called with:\n'
+        in captured.out
+    )

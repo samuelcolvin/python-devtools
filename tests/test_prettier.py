@@ -486,6 +486,7 @@ def test_sqlalchemy_object():
 
 
 @pytest.mark.skipif(sys.version_info < (3, 9), reason='no indent on older versions')
+@pytest.mark.skipif(sys.version_info >= (3, 13), reason='show_empty=False on newer versions')
 def test_ast_expr():
     assert pformat(ast.parse('print(1, 2, round(3))', mode='eval')) == (
         "Expression("
@@ -500,6 +501,22 @@ def test_ast_expr():
         "\n                    Constant(value=3)],"
         "\n                keywords=[])],"
         "\n        keywords=[]))"
+    )
+
+
+@pytest.mark.skipif(sys.version_info < (3, 13), reason='no show_empty on older versions')
+def test_ast_expr_show_empty():
+    assert pformat(ast.parse('print(1, 2, round(3))', mode='eval')) == (
+        "Expression("
+        "\n    body=Call("
+        "\n        func=Name(id='print', ctx=Load()),"
+        "\n        args=["
+        "\n            Constant(value=1),"
+        "\n            Constant(value=2),"
+        "\n            Call("
+        "\n                func=Name(id='round', ctx=Load()),"
+        "\n                args=["
+        "\n                    Constant(value=3)])]))"
     )
 
 

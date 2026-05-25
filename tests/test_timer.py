@@ -69,3 +69,13 @@ def test_unfinished_summary():
 def test_summary_not_started():
     with pytest.raises(RuntimeError):
         Timer().summary()
+
+
+def test_summary_multiple_unfinished():
+    f = io.StringIO()
+    t = Timer(file=f)
+    t.start()
+    t.start()
+    t.summary()
+    v = f.getvalue()
+    assert re.fullmatch(r'2 times: mean=0\.000s stdev=0\.000s min=0\.000s max=0\.000s\n', v)

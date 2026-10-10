@@ -67,6 +67,7 @@ class PrettyFormat:
         width: int = 120,
         yield_from_generators: bool = True,
     ):
+        self._stream = io.StringIO()
         self._indent_step = indent_step
         self._c = indent_char
         self._repr_strings = repr_strings
@@ -88,9 +89,13 @@ class PrettyFormat:
         ]
 
     def __call__(self, value: 'Any', *, indent: int = 0, indent_first: bool = False, highlight: bool = False) -> str:
+        previous_stream = self._stream
         self._stream = io.StringIO()
-        self._format(value, indent_current=indent, indent_first=indent_first)
-        s = self._stream.getvalue()
+        try:
+            self._format(value, indent_current=indent, indent_first=indent_first)
+            s = self._stream.getvalue()
+        finally:
+            self._stream = previous_stream
         pygments, pyg_lexer, pyg_formatter = get_pygments()
         if highlight and pygments:
             # apparently highlight adds a trailing new line we don't want

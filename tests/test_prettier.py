@@ -54,6 +54,53 @@ def test_print(capsys):
     assert stderr == ''
 
 
+@pytest.mark.parametrize('depth', [1, 3])
+@pytest.mark.parametrize('container', [False, True])
+def test_reentrant_repr(depth, container):
+    formatter = PrettyFormat(simple_cutoff=0)
+
+    class Reentrant:
+        def __init__(self, depth):
+            self.depth = depth
+
+        def __repr__(self):
+            value = Reentrant(self.depth - 1) if self.depth > 1 else 1
+            return formatter(value)
+
+    value = [Reentrant(depth), 2] if container else Reentrant(depth)
+    expected = '[\n    1,\n    2,\n]' if container else '1'
+    assert formatter(value) == expected
+    assert formatter(3) == '3'
+
+
+def test_reentrant_pprint(capsys):
+    class Reentrant:
+        def __repr__(self):
+            return pformat(1)
+
+    pprint(Reentrant())
+    assert strip_ansi(capsys.readouterr().out) == '1\n'
+
+
+def test_reentrant_exception():
+    formatter = PrettyFormat(simple_cutoff=0)
+
+    class Broken:
+        def __repr__(self):
+            raise ValueError('broken repr')
+
+    class Reentrant:
+        def __repr__(self):
+            with pytest.raises(ValueError, match='broken repr'):
+                formatter(Broken())
+            return '1'
+
+    assert formatter([Reentrant(), 2]) == '[\n    1,\n    2,\n]'
+    with pytest.raises(ValueError, match='broken repr'):
+        formatter(Broken())
+    assert formatter([1, 2]) == '[\n    1,\n    2,\n]'
+
+
 def test_colours():
     v = pformat({1: 2, 3: 4}, highlight=True)
     assert v.startswith('\x1b'), repr(v)

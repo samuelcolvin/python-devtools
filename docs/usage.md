@@ -18,6 +18,13 @@ and readable way to print stuff during development. (If you know why this is, I'
 * each argument is printed "pretty" on a new line, see [prettier print](#prettier-print)
 * if `pygments` is installed the output is highlighted
 
+`debug` and `pprint` highlight output automatically when writing to a terminal. Set
+[`NO_COLOR`](https://no-color.org/) to any non-empty value (including `0`) to disable this default
+highlighting. An empty value keeps automatic highlighting enabled. The program-specific
+`PY_DEVTOOLS_HIGHLIGHT` setting overrides `NO_COLOR`, and an explicit `Debug(highlight=True)` or
+`Debug(highlight=False)` takes precedence over both environment variables. Explicit highlighting
+with `pformat(value, highlight=True)` also remains available.
+
 A more complex example of `debug` shows more of what it can do.
 
 ```py

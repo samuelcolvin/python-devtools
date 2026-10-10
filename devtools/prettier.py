@@ -4,7 +4,7 @@ import os
 from collections import OrderedDict
 from collections.abc import Generator
 
-from .utils import DataClassType, LaxMapping, SQLAlchemyClassType, env_true, isatty
+from .utils import DataClassType, LaxMapping, SQLAlchemyClassType, _auto_highlight, env_true
 
 try:
     from functools import cache
@@ -310,5 +310,5 @@ force_highlight = env_true('PY_DEVTOOLS_HIGHLIGHT', None)
 
 
 def pprint(s: 'Any', file: 'Any' = None) -> None:
-    highlight = isatty(file) if force_highlight is None else force_highlight
+    highlight = _auto_highlight(file) if force_highlight is None else force_highlight
     print(pformat(s, highlight=highlight), file=file, flush=True)

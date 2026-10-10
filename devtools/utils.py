@@ -107,8 +107,12 @@ def use_highlight(highlight: 'Optional[bool]' = None, file_: 'Any' = None) -> bo
         return highlight
 
     if sys.platform == 'win32':  # pragma: no cover
-        return isatty(file_) and activate_win_color()
-    return isatty(file_)
+        return _auto_highlight(file_) and activate_win_color()
+    return _auto_highlight(file_)
+
+
+def _auto_highlight(file_: 'Any' = None) -> bool:
+    return not os.getenv('NO_COLOR') and isatty(file_)
 
 
 def is_literal(s: 'Any') -> bool:

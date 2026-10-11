@@ -1,3 +1,7 @@
+[build-system]
+requires = ["uv_build>=0.8"]
+build-backend = "uv_build"
+
 [project]
 name = 'devtools'
 version = "0.12.2"
@@ -21,6 +25,9 @@ classifiers = [
     'Programming Language :: Python :: 3 :: Only',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
+    'Programming Language :: Python :: 3.14',
     'Topic :: Software Development :: Libraries :: Python Modules',
     'Topic :: Internet',
     'Typing :: Typed',
@@ -43,10 +50,6 @@ Changelog = 'https://github.com/samuelcolvin/python-devtools/releases'
 
 [project.entry-points.pytest11]
 devtools = 'devtools.pytest_plugin'
-
-[build-system]
-requires = ["uv_build>=0.8"]
-build-backend = "uv_build"
 
 [tool.uv]
 default-groups = ["dev", "docs"]
@@ -132,6 +135,7 @@ quote-style = "single"
 exclude = ["tests/test_expr_render.py"]
 
 [tool.pyright]
+pythonVersion = "3.10"
 typeCheckingMode = "strict"
 reportUnnecessaryTypeIgnoreComment = true
 venv = ".venv"

@@ -1,53 +1,40 @@
 .DEFAULT_GOAL := all
-sources = devtools tests docs/plugins.py
+
+.PHONY: .uv
+.uv:
+	@uv --version || echo 'Please install uv: https://docs.astral.sh/uv/getting-started/installation/'
 
 .PHONY: install
-install:
-	python -m pip install -U pip pre-commit
-	pip install -U -r requirements/all.txt
-	pip install -e .
-	pre-commit install
-
-.PHONY: refresh-lockfiles
-refresh-lockfiles:
-	find requirements/ -name '*.txt' ! -name 'all.txt' -type f -delete
-	make update-lockfiles
-
-.PHONY: update-lockfiles
-update-lockfiles:
-	@echo "Updating requirements/*.txt files using pip-compile"
-	pip-compile -q --resolver backtracking -o requirements/linting.txt requirements/linting.in
-	pip-compile -q --resolver backtracking -o requirements/testing.txt requirements/testing.in
-	pip-compile -q --resolver backtracking -o requirements/docs.txt requirements/docs.in
-	pip-compile -q --resolver backtracking -o requirements/pyproject.txt pyproject.toml
-	pip install --dry-run -r requirements/all.txt
+install: .uv ## Install python dependencies and prek hooks
+	uv sync
+	uvx prek install --install-hooks
 
 .PHONY: format
-format:
-	black $(sources)
-	ruff $(sources) --fix-only
+format: ## Format Python code
+	uv run ruff format
+	uv run ruff check --fix --fix-only
 
 .PHONY: lint
-lint:
-	black $(sources) --check --diff
-	ruff $(sources)
-	mypy devtools
+lint: ## Lint Python code with ruff and basedpyright (strict)
+	uv run ruff format --check
+	uv run ruff check
+	uv run basedpyright
 
 .PHONY: test
-test:
-	coverage run -m pytest
+test: ## Run tests
+	uv run pytest
 
 .PHONY: testcov
-testcov:
-	coverage run -m pytest
+testcov: ## Run tests with coverage
+	uv run coverage run -m pytest
 	@echo "building coverage html"
-	@coverage html
+	@uv run coverage html
 
 .PHONY: all
-all: lint testcov
+all: lint testcov ## Run all checks and tests
 
 .PHONY: clean
-clean:
+clean: ## Clean up build artifacts
 	rm -rf `find . -name __pycache__`
 	rm -f `find . -type f -name '*.py[co]' `
 	rm -f `find . -type f -name '*~' `
@@ -62,16 +49,24 @@ clean:
 	make -C docs clean
 
 .PHONY: docs
-docs:
-	ruff --line-length=80 docs/examples/
-	mkdocs build
+docs: ## Build docs
+	uv run ruff check --line-length=80 docs/examples/
+	uv run mkdocs build
 
 .PHONY: docs-serve
-docs-serve:
-	mkdocs serve
+docs-serve: ## Serve docs locally
+	uv run mkdocs serve
 
-.PHONY: publish-docs
-publish-docs: docs
-	zip -r site.zip site
-	@curl -H "Content-Type: application/zip" -H "Authorization: Bearer ${NETLIFY}" \
-	      --data-binary "@site.zip" https://api.netlify.com/api/v1/sites/python-devtools.netlify.com/deploys
+# (must stay last!)
+.PHONY: help
+help: ## Show this help (usage: make help)
+	@echo "Usage: make [recipe]"
+	@echo "Recipes:"
+	@awk '/^[a-zA-Z0-9_-]+:.*?##/ { \
+	    helpMessage = match($$0, /## (.*)/); \
+	        if (helpMessage) { \
+	            recipe = $$1; \
+	            sub(/:/, "", recipe); \
+	            printf "  \033[36mmake %-20s\033[0m %s\n", recipe, substr($$0, RSTART + 3, RLENGTH); \
+	    } \
+	}' $(MAKEFILE_LIST)

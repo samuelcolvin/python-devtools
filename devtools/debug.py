@@ -1,5 +1,8 @@
 import os
 import sys
+from collections.abc import Generator
+from types import FrameType
+from typing import Any, TextIO
 
 from .ansi import sformat
 from .prettier import PrettyFormat
@@ -7,15 +10,11 @@ from .timer import Timer
 from .utils import env_bool, env_true, is_literal, use_highlight
 
 __all__ = 'Debug', 'debug'
-MYPY = False
-if MYPY:
-    from types import FrameType
-    from typing import Any, Generator, List, Optional, Union
 
 pformat = PrettyFormat(
-    indent_step=int(os.getenv('PY_DEVTOOLS_INDENT', 4)),
-    simple_cutoff=int(os.getenv('PY_DEVTOOLS_SIMPLE_CUTOFF', 10)),
-    width=int(os.getenv('PY_DEVTOOLS_WIDTH', 120)),
+    indent_step=int(os.getenv('PY_DEVTOOLS_INDENT', '4')),
+    simple_cutoff=int(os.getenv('PY_DEVTOOLS_SIMPLE_CUTOFF', '10')),
+    width=int(os.getenv('PY_DEVTOOLS_WIDTH', '120')),
     yield_from_generators=env_true('PY_DEVTOOLS_YIELD_FROM_GEN', True),
 )
 # required for type hinting because I (stupidly) added methods called `str`
@@ -23,12 +22,12 @@ StrType = str
 
 
 class DebugArgument:
-    __slots__ = 'value', 'name', 'extra'
+    __slots__ = 'extra', 'name', 'value'
 
-    def __init__(self, value: 'Any', *, name: 'Optional[str]' = None, **extra: 'Any') -> None:
+    def __init__(self, value: Any, *, name: str | None = None, **extra: Any) -> None:
         self.value = value
         self.name = name
-        self.extra = []
+        self.extra: list[tuple[str, Any]] = []
         try:
             length = len(value)
         except TypeError:
@@ -43,7 +42,7 @@ class DebugArgument:
             s = f'{sformat(self.name, sformat.blue, apply=highlight)}: '
 
         suffix = sformat(
-            f" ({self.value.__class__.__name__}){''.join(f' {k}={v}' for k, v in self.extra)}",
+            f' ({self.value.__class__.__name__}){"".join(f" {k}={v}" for k, v in self.extra)}',
             sformat.dim,
             apply=highlight,
         )
@@ -66,7 +65,7 @@ class DebugOutput:
     """
 
     arg_class = DebugArgument
-    __slots__ = 'filename', 'lineno', 'frame', 'arguments', 'warning'
+    __slots__ = 'arguments', 'filename', 'frame', 'lineno', 'warning'
 
     def __init__(
         self,
@@ -74,8 +73,8 @@ class DebugOutput:
         filename: str,
         lineno: int,
         frame: str,
-        arguments: 'List[DebugArgument]',
-        warning: 'Union[None, str, bool]' = None,
+        arguments: list[DebugArgument],
+        warning: None | str | bool = None,
     ) -> None:
         self.filename = filename
         self.lineno = lineno
@@ -108,18 +107,18 @@ class DebugOutput:
 class Debug:
     output_class = DebugOutput
 
-    def __init__(self, *, warnings: 'Optional[bool]' = None, highlight: 'Optional[bool]' = None):
+    def __init__(self, *, warnings: bool | None = None, highlight: bool | None = None):
         self._show_warnings = env_bool(warnings, 'PY_DEVTOOLS_WARNINGS', True)
         self._highlight = highlight
 
     def __call__(
         self,
-        *args: 'Any',
-        file_: 'Any' = None,
+        *args: Any,
+        file_: TextIO | None = None,
         flush_: bool = True,
         frame_depth_: int = 2,
-        **kwargs: 'Any',
-    ) -> 'Any':
+        **kwargs: Any,
+    ) -> Any:
         d_out = self._process(args, kwargs, frame_depth_)
         s = d_out.str(use_highlight(self._highlight, file_))
         print(s, file=file_, flush=flush_)
@@ -130,24 +129,24 @@ class Debug:
         else:
             return args
 
-    def format(self, *args: 'Any', frame_depth_: int = 2, **kwargs: 'Any') -> DebugOutput:
+    def format(self, *args: Any, frame_depth_: int = 2, **kwargs: Any) -> DebugOutput:
         return self._process(args, kwargs, frame_depth_)
 
     def breakpoint(self) -> None:
-        import pdb
+        import pdb  # noqa: T100
 
         pdb.Pdb(skip=['devtools.*']).set_trace()
 
-    def timer(self, name: 'Optional[str]' = None, *, verbose: bool = True, file: 'Any' = None, dp: int = 3) -> Timer:
+    def timer(self, name: str | None = None, *, verbose: bool = True, file: TextIO | None = None, dp: int = 3) -> Timer:
         return Timer(name=name, verbose=verbose, file=file, dp=dp)
 
-    def _process(self, args: 'Any', kwargs: 'Any', frame_depth: int) -> DebugOutput:
+    def _process(self, args: Any, kwargs: Any, frame_depth: int) -> DebugOutput:
         """
         BEWARE: this must be called from a function exactly `frame_depth` levels below the top of the stack.
         """
         # HELP: any errors other than ValueError from _getframe? If so please submit an issue
         try:
-            call_frame: 'FrameType' = sys._getframe(frame_depth)
+            call_frame: FrameType = sys._getframe(frame_depth)  # pyright: ignore[reportPrivateUsage]
         except ValueError:
             # "If [ValueError] is deeper than the call stack, ValueError is raised"
             return self.output_class(
@@ -165,7 +164,7 @@ class Debug:
         path = Path(call_frame.f_code.co_filename)
         if path.is_absolute():
             # make the path relative
-            cwd = Path('.').resolve()
+            cwd = Path.cwd()
             try:
                 path = path.relative_to(cwd)
             except ValueError:
@@ -198,13 +197,13 @@ class Debug:
             warning=self._show_warnings and warning,
         )
 
-    def _args_inspection_failed(self, args: 'Any', kwargs: 'Any') -> 'Generator[DebugArgument, None, None]':
+    def _args_inspection_failed(self, args: Any, kwargs: Any) -> Generator[DebugArgument, None, None]:
         for arg in args:
             yield self.output_class.arg_class(arg)
         for name, value in kwargs.items():
             yield self.output_class.arg_class(value, name=name)
 
-    def _process_args(self, ex: 'Any', args: 'Any', kwargs: 'Any') -> 'Generator[DebugArgument, None, None]':
+    def _process_args(self, ex: Any, args: Any, kwargs: Any) -> Generator[DebugArgument, None, None]:
         import ast
 
         func_ast = ex.node
@@ -216,7 +215,7 @@ class Debug:
                 name = ' '.join(map(str.strip, atok.get_text(ast_arg).splitlines()))
                 yield self.output_class.arg_class(arg, name=name)
 
-        kw_arg_names = {}
+        kw_arg_names: dict[str | None, str] = {}
         for kw in func_ast.keywords:
             if isinstance(kw.value, ast.Name):
                 kw_arg_names[kw.arg] = kw.value.id

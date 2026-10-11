@@ -74,11 +74,7 @@ dev = [
 ]
 docs = [
     "ansi2html",
-    "markdown-include",
-    "mkdocs",
-    "mkdocs-exclude",
-    "mkdocs-material",
-    "mkdocs-simple-hooks",
+    "zensical",
 ]
 
 [tool.pytest.ini_options]
@@ -113,7 +109,7 @@ source = [
 
 [tool.ruff]
 line-length = 120
-include = ["devtools/**/*.py", "tests/**/*.py", "docs/plugins.py"]
+include = ["devtools/**/*.py", "tests/**/*.py", "docs/build.py"]
 
 [tool.ruff.lint]
 extend-select = [
@@ -148,4 +144,4 @@ pythonVersion = "3.10"
 typeCheckingMode = "strict"
 reportUnnecessaryTypeIgnoreComment = true
 venv = ".venv"
-include = ["devtools", "tests", "docs/plugins.py"]
+include = ["devtools", "tests", "docs/build.py"]

@@ -1,4 +1,4 @@
-.DEFAULT_GOAL := all
+.DEFAULT_GOAL := help
 
 .PHONY: .uv
 .uv:
@@ -50,12 +50,14 @@ clean: ## Clean up build artifacts
 
 .PHONY: docs
 docs: ## Build docs
-	uv run ruff check --line-length=80 docs/examples/
-	uv run mkdocs build
+	uv run ruff check --isolated --line-length=80 docs/examples/
+	uv run python docs/build.py
+	uv run zensical build --strict
 
 .PHONY: docs-serve
 docs-serve: ## Serve docs locally
-	uv run mkdocs serve
+	uv run python docs/build.py
+	uv run zensical serve
 
 # (must stay last!)
 .PHONY: help

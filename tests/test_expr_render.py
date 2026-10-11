@@ -1,3 +1,5 @@
+# the deliberately odd expressions in this file are the whole point of it, so don't flag them
+# pyright: reportUnnecessaryComparison=false
 import asyncio
 import sys
 
@@ -8,7 +10,7 @@ from devtools import Debug, debug
 from .utils import normalise_output
 
 
-def foobar(a, b, c):
+def foobar(a: int, b: int, c: int) -> int:
     return a + b + c
 
 
@@ -53,9 +55,7 @@ def test_exotic_types():
     # Generator expression source changed in 3.8 to include parentheses, see:
     # https://github.com/gristlabs/asttokens/pull/50
     # https://bugs.python.org/issue31241
-    genexpr_source = 'a for a in aa'
-    if sys.version_info[:2] > (3, 7):
-        genexpr_source = f'({genexpr_source})'
+    genexpr_source = '(a for a in aa)'
 
     assert (
         "tests/test_expr_render.py:<line no> test_exotic_types\n"
@@ -296,11 +296,12 @@ def test_executing_failure():
     x = 1
     y = 2
 
-    # executing fails inside a pytest assert ast the AST is modified
-    assert normalise_output(str(debug.format([x, y]))) == (
-        'tests/test_expr_render.py:<line no> test_executing_failure '
+    # executing used to fail inside a pytest assert as the AST is modified, newer versions cope
+    assert normalise_output(str(debug.format([x, y]))) in (
+        ('tests/test_expr_render.py:<line no> test_executing_failure '
         '(executing failed to find the calling node)\n'
-        '    [1, 2] (list) len=2'
+        '    [1, 2] (list) len=2'),
+        'tests/test_expr_render.py:<line no> test_executing_failure\n    [x, y]: [1, 2] (list) len=2',
     )
 
 

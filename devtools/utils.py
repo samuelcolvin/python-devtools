@@ -1,27 +1,20 @@
 import os
 import sys
+from typing import Any
 
 __all__ = (
-    'isatty',
-    'env_true',
-    'env_bool',
-    'use_highlight',
-    'is_literal',
-    'LaxMapping',
     'DataClassType',
+    'LaxMapping',
     'SQLAlchemyClassType',
+    'env_bool',
+    'env_true',
+    'is_literal',
+    'isatty',
+    'use_highlight',
 )
 
-MYPY = False
-if MYPY:
-    from typing import Any, Optional, no_type_check
-else:
 
-    def no_type_check(x: 'Any') -> 'Any':
-        return x
-
-
-def isatty(stream: 'Any' = None) -> bool:
+def isatty(stream: Any = None) -> bool:
     stream = stream or sys.stdout
     try:
         return stream.isatty()
@@ -29,7 +22,7 @@ def isatty(stream: 'Any' = None) -> bool:
         return False
 
 
-def env_true(var_name: str, alt: 'Optional[bool]' = None) -> 'Any':
+def env_true(var_name: str, alt: bool | None = None) -> Any:
     env = os.getenv(var_name, None)
     if env:
         return env.upper() in {'1', 'TRUE'}
@@ -37,14 +30,13 @@ def env_true(var_name: str, alt: 'Optional[bool]' = None) -> 'Any':
         return alt
 
 
-def env_bool(value: 'Optional[bool]', env_name: str, env_default: 'Optional[bool]') -> 'Optional[bool]':
+def env_bool(value: bool | None, env_name: str, env_default: bool | None) -> bool | None:
     if value is None:
         return env_true(env_name, env_default)
     else:
         return value
 
 
-@no_type_check
 def activate_win_color() -> bool:  # pragma: no cover
     """
     Activate ANSI support on windows consoles.
@@ -60,7 +52,7 @@ def activate_win_color() -> bool:  # pragma: no cover
     import os
     from ctypes import wintypes
 
-    def _check_bool(result, func, args):
+    def _check_bool(result: Any, func: Any, args: Any) -> Any:
         if not result:
             raise ctypes.WinError(ctypes.get_last_error())
         return args
@@ -76,7 +68,7 @@ def activate_win_color() -> bool:  # pragma: no cover
     kernel32.SetConsoleMode.errcheck = _check_bool
     kernel32.SetConsoleMode.argtypes = (wintypes.HANDLE, wintypes.DWORD)
 
-    def _set_conout_mode(new_mode, mask=0xFFFFFFFF):
+    def _set_conout_mode(new_mode: int, mask: int = 0xFFFFFFFF) -> int:
         # don't assume StandardOutput is a console.
         # open CONOUT$ instead
         fdout = os.open('CONOUT$', os.O_RDWR)
@@ -100,7 +92,7 @@ def activate_win_color() -> bool:  # pragma: no cover
     return True
 
 
-def use_highlight(highlight: 'Optional[bool]' = None, file_: 'Any' = None) -> bool:
+def use_highlight(highlight: bool | None = None, file_: Any = None) -> bool:
     highlight = env_bool(highlight, 'PY_DEVTOOLS_HIGHLIGHT', None)
 
     if highlight is not None:
@@ -111,7 +103,7 @@ def use_highlight(highlight: 'Optional[bool]' = None, file_: 'Any' = None) -> bo
     return isatty(file_)
 
 
-def is_literal(s: 'Any') -> bool:
+def is_literal(s: Any) -> bool:
     import ast
 
     try:
@@ -123,7 +115,7 @@ def is_literal(s: 'Any') -> bool:
 
 
 class MetaLaxMapping(type):
-    def __instancecheck__(self, instance: 'Any') -> bool:
+    def __instancecheck__(self, instance: Any) -> bool:
         return (
             hasattr(instance, '__getitem__')
             and hasattr(instance, 'items')
@@ -137,7 +129,7 @@ class LaxMapping(metaclass=MetaLaxMapping):
 
 
 class MetaDataClassType(type):
-    def __instancecheck__(self, instance: 'Any') -> bool:
+    def __instancecheck__(self, instance: Any) -> bool:
         from dataclasses import is_dataclass
 
         return is_dataclass(instance)
@@ -148,7 +140,7 @@ class DataClassType(metaclass=MetaDataClassType):
 
 
 class MetaSQLAlchemyClassType(type):
-    def __instancecheck__(self, instance: 'Any') -> bool:
+    def __instancecheck__(self, instance: Any) -> bool:
         try:
             from sqlalchemy.orm import DeclarativeBase
         except ImportError:

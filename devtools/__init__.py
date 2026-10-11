@@ -6,4 +6,4 @@ from .version import VERSION
 
 __version__ = VERSION
 
-__all__ = 'sformat', 'sprint', 'Debug', 'debug', 'PrettyFormat', 'pformat', 'pprint', 'Timer', 'VERSION'
+__all__ = 'VERSION', 'Debug', 'PrettyFormat', 'Timer', 'debug', 'pformat', 'pprint', 'sformat', 'sprint'

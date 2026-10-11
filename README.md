@@ -1,7 +1,7 @@
 # python devtools
 
-[![CI](https://github.com/samuelcolvin/python-devtools/workflows/CI/badge.svg?event=push)](https://github.com/samuelcolvin/python-devtools/actions?query=event%3Apush+branch%3Amain+workflow%3ACI)
-[![Coverage](https://codecov.io/gh/samuelcolvin/python-devtools/branch/main/graph/badge.svg)](https://codecov.io/gh/samuelcolvin/python-devtools)
+[![CI](https://img.shields.io/github/actions/workflow/status/samuelcolvin/python-devtools/ci.yml?branch=main&logo=github&label=CI)](https://github.com/samuelcolvin/python-devtools/actions?query=event%3Apush+branch%3Amain+workflow%3ACI)
+[![Coverage](https://coverage-badge.samuelcolvin.workers.dev/samuelcolvin/python-devtools.svg)](https://coverage-badge.samuelcolvin.workers.dev/redirect/samuelcolvin/python-devtools)
 [![pypi](https://img.shields.io/pypi/v/devtools.svg)](https://pypi.python.org/pypi/devtools)
 [![versions](https://img.shields.io/pypi/pyversions/devtools.svg)](https://github.com/samuelcolvin/python-devtools)
 [![license](https://img.shields.io/github/license/samuelcolvin/python-devtools.svg)](https://github.com/samuelcolvin/python-devtools/blob/main/LICENSE)
@@ -18,7 +18,7 @@ Just
 pip install devtools
 ```
 
-If you've got python 3.7+ and `pip` installed, you're good to go.
+If you've got python 3.10+ and `pip` installed, you're good to go.
 
 ## Usage
 
@@ -33,7 +33,7 @@ Outputs:
 
 ```py
 test.py:4 <module>:
-    whatever: [1, 2, 3] (list)
+    whatever: [1, 2, 3] (list) len=3
 ```
 
 
@@ -41,6 +41,7 @@ That's only the tip of the iceberg, for example:
 
 ```py
 import numpy as np
+from devtools import debug
 
 data = {
     'foo': np.array(range(20)),
@@ -58,8 +59,8 @@ outputs:
 
 ## Usage without Import
 
-devtools can be used without `from devtools import debug` if you add `debug` into `__builtins__`
+devtools can be used without `from devtools import debug` if you add `debug` into `builtins`
 in `sitecustomize.py`.
 
-For instructions on adding `debug` to `__builtins__`,
+For instructions on adding `debug` to `builtins`,
 see the [installation docs](https://python-devtools.helpmanual.io/usage/#usage-without-import).

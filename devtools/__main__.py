@@ -1,6 +1,7 @@
 import builtins
 import sys
 from pathlib import Path
+from typing import cast
 
 from .version import VERSION
 
@@ -42,12 +43,9 @@ def print_code() -> int:
 
 
 def install() -> int:
-    from importlib.util import find_spec
-
-    spec = find_spec('sitecustomize')
-    if spec is not None and spec.origin is not None:
-        install_path = Path(spec.origin)
-    else:
+    try:
+        import sitecustomize  # type: ignore
+    except ImportError:
         paths = [Path(p) for p in sys.path]
         try:
             path = next(p for p in paths if p.is_dir() and p.name == 'site-packages')
@@ -57,6 +55,8 @@ def install() -> int:
             return 1
         else:
             install_path = path / 'sitecustomize.py'
+    else:
+        install_path = Path(cast(str, sitecustomize.__file__))
 
     if hasattr(builtins, 'debug'):
         print(f'Looks like devtools is already installed, probably in `{install_path}`.')

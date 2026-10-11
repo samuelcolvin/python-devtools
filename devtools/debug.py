@@ -2,7 +2,7 @@ import os
 import sys
 from collections.abc import Generator
 from types import FrameType
-from typing import Any, TextIO
+from typing import Any, TextIO, cast
 
 from .ansi import sformat
 from .prettier import PrettyFormat
@@ -133,9 +133,19 @@ class Debug:
         return self._process(args, kwargs, frame_depth_)
 
     def breakpoint(self) -> None:
+        """
+        Start the IPython debugger if IPython is installed, otherwise `pdb`.
+        """
         import pdb  # noqa: T100
 
-        pdb.Pdb(skip=['devtools.*']).set_trace()
+        pdb_class: type[pdb.Pdb]
+        try:
+            from IPython.terminal.debugger import TerminalPdb  # pyright: ignore[reportMissingImports, reportUnknownVariableType]
+        except ImportError:
+            pdb_class = pdb.Pdb
+        else:
+            pdb_class = cast('type[pdb.Pdb]', TerminalPdb)
+        pdb_class(skip=['devtools.*']).set_trace()
 
     def timer(self, name: str | None = None, *, verbose: bool = True, file: TextIO | None = None, dp: int = 3) -> Timer:
         return Timer(name=name, verbose=verbose, file=file, dp=dp)

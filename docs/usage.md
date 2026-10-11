@@ -48,7 +48,7 @@ The debug namespace includes a number of other useful functions:
 
 * `debug.format()` same as calling `debug()` but returns a `DebugOutput` rather than printing the output
 * `debug.timer()` returns an instance of *devtool's* `Timer` class suitable for timing code execution
-* `debug.breakpoint()` introduces a breakpoint using `pdb`
+* `debug.breakpoint()` introduces a breakpoint using IPython's debugger if IPython is installed, otherwise `pdb`
 
 ```py
 --8<-- "examples/other.py"

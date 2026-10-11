@@ -1,5 +1,6 @@
 import re
 import sys
+import types
 from collections.abc import Generator
 from pathlib import Path
 from subprocess import run
@@ -248,11 +249,34 @@ def test_inspect_error(mocker: MockerFixture):
     assert str(v) == "<unknown>:0  (error parsing code, call stack too shallow)\n    'x' (str) len=1"
 
 
-def test_breakpoint(mocker: MockerFixture):
-    # not much else we can do here
+def test_breakpoint_pdb(mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch):
+    # a `None` entry in sys.modules makes the import raise ImportError whether or not IPython is installed
+    monkeypatch.setitem(sys.modules, 'IPython.terminal.debugger', None)
     mocked_set_trace = mocker.patch('pdb.Pdb.set_trace')
     debug.breakpoint()
     assert mocked_set_trace.called
+
+
+def test_breakpoint_ipython(mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch):
+    ipython_set_trace = mocker.MagicMock()
+    constructed_with: list[list[str]] = []
+
+    class FakeTerminalPdb:
+        def __init__(self, skip: list[str]) -> None:
+            constructed_with.append(skip)
+
+        set_trace = ipython_set_trace
+
+    fake_module = types.ModuleType('IPython.terminal.debugger')
+    fake_module.TerminalPdb = FakeTerminalPdb  # pyright: ignore[reportAttributeAccessIssue]
+    monkeypatch.setitem(sys.modules, 'IPython.terminal.debugger', fake_module)
+    mocked_pdb_set_trace = mocker.patch('pdb.Pdb.set_trace')
+
+    debug.breakpoint()
+
+    assert ipython_set_trace.called
+    assert constructed_with == [['devtools.*']]
+    assert not mocked_pdb_set_trace.called
 
 
 @pytest.mark.xfail(

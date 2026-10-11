@@ -1,7 +1,6 @@
 import ast
 import os
 import string
-import sys
 from collections import Counter, OrderedDict
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -456,40 +455,14 @@ def test_sqlalchemy_object():
     )
 
 
-@pytest.mark.skipif(sys.version_info < (3, 9), reason='no indent on older versions')
 def test_ast_expr():
-    if sys.version_info >= (3, 13):
-        # ast.dump omits empty lists from 3.13 onwards
-        expected = (
-            'Expression('
-            '\n    body=Call('
-            "\n        func=Name(id='print', ctx=Load()),"
-            '\n        args=['
-            '\n            Constant(value=1),'
-            '\n            Constant(value=2),'
-            '\n            Call('
-            "\n                func=Name(id='round', ctx=Load()),"
-            '\n                args=['
-            '\n                    Constant(value=3)])]))'
-        )
-    else:
-        expected = (
-            'Expression('
-            '\n    body=Call('
-            "\n        func=Name(id='print', ctx=Load()),"
-            '\n        args=['
-            '\n            Constant(value=1),'
-            '\n            Constant(value=2),'
-            '\n            Call('
-            "\n                func=Name(id='round', ctx=Load()),"
-            '\n                args=['
-            '\n                    Constant(value=3)],'
-            '\n                keywords=[])],'
-            '\n        keywords=[]))'
-        )
-    assert pformat(ast.parse('print(1, 2, round(3))', mode='eval')) == expected
+    node = ast.parse('print(1, 2, round(3))', mode='eval')
+    v = pformat(node)
+    # exactly which fields ast.dump omits changes between python versions, so compare to its own output
+    assert v == ast.dump(node, indent=4)
+    assert v.startswith('Expression(\n    body=Call(\n        func=Name(')
+    assert '\n                    Constant(value=3)' in v
 
 
-@pytest.mark.skipif(sys.version_info < (3, 9), reason='no indent on older versions')
 def test_ast_module():
     assert pformat(ast.parse('print(1, 2, round(3))')).startswith('Module(\n    body=[')

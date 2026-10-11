@@ -28,7 +28,7 @@ test: ## Run tests
 testcov: ## Run tests with coverage
 	uv run coverage run -m pytest
 	@echo "building coverage html"
-	@coverage html
+	@uv run coverage html
 
 .PHONY: all
 all: lint testcov ## Run all checks and tests

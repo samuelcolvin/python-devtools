@@ -21,7 +21,6 @@ classifiers = [
     'Operating System :: POSIX :: Linux',
     'Environment :: Console',
     'Environment :: MacOS X',
-    'License :: OSI Approved :: MIT License',
     'Programming Language :: Python :: 3 :: Only',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
@@ -90,6 +89,8 @@ filterwarnings = 'error'
 source = ['devtools']
 branch = true
 omit = ['devtools/__main__.py']
+relative_files = true
+context = '${CONTEXT}'
 
 [tool.coverage.report]
 precision = 2
@@ -100,6 +101,14 @@ exclude_lines = [
     'if TYPE_CHECKING:',
     'if MYPY:',
     '@overload',
+]
+
+[tool.coverage.paths]
+source = [
+    'devtools/',
+    '/home/runner/work/python-devtools/python-devtools/devtools/',
+    '/Users/runner/work/python-devtools/python-devtools/devtools/',
+    'D:\a\python-devtools\python-devtools\devtools',
 ]
 
 [tool.ruff]

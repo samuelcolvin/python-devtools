@@ -4,7 +4,7 @@ from collections.abc import Mapping
 from enum import IntEnum
 from typing import Any, TextIO
 
-from .utils import isatty
+from .utils import auto_highlight
 
 __all__ = 'sformat', 'sprint'
 
@@ -151,7 +151,7 @@ class StylePrint:
         file: TextIO | None = None,
         **print_kwargs: Any,
     ) -> None:
-        text = sformat(input, *styles, reset=reset, apply=isatty(file))
+        text = sformat(input, *styles, reset=reset, apply=auto_highlight(file))
         print(text, flush=flush, file=file, **print_kwargs)
 
     def __getattr__(self, item: str) -> str:

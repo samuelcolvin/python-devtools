@@ -6,7 +6,7 @@ from collections.abc import Callable, Generator, Iterable, Mapping
 from functools import cache
 from typing import TYPE_CHECKING, Any, TextIO, cast
 
-from .utils import DataClassType, LaxMapping, SQLAlchemyClassType, env_true, isatty
+from .utils import DataClassType, LaxMapping, SQLAlchemyClassType, auto_highlight, env_true
 
 if TYPE_CHECKING:
     from pygments.formatters import Terminal256Formatter
@@ -316,5 +316,5 @@ force_highlight = env_true('PY_DEVTOOLS_HIGHLIGHT', None)
 
 
 def pprint(s: Any, file: TextIO | None = None) -> None:
-    highlight = isatty(file) if force_highlight is None else force_highlight
+    highlight = auto_highlight(file) if force_highlight is None else force_highlight
     print(pformat(s, highlight=highlight), file=file, flush=True)

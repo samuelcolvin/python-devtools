@@ -6,6 +6,7 @@ __all__ = (
     'DataClassType',
     'LaxMapping',
     'SQLAlchemyClassType',
+    'auto_highlight',
     'env_bool',
     'env_true',
     'is_literal',
@@ -99,8 +100,16 @@ def use_highlight(highlight: bool | None = None, file_: Any = None) -> bool:
         return highlight
 
     if sys.platform == 'win32':  # pragma: no cover
-        return isatty(file_) and activate_win_color()
-    return isatty(file_)
+        return auto_highlight(file_) and activate_win_color()
+    return auto_highlight(file_)
+
+
+def auto_highlight(file_: Any = None) -> bool:
+    """
+    Whether to colour output when nothing has asked for it explicitly: only when writing to a terminal and
+    `NO_COLOR` (https://no-color.org/) is unset or empty.
+    """
+    return not os.getenv('NO_COLOR') and isatty(file_)
 
 
 def is_literal(s: Any) -> bool:

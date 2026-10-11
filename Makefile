@@ -57,12 +57,6 @@ docs: ## Build docs
 docs-serve: ## Serve docs locally
 	uv run mkdocs serve
 
-.PHONY: publish-docs
-publish-docs: docs ## Publish docs to Netlify
-	zip -r site.zip site
-	@curl -H "Content-Type: application/zip" -H "Authorization: Bearer ${NETLIFY}" \
-	      --data-binary "@site.zip" https://api.netlify.com/api/v1/sites/python-devtools.netlify.com/deploys
-
 # (must stay last!)
 .PHONY: help
 help: ## Show this help (usage: make help)

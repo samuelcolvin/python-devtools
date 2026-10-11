@@ -1,7 +1,6 @@
 import builtins
 import sys
 from pathlib import Path
-from typing import cast
 
 from .version import VERSION
 
@@ -56,7 +55,7 @@ def install() -> int:
         else:
             install_path = path / 'sitecustomize.py'
     else:
-        install_path = Path(cast(str, sitecustomize.__file__))
+        install_path = Path(str(sitecustomize.__file__))
 
     if hasattr(builtins, 'debug'):
         print(f'Looks like devtools is already installed, probably in `{install_path}`.')

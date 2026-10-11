@@ -6,10 +6,10 @@ and readable way to print stuff during development. (If you know why this is, I'
 **The wait is over:**
 
 ```py
-{!examples/example.py!}
+--8<-- "examples/example.py"
 ```
 
-{{ example_html(examples/example.py) }}
+--8<-- "examples/example.html"
 
 `debug` is like `print` after a good night's sleep and lots of coffee:
 
@@ -21,10 +21,10 @@ and readable way to print stuff during development. (If you know why this is, I'
 A more complex example of `debug` shows more of what it can do.
 
 ```py
-{!examples/complex.py!}
+--8<-- "examples/complex.py"
 ```
 
-{{ example_html(examples/complex.py) }}
+--8<-- "examples/complex.html"
 
 ### Returning the arguments
 
@@ -37,10 +37,10 @@ The returned arguments work as follows:
 * if keyword arguments are passed to `debug()`, the `kwargs` dictionary is added to the returned tuple
 
 ```py
-{!examples/return_args.py!}
+--8<-- "examples/return_args.py"
 ```
 
-{{ example_html(examples/return_args.py) }}
+--8<-- "examples/return_args.html"
 
 ## Other debug tools
 
@@ -51,10 +51,10 @@ The debug namespace includes a number of other useful functions:
 * `debug.breakpoint()` introduces a breakpoint using `pdb`
 
 ```py
-{!examples/other.py!}
+--8<-- "examples/other.py"
 ```
 
-{{ example_html(examples/other.py) }}
+--8<-- "examples/other.html"
 
 ### Prettier print
 
@@ -66,10 +66,10 @@ To get round this *devtools* comes with prettier print, my take on pretty printi
 in `debug()`, but it can also be used directly:
 
 ```py
-{!examples/prettier.py!}
+--8<-- "examples/prettier.py"
 ```
 
-{{ example_html(examples/prettier.py) }}
+--8<-- "examples/prettier.html"
 
 For more details on prettier printing, see
 [`prettier.py`](https://github.com/samuelcolvin/python-devtools/blob/main/devtools/prettier.py).
@@ -77,7 +77,7 @@ For more details on prettier printing, see
 ## ANSI terminal colours
 
 ```py
-{!examples/ansi_colours.py!}
+--8<-- "examples/ansi_colours.py"
 ```
 
 For more details on ansi colours, see
@@ -94,10 +94,6 @@ in `sitecustomize.py`.
 Two ways to do this:
 
 ### Automatic install
-
-!!! warning
-    This is experimental, please [create an issue](https://github.com/samuelcolvin/python-devtools/issues)
-    if you encounter any problems.
 
 To install `debug` into `__builtins__` automatically, run:
 

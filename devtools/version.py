@@ -1,1 +1,3 @@
-VERSION = '0.12.2'
+from importlib.metadata import version
+
+VERSION = version('devtools')

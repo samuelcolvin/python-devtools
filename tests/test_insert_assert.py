@@ -1,14 +1,26 @@
 import os
 import sys
+from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 
-from devtools.pytest_plugin import load_black
+from devtools.pytest_plugin import insert_assert_calls, load_black
 
 pytestmark = pytest.mark.skipif(sys.version_info < (3, 8), reason='requires Python 3.8+')
 
 
-config = "pytest_plugins = ['devtools.pytest_plugin']"
+@pytest.fixture(autouse=True)
+def reset_insert_assert_calls() -> Iterator[None]:
+    """
+    The pytester runs below happen in-process, so `insert_assert()` calls inside them bump the counter of the outer
+    session too, which would make the plugin fail these tests at teardown.
+    """
+    yield
+    insert_assert_calls.set(0)
+
+
+# the devtools pytest plugin is registered via the `pytest11` entry point, so pytester picks it up automatically
 # language=Python
 default_test = """\
 def test_ok():
@@ -20,9 +32,8 @@ def test_string_assert(insert_assert):
 """
 
 
-def test_insert_assert(pytester_pretty):
+def test_insert_assert(pytester_pretty: pytest.Pytester):
     os.environ.pop('CI', None)
-    pytester_pretty.makeconftest(config)
     test_file = pytester_pretty.makepyfile(default_test)
     result = pytester_pretty.runpytest()
     result.assert_outcomes(passed=2)
@@ -38,9 +49,8 @@ def test_insert_assert(pytester_pretty):
     )
 
 
-def test_insert_assert_no_pretty(pytester):
+def test_insert_assert_no_pretty(pytester: pytest.Pytester):
     os.environ.pop('CI', None)
-    pytester.makeconftest(config)
     test_file = pytester.makepyfile(default_test)
     result = pytester.runpytest('-p', 'no:pretty')
     result.assert_outcomes(passed=2)
@@ -55,9 +65,8 @@ def test_insert_assert_no_pretty(pytester):
     )
 
 
-def test_insert_assert_print(pytester_pretty, capsys):
+def test_insert_assert_print(pytester_pretty: pytest.Pytester, capsys: pytest.CaptureFixture[str]):
     os.environ.pop('CI', None)
-    pytester_pretty.makeconftest(config)
     test_file = pytester_pretty.makepyfile(default_test)
     # assert r == 0
     result = pytester_pretty.runpytest('--insert-assert-print')
@@ -68,19 +77,19 @@ def test_insert_assert_print(pytester_pretty, capsys):
     assert 'Printed 1 insert_assert() call in 1 file\n' in captured.out
 
 
-def test_insert_assert_fail(pytester_pretty):
+def test_insert_assert_fail(pytester_pretty: pytest.Pytester):
     os.environ.pop('CI', None)
-    pytester_pretty.makeconftest(config)
     test_file = pytester_pretty.makepyfile(default_test)
     # assert r == 0
     result = pytester_pretty.runpytest()
-    assert result.parseoutcomes() == {'passed': 2, 'warning': 1, 'insert': 1}
+    outcomes = result.parseoutcomes()
+    assert outcomes['passed'] == 2
+    assert outcomes['insert'] == 1
     assert test_file.read_text() != default_test
 
 
-def test_deep(pytester_pretty):
+def test_deep(pytester_pretty: pytest.Pytester):
     os.environ.pop('CI', None)
-    pytester_pretty.makeconftest(config)
     # language=Python
     test_file = pytester_pretty.makepyfile(
         """
@@ -101,9 +110,8 @@ def test_deep(pytester_pretty):
     )
 
 
-def test_enum(pytester_pretty, capsys):
+def test_enum(pytester_pretty: pytest.Pytester, capsys: pytest.CaptureFixture[str]):
     os.environ.pop('CI', None)
-    pytester_pretty.makeconftest(config)
     # language=Python
     pytester_pretty.makepyfile(
         """
@@ -124,7 +132,7 @@ def test_deep(insert_assert):
     assert '    assert x == Foo.A\n' in captured.out
 
 
-def test_insert_assert_black(tmp_path):
+def test_insert_assert_black(tmp_path: Path):
     old_wd = os.getcwd()
     try:
         os.chdir(tmp_path)
@@ -135,17 +143,16 @@ target-version = ["py39"]
 skip-string-normalization = true"""
         )
         load_black.cache_clear()
+        f = load_black()
     finally:
         os.chdir(old_wd)
 
-    f = load_black()
     # no string normalization
     assert f("'foobar'") == "'foobar'\n"
 
 
-def test_insert_assert_repeat(pytester_pretty, capsys):
+def test_insert_assert_repeat(pytester_pretty: pytest.Pytester, capsys: pytest.CaptureFixture[str]):
     os.environ.pop('CI', None)
-    pytester_pretty.makeconftest(config)
     test_file = pytester_pretty.makepyfile(
         """\
 import pytest

@@ -1,15 +1,14 @@
 [build-system]
-requires = ['hatchling']
-build-backend = 'hatchling.build'
-
-[tool.hatch.version]
-path = 'devtools/version.py'
+requires = ["uv_build>=0.8"]
+build-backend = "uv_build"
 
 [project]
 name = 'devtools'
+version = "0.12.2"
 description = "Python's missing debug print command, and more."
 authors = [{name = 'Samuel Colvin', email = 's@muelcolvin.com'}]
-license = {file = 'LICENSE'}
+license = 'MIT'
+license-files = ['LICENSE']
 readme = 'README.md'
 classifiers = [
     'Development Status :: 5 - Production/Stable',
@@ -22,18 +21,18 @@ classifiers = [
     'Operating System :: POSIX :: Linux',
     'Environment :: Console',
     'Environment :: MacOS X',
-    'License :: OSI Approved :: MIT License',
     'Programming Language :: Python :: 3 :: Only',
-    'Programming Language :: Python :: 3.7',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
+    'Programming Language :: Python :: 3.14',
+    'Programming Language :: Python :: 3.15',
     'Topic :: Software Development :: Libraries :: Python Modules',
     'Topic :: Internet',
     'Typing :: Typed',
 ]
-requires-python = '>=3.7'
+requires-python = '>=3.10'
 dependencies = [
     'executing>=1.1.1',
     'asttokens>=2.0.0,<3.0.0',
@@ -41,7 +40,6 @@ dependencies = [
 ]
 # keep this meaningless group around to avoid breaking installs using `pip install devtools[pygments]`
 optional-dependencies = {pygments = [] }
-dynamic = ['version']
 
 [project.urls]
 Homepage = 'https://github.com/samuelcolvin/python-devtools'
@@ -50,8 +48,31 @@ Funding = 'https://github.com/sponsors/samuelcolvin'
 Source = 'https://github.com/samuelcolvin/python-devtools'
 Changelog = 'https://github.com/samuelcolvin/python-devtools/releases'
 
-[project.entry-points.pytest11]
-devtools = 'devtools.pytest_plugin'
+[tool.uv]
+default-groups = ["dev", "docs"]
+
+[tool.uv.build-backend]
+module-root = ""
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.40.2",
+    "coverage[toml]",
+    "pytest>=8",
+    "pytest-mock",
+    "pytest-pretty",
+    "ruff>=0.17.0",
+    # these packages are used in tests so install the latest version
+    "asyncpg",
+    "multidict",
+    "numpy",
+    "pydantic",
+    "sqlalchemy",
+]
+docs = [
+    "ansi2html",
+    "zensical",
+]
 
 [tool.pytest.ini_options]
 testpaths = 'tests'
@@ -61,6 +82,8 @@ filterwarnings = 'error'
 source = ['devtools']
 branch = true
 omit = ['devtools/__main__.py']
+relative_files = true
+context = '${CONTEXT}'
 
 [tool.coverage.report]
 precision = 2
@@ -73,27 +96,49 @@ exclude_lines = [
     '@overload',
 ]
 
-[tool.black]
-color = true
-line-length = 120
-target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
-skip-string-normalization = true
-extend-exclude = ['tests/test_expr_render.py']
+[tool.coverage.paths]
+source = [
+    'devtools/',
+    '/home/runner/work/python-devtools/python-devtools/devtools/',
+    '/Users/runner/work/python-devtools/python-devtools/devtools/',
+    'D:\a\python-devtools\python-devtools\devtools',
+]
 
 [tool.ruff]
 line-length = 120
-exclude = ['cases_update']
-extend-select = ['Q', 'RUF100', 'C90', 'UP', 'I']
-flake8-quotes = {inline-quotes = 'single', multiline-quotes = 'double'}
+include = ["devtools/**/*.py", "tests/**/*.py", "docs/build.py"]
+
+[tool.ruff.lint]
+extend-select = [
+    "Q",      # https://docs.astral.sh/ruff/rules/#flake8-quotes-q
+    "RUF100", # https://docs.astral.sh/ruff/rules/unused-noqa/
+    "C90",    # https://docs.astral.sh/ruff/rules/#mccabe-c90
+    "UP",     # https://docs.astral.sh/ruff/rules/#pyupgrade-up
+    "I",      # https://docs.astral.sh/ruff/rules/#isort-i
+    "FA",     # https://docs.astral.sh/ruff/rules/#flake8-future-annotations-fa
+]
+# devtools must never raise from inside a debug call, so catching bare `Exception` is intentional
+ignore = ["BLE001"]
+flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
 mccabe = { max-complexity = 14 }
-isort = { known-first-party = ['devtools'] }
-target-version = 'py37'
 
-[tool.mypy]
-show_error_codes = true
-strict = true
-warn_return_any = false
+[tool.ruff.lint.per-file-ignores]
+# deliberately odd expressions whose source rendering is under test
+"tests/test_expr_render.py" = ["PLR0133", "SIM222"]
 
-[[tool.mypy.overrides]]
-module = ['executing.*', 'pygments.*']
-ignore_missing_imports = true
+[tool.ruff.lint.isort]
+combine-as-imports = true
+known-first-party = ["devtools"]
+
+[tool.ruff.format]
+docstring-code-format = true
+quote-style = "single"
+# source expressions in this file are reproduced verbatim in expected output, so formatting would break the tests
+exclude = ["tests/test_expr_render.py"]
+
+[tool.pyright]
+pythonVersion = "3.10"
+typeCheckingMode = "strict"
+reportUnnecessaryTypeIgnoreComment = true
+venv = ".venv"
+include = ["devtools", "tests", "docs/build.py"]

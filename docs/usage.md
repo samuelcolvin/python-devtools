@@ -6,10 +6,10 @@ and readable way to print stuff during development. (If you know why this is, I'
 **The wait is over:**
 
 ```py
-{!examples/example.py!}
+--8<-- "examples/example.py"
 ```
 
-{{ example_html(examples/example.py) }}
+--8<-- "examples/example.html"
 
 `debug` is like `print` after a good night's sleep and lots of coffee:
 
@@ -18,7 +18,7 @@ and readable way to print stuff during development. (If you know why this is, I'
 * each argument is printed "pretty" on a new line, see [prettier print](#prettier-print)
 * if `pygments` is installed the output is highlighted
 
-`debug` and `pprint` highlight output automatically when writing to a terminal. Set
+`debug`, `pprint` and `sprint` highlight output automatically when writing to a terminal. Set
 [`NO_COLOR`](https://no-color.org/) to any non-empty value (including `0`) to disable this default
 highlighting. An empty value keeps automatic highlighting enabled. The program-specific
 `PY_DEVTOOLS_HIGHLIGHT` setting overrides `NO_COLOR`, and an explicit `Debug(highlight=True)` or
@@ -28,10 +28,10 @@ with `pformat(value, highlight=True)` also remains available.
 A more complex example of `debug` shows more of what it can do.
 
 ```py
-{!examples/complex.py!}
+--8<-- "examples/complex.py"
 ```
 
-{{ example_html(examples/complex.py) }}
+--8<-- "examples/complex.html"
 
 ### Returning the arguments
 
@@ -44,10 +44,10 @@ The returned arguments work as follows:
 * if keyword arguments are passed to `debug()`, the `kwargs` dictionary is added to the returned tuple
 
 ```py
-{!examples/return_args.py!}
+--8<-- "examples/return_args.py"
 ```
 
-{{ example_html(examples/return_args.py) }}
+--8<-- "examples/return_args.html"
 
 ## Other debug tools
 
@@ -58,10 +58,10 @@ The debug namespace includes a number of other useful functions:
 * `debug.breakpoint()` introduces a breakpoint using `pdb`
 
 ```py
-{!examples/other.py!}
+--8<-- "examples/other.py"
 ```
 
-{{ example_html(examples/other.py) }}
+--8<-- "examples/other.html"
 
 ### Prettier print
 
@@ -73,10 +73,10 @@ To get round this *devtools* comes with prettier print, my take on pretty printi
 in `debug()`, but it can also be used directly:
 
 ```py
-{!examples/prettier.py!}
+--8<-- "examples/prettier.py"
 ```
 
-{{ example_html(examples/prettier.py) }}
+--8<-- "examples/prettier.html"
 
 For more details on prettier printing, see
 [`prettier.py`](https://github.com/samuelcolvin/python-devtools/blob/main/devtools/prettier.py).
@@ -84,7 +84,7 @@ For more details on prettier printing, see
 ## ANSI terminal colours
 
 ```py
-{!examples/ansi_colours.py!}
+--8<-- "examples/ansi_colours.py"
 ```
 
 For more details on ansi colours, see
@@ -102,10 +102,6 @@ Two ways to do this:
 
 ### Automatic install
 
-!!! warning
-    This is experimental, please [create an issue](https://github.com/samuelcolvin/python-devtools/issues)
-    if you encounter any problems.
-
 To install `debug` into `__builtins__` automatically, run:
 
 ```bash
@@ -121,8 +117,7 @@ which is always imported.
 
 ```py
 import sys
-# we don't install here for pytest as it breaks pytest, it is
-# installed later by a pytest fixture
+# importing devtools this early breaks pytest, so skip it there
 if not sys.argv[0].endswith('pytest'):
     import builtins
     try:
@@ -138,3 +133,25 @@ The `ImportError` exception is important since you'll want python to run fine ev
 This approach has another advantage: if you forget to remove `debug(...)` calls from your code, CI
 (which won't have devtools installed) should fail both on execution and linting, meaning you don't end up with
 extraneous debug calls in production code.
+
+## Snapshot testing
+
+Earlier versions of *devtools* shipped a pytest plugin with an `insert_assert()` function which rewrote test files
+to turn a value into an `assert` statement. That plugin has been removed, use
+[inline-snapshot](https://15r10nk.github.io/inline-snapshot/0.36/) instead, which does the same job better and is
+actively maintained.
+
+```py
+from inline_snapshot import snapshot
+
+
+def something():
+    return 1548 * 18489
+
+
+def test_something():
+    assert something() == snapshot()
+```
+
+Running `pytest` with `--inline-snapshot=create` fills in `snapshot()` with the current value, and
+`--inline-snapshot=fix` updates snapshots whose value has changed, after you've checked the new value is right.

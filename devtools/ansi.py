@@ -1,12 +1,12 @@
-from enum import IntEnum
+from __future__ import annotations
 
-from .utils import isatty
+from collections.abc import Mapping
+from enum import IntEnum
+from typing import Any, TextIO
+
+from .utils import auto_highlight
 
 __all__ = 'sformat', 'sprint'
-
-MYPY = False
-if MYPY:
-    from typing import Any, Mapping, Union
 
 
 def strip_ansi(value: str) -> str:
@@ -62,7 +62,7 @@ class Style(IntEnum):
     # this is a meta value used for the "Style" instance which is the "style" function
     function = -1
 
-    def __call__(self, input: 'Any', *styles: 'Union[Style, int, str]', reset: bool = True, apply: bool = True) -> str:
+    def __call__(self, input: Any, *styles: Style | int | str, reset: bool = True, apply: bool = True) -> str:
         """
         Styles text with ANSI styles and returns the new string.
 
@@ -83,15 +83,15 @@ class Style(IntEnum):
         text = str(input)
         if not apply:
             return text
-        codes = []
+        codes: list[str] = []
         for s in styles:
             # raw ints are allowed
-            if not isinstance(s, self.__class__) and not isinstance(s, int):
+            if isinstance(s, str):
                 try:
                     s = self.styles[s]
                 except KeyError:
-                    raise ValueError(f'invalid style "{s}"')
-            codes.append(_style_as_int(s.value))  # type: ignore
+                    raise ValueError(f'invalid style "{s}"') from None
+            codes.append(_style_as_int(s))
 
         if codes:
             r = _as_ansi(';'.join(codes)) + text
@@ -103,7 +103,7 @@ class Style(IntEnum):
         return r
 
     @property
-    def styles(self) -> 'Mapping[str, Style]':
+    def styles(self) -> Mapping[str, Style]:
         return self.__class__.__members__
 
     def __repr__(self) -> str:
@@ -122,7 +122,7 @@ class Style(IntEnum):
             return f'{self.__class__.__name__}.{self._name_}'
 
 
-def _style_as_int(v: 'Union[Style, int]') -> str:
+def _style_as_int(v: Style | int) -> str:
     if isinstance(v, Style):
         return str(v.value)
     else:
@@ -145,13 +145,13 @@ class StylePrint:
     def __call__(
         self,
         input: str,
-        *styles: 'Union[Style, int, str]',
+        *styles: Style | int | str,
         reset: bool = True,
         flush: bool = True,
-        file: 'Any' = None,
-        **print_kwargs: 'Any',
+        file: TextIO | None = None,
+        **print_kwargs: Any,
     ) -> None:
-        text = sformat(input, *styles, reset=reset, apply=isatty(file))
+        text = sformat(input, *styles, reset=reset, apply=auto_highlight(file))
         print(text, flush=flush, file=file, **print_kwargs)
 
     def __getattr__(self, item: str) -> str:

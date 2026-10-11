@@ -6,12 +6,16 @@ import devtools.utils
 from devtools.utils import env_bool, env_true, use_highlight
 
 
+def fake_isatty(_: object = None) -> bool:
+    return True
+
+
 def test_env_true():
     assert env_true('PATH') is False
     assert env_true('DOES_NOT_EXIST') is None
 
 
-def test_env_bool(monkeypatch):
+def test_env_bool(monkeypatch: pytest.MonkeyPatch):
     assert env_bool(False, 'VAR', None) is False
     monkeypatch.delenv('TEST_VARIABLE_NOT_EXIST', raising=False)
     assert env_bool(None, 'TEST_VARIABLE_NOT_EXIST', True) is True
@@ -19,7 +23,7 @@ def test_env_bool(monkeypatch):
     assert env_bool(None, 'TEST_VARIABLE_EXIST', True) is False
 
 
-def test_use_highlight_manually_set(monkeypatch):
+def test_use_highlight_manually_set(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.delenv('TEST_DONT_USE_HIGHLIGHT', raising=False)
     assert use_highlight(highlight=True) is True
     assert use_highlight(highlight=False) is False
@@ -32,15 +36,15 @@ def test_use_highlight_manually_set(monkeypatch):
 
 
 @pytest.mark.skipif(sys.platform == 'win32', reason='windows os')
-def test_use_highlight_auto_not_win(monkeypatch):
+def test_use_highlight_auto_not_win(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.delenv('TEST_DONT_USE_HIGHLIGHT', raising=False)
-    monkeypatch.setattr(devtools.utils, 'isatty', lambda _=None: True)
+    monkeypatch.setattr(devtools.utils, 'isatty', fake_isatty)
     assert use_highlight() is True
 
 
 @pytest.mark.skipif(sys.platform != 'win32', reason='not windows os')
-def test_use_highlight_auto_win(monkeypatch):
+def test_use_highlight_auto_win(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.delenv('TEST_DONT_USE_HIGHLIGHT', raising=False)
-    monkeypatch.setattr(devtools.utils, 'isatty', lambda _=None: True)
+    monkeypatch.setattr(devtools.utils, 'isatty', fake_isatty)
 
     assert use_highlight() is True

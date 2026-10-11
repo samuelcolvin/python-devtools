@@ -110,8 +110,7 @@ which is always imported.
 
 ```py
 import sys
-# we don't install here for pytest as it breaks pytest, it is
-# installed later by a pytest fixture
+# importing devtools this early breaks pytest, so skip it there
 if not sys.argv[0].endswith('pytest'):
     import builtins
     try:
@@ -127,3 +126,25 @@ The `ImportError` exception is important since you'll want python to run fine ev
 This approach has another advantage: if you forget to remove `debug(...)` calls from your code, CI
 (which won't have devtools installed) should fail both on execution and linting, meaning you don't end up with
 extraneous debug calls in production code.
+
+## Snapshot testing
+
+Earlier versions of *devtools* shipped a pytest plugin with an `insert_assert()` function which rewrote test files
+to turn a value into an `assert` statement. That plugin has been removed, use
+[inline-snapshot](https://15r10nk.github.io/inline-snapshot/0.36/) instead, which does the same job better and is
+actively maintained.
+
+```py
+from inline_snapshot import snapshot
+
+
+def something():
+    return 1548 * 18489
+
+
+def test_something():
+    assert something() == snapshot()
+```
+
+Running `pytest` with `--inline-snapshot=create` fills in `snapshot()` with the current value, and
+`--inline-snapshot=fix` updates snapshots whose value has changed, after you've checked the new value is right.

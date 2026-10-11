@@ -48,9 +48,6 @@ Funding = 'https://github.com/sponsors/samuelcolvin'
 Source = 'https://github.com/samuelcolvin/python-devtools'
 Changelog = 'https://github.com/samuelcolvin/python-devtools/releases'
 
-[project.entry-points.pytest11]
-devtools = 'devtools.pytest_plugin'
-
 [tool.uv]
 default-groups = ["dev", "docs"]
 
@@ -60,7 +57,6 @@ module-root = ""
 [dependency-groups]
 dev = [
     "basedpyright>=1.40.2",
-    "black",
     "coverage[toml]",
     "pytest>=8",
     "pytest-mock",

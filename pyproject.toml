@@ -3,50 +3,52 @@ requires = ["uv_build>=0.8"]
 build-backend = "uv_build"
 
 [project]
-name = 'devtools'
+name = "devtools"
 version = "0.13.0"
 description = "Python's missing debug print command, and more."
-authors = [{name = 'Samuel Colvin', email = 's@muelcolvin.com'}]
-license = 'MIT'
-license-files = ['LICENSE']
-readme = 'README.md'
+authors = [{name = "Samuel Colvin", email = "s@muelcolvin.com"}]
+license = "MIT"
+license-files = ["LICENSE"]
+readme = "README.md"
 classifiers = [
-    'Development Status :: 5 - Production/Stable',
-    'Intended Audience :: Developers',
-    'Intended Audience :: Education',
-    'Intended Audience :: Information Technology',
-    'Intended Audience :: Science/Research',
-    'Intended Audience :: System Administrators',
-    'Operating System :: Unix',
-    'Operating System :: POSIX :: Linux',
-    'Environment :: Console',
-    'Environment :: MacOS X',
-    'Programming Language :: Python :: 3 :: Only',
-    'Programming Language :: Python :: 3.10',
-    'Programming Language :: Python :: 3.11',
-    'Programming Language :: Python :: 3.12',
-    'Programming Language :: Python :: 3.13',
-    'Programming Language :: Python :: 3.14',
-    'Programming Language :: Python :: 3.15',
-    'Topic :: Software Development :: Libraries :: Python Modules',
-    'Topic :: Internet',
-    'Typing :: Typed',
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: System Administrators",
+    "Operating System :: Unix",
+    "Operating System :: POSIX :: Linux",
+    "Environment :: Console",
+    "Environment :: MacOS X",
+    "Framework :: Pydantic",
+    "Framework :: Pydantic :: 2",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet",
+    "Typing :: Typed",
 ]
-requires-python = '>=3.10'
+requires-python = ">=3.10"
 dependencies = [
-    'executing>=1.1.1',
-    'asttokens>=2.0.0,<3.0.0',
-    'Pygments>=2.15.0',
+    "executing>=1.1.1",
+    "asttokens>=2.0.0,<3.0.0",
+    "Pygments>=2.15.0",
 ]
 # keep this meaningless group around to avoid breaking installs using `pip install devtools[pygments]`
 optional-dependencies = {pygments = [] }
 
 [project.urls]
-Homepage = 'https://github.com/samuelcolvin/python-devtools'
-Documentation = 'https://python-devtools.helpmanual.io'
-Funding = 'https://github.com/sponsors/samuelcolvin'
-Source = 'https://github.com/samuelcolvin/python-devtools'
-Changelog = 'https://github.com/samuelcolvin/python-devtools/releases'
+Homepage = "https://github.com/samuelcolvin/python-devtools"
+Documentation = "https://python-devtools.helpmanual.io"
+Funding = "https://github.com/sponsors/samuelcolvin"
+Source = "https://github.com/samuelcolvin/python-devtools"
+Changelog = "https://github.com/samuelcolvin/python-devtools/releases"
 
 [tool.uv]
 default-groups = ["dev", "docs"]
@@ -75,33 +77,33 @@ docs = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = 'tests'
-filterwarnings = 'error'
+testpaths = "tests"
+filterwarnings = "error"
 
 [tool.coverage.run]
-source = ['devtools']
+source = ["devtools"]
 branch = true
-omit = ['devtools/__main__.py']
+omit = ["devtools/__main__.py"]
 relative_files = true
-context = '${CONTEXT}'
+context = "${CONTEXT}"
 
 [tool.coverage.report]
 precision = 2
 exclude_lines = [
-    'pragma: no cover',
-    'raise NotImplementedError',
-    'raise NotImplemented',
-    'if TYPE_CHECKING:',
-    'if MYPY:',
-    '@overload',
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "raise NotImplemented",
+    "if TYPE_CHECKING:",
+    "if MYPY:",
+    "@overload",
 ]
 
 [tool.coverage.paths]
 source = [
-    'devtools/',
-    '/home/runner/work/python-devtools/python-devtools/devtools/',
-    '/Users/runner/work/python-devtools/python-devtools/devtools/',
-    'D:\a\python-devtools\python-devtools\devtools',
+    "devtools/",
+    "/home/runner/work/python-devtools/python-devtools/devtools/",
+    "/Users/runner/work/python-devtools/python-devtools/devtools/",
+    "D:\\a\\python-devtools\\python-devtools\\devtools",
 ]
 
 [tool.ruff]

@@ -16,36 +16,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v4
+    - uses: astral-sh/setup-uv@v6
       with:
-        python-version: '3.10'
+        python-version: '3.12'
 
-    - run: pip install -r requirements/linting.txt -r requirements/pyproject.txt
+    - run: uv sync --group dev
 
-    - run: mypy devtools
-
-    - uses: pre-commit/action@v3.0.0
-      with:
-        extra_args: --all-files --verbose
+    - run: make lint
 
   docs-build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v4
+    - uses: astral-sh/setup-uv@v6
       with:
-        python-version: '3.10'
+        python-version: '3.12'
 
-    - run: pip install -r requirements/docs.txt -r requirements/pyproject.txt
-    - run: pip install .
+    - run: uv sync --group docs
 
     - run: make docs
 
     - name: Store docs site
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: docs
         path: site
@@ -56,13 +51,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
-        exclude:
-          - os: macos-latest
-            python-version: '3.7'
-        include:
-          - os: macos-13
-            python-version: '3.7'
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
 
     env:
       PYTHON: ${{ matrix.python-version }}
@@ -72,36 +61,35 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - name: set up python
-      uses: actions/setup-python@v4
+    - uses: astral-sh/setup-uv@v6
       with:
         python-version: ${{ matrix.python-version }}
 
-    - run: pip install -r requirements/testing.txt -r requirements/pyproject.txt
+    - run: uv sync --group dev
 
-    - run: pip freeze
+    - run: uv pip freeze
 
     - name: test with extras
-      run: make test
+      run: make testcov
 
-    - run: coverage xml
+    - run: uv run coverage xml
 
-    - uses: codecov/codecov-action@v3
+    - uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
         env_vars: EXTRAS,PYTHON,OS
 
     - name: uninstall extras
-      run: pip uninstall -y multidict numpy pydantic asyncpg sqlalchemy
+      run: uv pip uninstall multidict numpy pydantic asyncpg sqlalchemy
 
     - name: test without extras
-      run: make test
+      run: make testcov
 
-    - run: coverage xml
+    - run: uv run coverage xml
 
-    - uses: codecov/codecov-action@v3
+    - uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
         env_vars: EXTRAS,PYTHON,OS
@@ -124,17 +112,19 @@ jobs:
       - check
     if: "success() && startsWith(github.ref, 'refs/tags/')"
     runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: set up python
-        uses: actions/setup-python@v4
+      - uses: astral-sh/setup-uv@v6
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
       - name: get docs
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: docs
           path: site
@@ -143,27 +133,18 @@ jobs:
         id: check-tag
         uses: samuelcolvin/check-python-version@v4.1
         with:
-          version_file_path: devtools/version.py
+          version_file_path: pyproject.toml
 
-      - name: install
-        run: pip install build twine
-
-      - name: build
-        run: python -m build
-
-      - run: twine check dist/*
+      - run: uv build
 
       - name: upload to pypi
-        run: twine upload dist/*
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.pypi_token }}
+        run: uv publish --trusted-publishing always
 
       - name: publish docs
         if: '!fromJSON(steps.check-tag.outputs.IS_PRERELEASE)'
-        uses: cloudflare/wrangler-action@2.0.0
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.cloudflare_api_token }}
-          command: pages publish --project-name=python-devtools --branch=main site
+          command: pages deploy --project-name=python-devtools --branch=main site
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.cloudflare_account_id }}

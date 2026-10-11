@@ -55,6 +55,9 @@ def install() -> int:
         else:
             install_path = path / 'sitecustomize.py'
     else:
+        if sitecustomize.__file__ is None:  # pragma: no cover
+            print('unable to find the path of the existing `sitecustomize` module')
+            return 1
         install_path = Path(sitecustomize.__file__)
 
     if hasattr(builtins, 'debug'):

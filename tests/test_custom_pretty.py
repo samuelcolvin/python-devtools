@@ -1,16 +1,15 @@
+from collections.abc import Callable, Generator
+from importlib.util import find_spec
+from typing import Any
+
 import pytest
 
 from devtools import pformat
 
-try:
-    import pydantic
-except ImportError:
-    pydantic = None
-
 
 def test_simple():
     class CustomCls:
-        def __pretty__(self, fmt, **kwargs):
+        def __pretty__(self, fmt: Callable[[Any], Any], **kwargs: Any) -> Generator[Any, None, None]:
             yield 'Thing('
             yield 1
             for i in range(3):
@@ -36,11 +35,13 @@ Thing(
 
 def test_skip():
     class CustomCls:
-        def __pretty__(self, fmt, skip_exc, **kwargs):
+        def __pretty__(
+            self, fmt: Callable[[Any], Any], skip_exc: type[Exception], **kwargs: Any
+        ) -> Generator[Any, None, None]:
             raise skip_exc()
             yield 'Thing()'
 
-        def __repr__(self):
+        def __repr__(self) -> str:
             return '<CustomCls repr>'
 
     my_cls = CustomCls()
@@ -50,7 +51,7 @@ def test_skip():
 
 def test_yield_other():
     class CustomCls:
-        def __pretty__(self, fmt, **kwargs):
+        def __pretty__(self, fmt: Callable[[Any], Any], **kwargs: Any) -> Generator[Any, None, None]:
             yield fmt('xxx')
             yield 123
 
@@ -68,16 +69,18 @@ def test_pretty_not_func():
 
 def test_pretty_class():
     class Foobar:
-        def __pretty__(self, fmt, **kwargs):
+        def __pretty__(self, fmt: Callable[[Any], Any], **kwargs: Any) -> Generator[Any, None, None]:
             yield 'xxx'
 
     assert pformat(Foobar()) == 'xxx'
     assert pformat(Foobar) == "<class 'tests.test_custom_pretty.test_pretty_class.<locals>.Foobar'>"
 
 
-@pytest.mark.skipif(pydantic is None, reason='numpy not installed')
+@pytest.mark.skipif(find_spec('pydantic') is None, reason='pydantic not installed')
 def test_pydantic_pretty():
-    class MyModel(pydantic.BaseModel):
+    from pydantic import BaseModel
+
+    class MyModel(BaseModel):
         foobar: int = 1
 
     assert pformat(MyModel()) == 'MyModel(\n    foobar=1,\n)'

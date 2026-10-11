@@ -5,6 +5,7 @@ from pathlib import Path
 from subprocess import run
 
 import pytest
+from pytest_mock import MockerFixture
 
 from devtools import Debug, debug
 from devtools.ansi import strip_ansi
@@ -12,20 +13,18 @@ from devtools.ansi import strip_ansi
 from .utils import normalise_output
 
 
-def test_print(capsys):
+def test_print(capsys: pytest.CaptureFixture[str]):
     a = 1
     b = 2
     result = debug(a, b)
     stdout, stderr = capsys.readouterr()
     print(stdout)
-    assert normalise_output(stdout) == (
-        'tests/test_main.py:<line no> test_print\n' '    a: 1 (int)\n' '    b: 2 (int)\n'
-    )
+    assert normalise_output(stdout) == ('tests/test_main.py:<line no> test_print\n    a: 1 (int)\n    b: 2 (int)\n')
     assert stderr == ''
     assert result == (1, 2)
 
 
-def test_print_kwargs(capsys):
+def test_print_kwargs(capsys: pytest.CaptureFixture[str]):
     a = 1
     b = 2
     result = debug(a, b, foo=[1, 2, 3])
@@ -41,23 +40,19 @@ def test_print_kwargs(capsys):
     assert result == (1, 2, {'foo': [1, 2, 3]})
 
 
-def test_print_generator(capsys):
+def test_print_generator(capsys: pytest.CaptureFixture[str]):
     gen = (i for i in [1, 2])
 
     result = debug(gen)
     stdout, stderr = capsys.readouterr()
     print(stdout)
     assert normalise_output(stdout) == (
-        'tests/test_main.py:<line no> test_print_generator\n'
-        '    gen: (\n'
-        '        1,\n'
-        '        2,\n'
-        '    ) (generator)\n'
+        'tests/test_main.py:<line no> test_print_generator\n    gen: (\n        1,\n        2,\n    ) (generator)\n'
     )
     assert stderr == ''
     assert isinstance(result, Generator)
     # the generator got evaluated and is now empty, that's correct currently
-    assert list(result) == []
+    assert list(gen) == []
 
 
 def test_format():
@@ -67,7 +62,7 @@ def test_format():
     s = normalise_output(str(v))
     print(s)
     assert s == (
-        "tests/test_main.py:<line no> test_format\n"
+        'tests/test_main.py:<line no> test_format\n'
         "    a: b'i might bite' (bytes) len=12\n"
         "    b: 'hello this is a test' (str) len=20"
     )
@@ -77,9 +72,9 @@ def test_format():
     sys.platform == 'win32',
     reason='Fatal Python error: _Py_HashRandomization_Init: failed to get random numbers to initialize Python',
 )
-def test_print_subprocess(tmpdir):
-    f = tmpdir.join('test.py')
-    f.write(
+def test_print_subprocess(tmp_path: Path):
+    f = tmp_path / 'test.py'
+    f.write_text(
         """\
 from devtools import debug
 
@@ -94,21 +89,21 @@ print('debug run.')
     """
     )
     env = {'PYTHONPATH': str(Path(__file__).parent.parent.resolve())}
-    p = run([sys.executable, str(f)], capture_output=True, text=True, env=env)
+    p = run([sys.executable, str(f)], capture_output=True, text=True, env=env, check=False)
     assert p.stderr == ''
     assert p.returncode == 0, (p.stderr, p.stdout)
     assert p.stdout.replace(str(f), '/path/to/test.py') == (
-        "running debug...\n"
-        "/path/to/test.py:8 <module>\n"
+        'running debug...\n'
+        '/path/to/test.py:8 <module>\n'
         "    foobar: 'hello world' (str) len=11\n"
-        "/path/to/test.py:4 test_func\n"
+        '/path/to/test.py:4 test_func\n'
         "    'in test func' (str) len=12\n"
-        "    v: 42 (int)\n"
-        "debug run.\n"
+        '    v: 42 (int)\n'
+        'debug run.\n'
     )
 
 
-def test_odd_path(mocker):
+def test_odd_path(mocker: MockerFixture):
     # all valid calls
     mocked_relative_to = mocker.patch('pathlib.Path.relative_to')
     mocked_relative_to.side_effect = ValueError()
@@ -129,7 +124,7 @@ def test_small_call_frame():
         3,
     )
     assert normalise_output(str(v)) == (
-        'tests/test_main.py:<line no> test_small_call_frame\n' '    1 (int)\n' '    2 (int)\n' '    3 (int)'
+        'tests/test_main.py:<line no> test_small_call_frame\n    1 (int)\n    2 (int)\n    3 (int)'
     )
 
 
@@ -142,7 +137,7 @@ def test_small_call_frame_warning():
     )
     print(f'\n---\n{v}\n---')
     assert normalise_output(str(v)) == (
-        'tests/test_main.py:<line no> test_small_call_frame_warning\n' '    1 (int)\n' '    2 (int)\n' '    3 (int)'
+        'tests/test_main.py:<line no> test_small_call_frame_warning\n    1 (int)\n    2 (int)\n    3 (int)'
     )
 
 
@@ -153,7 +148,7 @@ def test_kwargs():
     s = normalise_output(str(v))
     print(s)
     assert s == (
-        "tests/test_main.py:<line no> test_kwargs\n"
+        'tests/test_main.py:<line no> test_kwargs\n'
         "    first: 'variable' (str) len=8 variable=a\n"
         "    second: 'literal' (str) len=7"
     )
@@ -174,9 +169,7 @@ def test_kwargs_orderless():
 def test_simple_vars():
     v = debug.format('test', 1, 2)
     s = normalise_output(str(v))
-    assert s == (
-        "tests/test_main.py:<line no> test_simple_vars\n" "    'test' (str) len=4\n" "    1 (int)\n" "    2 (int)"
-    )
+    assert s == ("tests/test_main.py:<line no> test_simple_vars\n    'test' (str) len=4\n    1 (int)\n    2 (int)")
     r = normalise_output(repr(v))
     assert r == (
         "<DebugOutput tests/test_main.py:<line no> test_simple_vars arguments: 'test' (str) len=4 1 (int) 2 (int)>"
@@ -219,14 +212,12 @@ def test_eval_kwargs():
     }
 
 
-def test_exec(capsys):
-    exec('a = 1\n' 'b = 2\n' 'debug(b, a + b)')
+def test_exec(capsys: pytest.CaptureFixture[str]):
+    exec('a = 1\nb = 2\ndebug(b, a + b)')  # noqa: S102
 
     stdout, stderr = capsys.readouterr()
     assert stdout == (
-        '<string>:3 <module> (no code context for debug call, code inspection impossible)\n'
-        '    2 (int)\n'
-        '    3 (int)\n'
+        '<string>:3 <module> (no code context for debug call, code inspection impossible)\n    2 (int)\n    3 (int)\n'
     )
     assert stderr == ''
 
@@ -239,7 +230,7 @@ def test_colours():
     assert s2 == normalise_output(v.str()), repr(s2)
 
 
-def test_colours_warnings(mocker):
+def test_colours_warnings(mocker: MockerFixture):
     mocked_getframe = mocker.patch('sys._getframe')
     mocked_getframe.side_effect = ValueError()
     v = debug.format('x')
@@ -249,7 +240,7 @@ def test_colours_warnings(mocker):
     assert s2 == v.str(), repr(s2)
 
 
-def test_inspect_error(mocker):
+def test_inspect_error(mocker: MockerFixture):
     mocked_getframe = mocker.patch('sys._getframe')
     mocked_getframe.side_effect = ValueError()
     v = debug.format('x')
@@ -257,7 +248,7 @@ def test_inspect_error(mocker):
     assert str(v) == "<unknown>:0  (error parsing code, call stack too shallow)\n    'x' (str) len=1"
 
 
-def test_breakpoint(mocker):
+def test_breakpoint(mocker: MockerFixture):
     # not much else we can do here
     mocked_set_trace = mocker.patch('pdb.Pdb.set_trace')
     debug.breakpoint()
@@ -282,15 +273,15 @@ def test_starred_kwargs():
 @pytest.mark.skipif(sys.version_info < (3, 7), reason='error repr different before 3.7')
 def test_pretty_error():
     class BadPretty:
-        def __getattr__(self, item):
+        def __getattr__(self, item: str) -> None:
             raise RuntimeError('this is an error')
 
     b = BadPretty()
     v = debug.format(b)
     s = normalise_output(str(v))
     assert s == (
-        "tests/test_main.py:<line no> test_pretty_error\n"
-        "    b: <tests.test_main.test_pretty_error.<locals>.BadPretty object at 0x<hash>> (BadPretty)\n"
+        'tests/test_main.py:<line no> test_pretty_error\n'
+        '    b: <tests.test_main.test_pretty_error.<locals>.BadPretty object at 0x<hash>> (BadPretty)\n'
         "    !!! error pretty printing value: RuntimeError('this is an error')"
     )
 
@@ -301,14 +292,14 @@ def test_multiple_debugs():
     v = debug.format([i * 2 for i in range(2)])
     s = normalise_output(str(v))
     assert s == (
-        'tests/test_main.py:<line no> test_multiple_debugs\n' '    [i * 2 for i in range(2)]: [0, 2] (list) len=2'
+        'tests/test_main.py:<line no> test_multiple_debugs\n    [i * 2 for i in range(2)]: [0, 2] (list) len=2'
     )
 
 
-def test_return_args(capsys):
+def test_return_args(capsys: pytest.CaptureFixture[str]):
     assert debug('foo') == 'foo'
     assert debug('foo', 'bar') == ('foo', 'bar')
     assert debug('foo', 'bar', spam=123) == ('foo', 'bar', {'spam': 123})
     assert debug(spam=123) == ({'spam': 123},)
-    stdout, stderr = capsys.readouterr()
+    stdout, _stderr = capsys.readouterr()
     print(stdout)

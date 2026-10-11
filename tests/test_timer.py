@@ -24,7 +24,7 @@ def test_multiple():
     f = io.StringIO()
     t = Timer(file=f)
     for i in [0.001, 0.002, 0.003]:
-        with t(i):
+        with t(str(i)):
             sleep(i)
     t.summary()
     v = f.getvalue()

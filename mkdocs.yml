@@ -55,7 +55,6 @@ plugins:
     glob:
     - build/*
     - examples/*
-    - requirements.txt
 - mkdocs-simple-hooks:
     hooks:
       on_pre_build: 'docs.plugins:on_pre_build'

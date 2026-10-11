@@ -4,22 +4,20 @@ import ast
 import builtins
 import sys
 import textwrap
+from collections.abc import Callable, Generator, Sized
 from contextvars import ContextVar
 from dataclasses import dataclass
 from enum import Enum
-from functools import lru_cache
+from functools import cache
 from itertools import groupby
 from pathlib import Path
 from types import FrameType
-from typing import TYPE_CHECKING, Any, Callable, Generator, Sized
+from typing import Any, cast
 
 import pytest
 from executing import Source
 
 from . import debug
-
-if TYPE_CHECKING:
-    pass
 
 __all__ = ('insert_assert',)
 
@@ -38,27 +36,28 @@ insert_assert_summary: ContextVar[list[str]] = ContextVar('insert_assert_summary
 
 
 def insert_assert(value: Any) -> int:
-    call_frame: FrameType = sys._getframe(1)
-    if sys.version_info < (3, 8):  # pragma: no cover
-        raise RuntimeError('insert_assert() requires Python 3.8+')
-
+    call_frame: FrameType = sys._getframe(1)  # pyright: ignore[reportPrivateUsage]
     format_code = load_black()
     ex = Source.for_frame(call_frame).executing(call_frame)
-    if ex.node is None:  # pragma: no cover
+    # executing annotates `node` as never being `None`, but it is when the calling node can't be found
+    if ex.node is None:  # pragma: no cover  # pyright: ignore[reportUnnecessaryComparison]
         python_code = format_code(str(custom_repr(value)))
         raise RuntimeError(
             f'insert_assert() was unable to find the frame from which it was called, called with:\n{python_code}'
         )
-    ast_arg = ex.node.args[0]  # type: ignore[attr-defined]
+    call_node = cast(ast.Call, ex.node)
+    ast_arg = call_node.args[0]
     if isinstance(ast_arg, ast.Name):
         arg = ast_arg.id
     else:
-        arg = ' '.join(map(str.strip, ex.source.asttokens().get_text(ast_arg).splitlines()))
+        arg = ' '.join(map(str.strip, ex.source.asttokens().get_text(ast_arg).splitlines()))  # pyright: ignore[reportUnknownMemberType]
 
     python_code = format_code(f'# insert_assert({arg})\nassert {arg} == {custom_repr(value)}')
 
-    python_code = textwrap.indent(python_code, ex.node.col_offset * ' ')
-    to_replace.append(ToReplace(Path(call_frame.f_code.co_filename), ex.node.lineno, ex.node.end_lineno, python_code))
+    python_code = textwrap.indent(python_code, call_node.col_offset * ' ')
+    to_replace.append(
+        ToReplace(Path(call_frame.f_code.co_filename), call_node.lineno, call_node.end_lineno, python_code)
+    )
     calls = insert_assert_calls.get() + 1
     insert_assert_calls.set(calls)
     return calls
@@ -82,9 +81,9 @@ def pytest_addoption(parser: Any) -> None:
 @pytest.fixture(scope='session', autouse=True)
 def insert_assert_add_to_builtins() -> None:
     try:
-        setattr(builtins, 'insert_assert', insert_assert)
+        setattr(builtins, 'insert_assert', insert_assert)  # noqa: B010
         # we also install debug here since the default script doesn't install it
-        setattr(builtins, 'debug', debug)
+        setattr(builtins, 'debug', debug)  # noqa: B010
     except TypeError:
         # happens on pypy
         pass
@@ -135,7 +134,7 @@ def insert_assert_session(pytestconfig: pytest.Config) -> Generator[None, None, 
 
     files = 0
     dup_count = 0
-    summary = []
+    summary: list[str] = []
     for file, group in groupby(to_replace, key=lambda tr: tr.file):
         # we have to substitute lines in reverse order to avoid messing up line numbers
         lines = file.read_text().splitlines()
@@ -176,9 +175,11 @@ def pytest_terminal_summary() -> None:
 
 def custom_repr(value: Any) -> Any:
     if isinstance(value, (list, tuple, set, frozenset)):
-        return value.__class__(map(custom_repr, value))
+        seq = cast('list[Any] | tuple[Any, ...] | set[Any] | frozenset[Any]', value)
+        return seq.__class__(map(custom_repr, seq))
     elif isinstance(value, dict):
-        return value.__class__((custom_repr(k), custom_repr(v)) for k, v in value.items())
+        mapping = cast('dict[Any, Any]', value)
+        return mapping.__class__((custom_repr(k), custom_repr(v)) for k, v in mapping.items())
     if isinstance(value, Enum):
         return PlainRepr(f'{value.__class__.__name__}.{value.name}')
     else:
@@ -202,7 +203,7 @@ def plural(v: int | Sized) -> str:
     return '' if n == 1 else 's'
 
 
-@lru_cache(maxsize=None)
+@cache
 def load_black() -> Callable[[str], str]:
     """
     Build black configuration from "pyproject.toml".
@@ -217,13 +218,14 @@ def load_black() -> Callable[[str], str]:
     except ImportError:
         return lambda x: x
 
-    def convert_target_version(target_version_config: Any) -> set[Any] | None:
-        if target_version_config is not None:
+    def convert_target_version(target_version_config: object) -> set[TargetVersion] | None:
+        if target_version_config is None:
             return None
         elif not isinstance(target_version_config, list):
             raise ValueError('Config key "target_version" must be a list')
         else:
-            return {TargetVersion[tv.upper()] for tv in target_version_config}
+            versions = cast('list[str]', target_version_config)
+            return {TargetVersion[tv.upper()] for tv in versions}
 
     @dataclass
     class ConfigArg:
@@ -239,7 +241,7 @@ def load_black() -> Callable[[str], str]:
     ]
 
     config_str = find_pyproject_toml((str(Path.cwd()),))
-    mode_ = None
+    mode_: Mode | None = None
     fast = False
     if config_str:
         try:
@@ -248,7 +250,7 @@ def load_black() -> Callable[[str], str]:
             raise ValueError(f'Error reading configuration file: {e}')
 
         if config:
-            kwargs = dict()
+            kwargs: dict[str, Any] = {}
             for config_arg in config_mapping:
                 try:
                     value = config[config_arg.config_name]
@@ -281,19 +283,21 @@ except Exception:
     std_out_istty = False
 
 
-@lru_cache(maxsize=None)
+@cache
 def get_pygments() -> Callable[[str], str] | None:  # pragma: no cover
     if not std_out_istty:
         return None
     try:
         import pygments
         from pygments.formatters import Terminal256Formatter
-        from pygments.lexers import PythonLexer
+        from pygments.lexer import Lexer
+        from pygments.lexers import PythonLexer  # pyright: ignore[reportUnknownVariableType]
     except ImportError as e:  # pragma: no cover
         print(e)
         return None
     else:
-        pyg_lexer, terminal_formatter = PythonLexer(), Terminal256Formatter()
+        pyg_lexer = cast('Lexer', PythonLexer())
+        terminal_formatter: Terminal256Formatter[str] = Terminal256Formatter()
 
         def highlight(code: str) -> str:
             return pygments.highlight(code, lexer=pyg_lexer, formatter=terminal_formatter)

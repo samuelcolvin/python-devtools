@@ -1,20 +1,17 @@
 from time import perf_counter
+from typing import TextIO
 
 __all__ = ('Timer',)
-
-MYPY = False
-if MYPY:
-    from typing import Any, List, Optional
 
 # required for type hinting because I (stupidly) added methods called `str`
 StrType = str
 
 
 class TimerResult:
-    def __init__(self, name: 'Optional[str]' = None, verbose: bool = True) -> None:
+    def __init__(self, name: str | None = None, verbose: bool = True) -> None:
         self._name = name
         self.verbose = verbose
-        self.finish: 'Optional[float]' = None
+        self.finish: float | None = None
         self.start = perf_counter()
 
     def capture(self) -> None:
@@ -40,25 +37,25 @@ _SUMMARY_TEMPLATE = '{count} times: mean={mean:0.{dp}f}s stdev={stddev:0.{dp}f}s
 
 
 class Timer:
-    def __init__(self, name: 'Optional[str]' = None, verbose: bool = True, file: 'Any' = None, dp: int = 3) -> None:
+    def __init__(self, name: str | None = None, verbose: bool = True, file: TextIO | None = None, dp: int = 3) -> None:
         self.file = file
         self.dp = dp
         self._name = name
         self._verbose = verbose
-        self.results: 'List[TimerResult]' = []
+        self.results: list[TimerResult] = []
 
-    def __call__(self, name: 'Optional[str]' = None, verbose: 'Optional[bool]' = None) -> 'Timer':
+    def __call__(self, name: str | None = None, verbose: bool | None = None) -> 'Timer':
         if name:
             self._name = name
         if verbose is not None:
             self._verbose = verbose
         return self
 
-    def start(self, name: 'Optional[str]' = None, verbose: 'Optional[bool]' = None) -> 'Timer':
+    def start(self, name: str | None = None, verbose: bool | None = None) -> 'Timer':
         self.results.append(TimerResult(name or self._name, self._verbose if verbose is None else verbose))
         return self
 
-    def capture(self, verbose: 'Optional[bool]' = None) -> 'TimerResult':
+    def capture(self, verbose: bool | None = None) -> TimerResult:
         r = self.results[-1]
         r.capture()
         print_ = r.verbose if verbose is None else verbose
@@ -66,8 +63,8 @@ class Timer:
             print(r.str(self.dp), file=self.file, flush=True)
         return r
 
-    def summary(self, verbose: bool = False) -> 'List[float]':
-        times = []
+    def summary(self, verbose: bool = False) -> list[float]:
+        times: list[float] = []
         for r in self.results:
             if not r.finish:
                 r.capture()
@@ -91,9 +88,9 @@ class Timer:
             raise RuntimeError('timer not started')
         return times
 
-    def __enter__(self) -> 'Timer':
+    def __enter__(self) -> 'Timer':  # noqa: PYI034
         self.start()
         return self
 
-    def __exit__(self, *args: 'Any') -> None:
+    def __exit__(self, *args: object) -> None:
         self.capture()

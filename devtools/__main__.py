@@ -42,9 +42,12 @@ def print_code() -> int:
 
 
 def install() -> int:
-    try:
-        import sitecustomize  # type: ignore
-    except ImportError:
+    from importlib.util import find_spec
+
+    spec = find_spec('sitecustomize')
+    if spec is not None and spec.origin is not None:
+        install_path = Path(spec.origin)
+    else:
         paths = [Path(p) for p in sys.path]
         try:
             path = next(p for p in paths if p.is_dir() and p.name == 'site-packages')
@@ -54,11 +57,6 @@ def install() -> int:
             return 1
         else:
             install_path = path / 'sitecustomize.py'
-    else:
-        if sitecustomize.__file__ is None:  # pragma: no cover
-            print('unable to find the path of the existing `sitecustomize` module')
-            return 1
-        install_path = Path(sitecustomize.__file__)
 
     if hasattr(builtins, 'debug'):
         print(f'Looks like devtools is already installed, probably in `{install_path}`.')

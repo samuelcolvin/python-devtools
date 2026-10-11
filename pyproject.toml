@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = 'devtools'
-version = "0.12.2"
+version = "0.13.0"
 description = "Python's missing debug print command, and more."
 authors = [{name = 'Samuel Colvin', email = 's@muelcolvin.com'}]
 license = 'MIT'

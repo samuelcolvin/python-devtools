@@ -78,6 +78,12 @@ in `debug()`, but it can also be used directly:
 
 --8<-- "examples/prettier.html"
 
+Circular references encountered while expanding containers, object fields or `__pretty__` values
+are displayed as `<Recursion on TYPE>` rather than repeatedly expanding the same object. Other fields
+are still shown, and a shared object that appears in separate branches is formatted normally each time.
+Values formatted with their normal `repr()` that fit within `simple_cutoff` retain that compact
+representation, including Python's existing `...` recursion notation.
+
 For more details on prettier printing, see
 [`prettier.py`](https://github.com/samuelcolvin/python-devtools/blob/main/devtools/prettier.py).
 

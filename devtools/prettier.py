@@ -67,6 +67,7 @@ class PrettyFormat:
         yield_from_generators: bool = True,
     ):
         self._stream = io.StringIO()
+        self._active_ids: set[int] = set()
         self._indent_step = indent_step
         self._c = indent_char
         self._repr_strings = repr_strings
@@ -108,6 +109,18 @@ class PrettyFormat:
         if indent_first:
             self._stream.write(indent_current * self._c)
 
+        value_id = id(value)
+        if value_id in self._active_ids:
+            self._stream.write(f'<Recursion on {type(value).__name__}>')
+            return
+
+        self._active_ids.add(value_id)
+        try:
+            self._format_value(value, indent_current)
+        finally:
+            self._active_ids.remove(value_id)
+
+    def _format_value(self, value: Any, indent_current: int) -> None:
         try:
             pretty_func = value.__pretty__
         except AttributeError:

@@ -218,7 +218,7 @@ class PrettyFormat:
         self._stream.write(indent_current * self._c + ')')
 
     def _wrap_lines(self, s: str | bytes, indent_new: int) -> Generator[str | bytes, None, None]:
-        width = self._width - indent_new - 3
+        width = max(1, self._width - indent_new - 3)
         for line in s.splitlines(True):
             start = 0
             for pos in range(width, len(line), width):
@@ -285,13 +285,14 @@ class PrettyFormat:
         lines = value_repr.splitlines(True)
         if len(lines) > 1 or (len(value_repr) + indent_current) >= self._width:
             self._stream.write('(\n')
-            wrap_at = self._width - indent_new
+            wrap_at = max(1, self._width - indent_new)
             prefix = indent_new * self._c
 
             from textwrap import wrap
 
             for line in lines:
-                sub_lines = wrap(line, wrap_at)
+                # At width one, whitespace must occupy its own line instead of being dropped by textwrap.
+                sub_lines = line.rstrip('\r\n') if wrap_at == 1 else wrap(line, wrap_at)
                 for sline in sub_lines:
                     self._stream.write(prefix + sline + '\n')
             self._stream.write(indent_current * self._c + ')')

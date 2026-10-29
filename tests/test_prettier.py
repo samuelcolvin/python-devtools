@@ -5,6 +5,7 @@ from collections import Counter, OrderedDict
 from collections.abc import Iterator
 from dataclasses import dataclass
 from importlib.util import find_spec
+from threading import Event, Thread
 from typing import Any, ClassVar, NamedTuple, cast
 from unittest.mock import MagicMock
 
@@ -59,6 +60,86 @@ def test_reentrant_pprint(capsys: pytest.CaptureFixture[str]):
 
     pprint(Reentrant())
     assert strip_ansi(capsys.readouterr().out) == '1\n'
+
+
+@pytest.mark.parametrize('shared_global', [False, True])
+def test_concurrent_formatter_streams(shared_global: bool):
+    formatter = pformat if shared_global else PrettyFormat()
+    first_entered = Event()
+    second_entered = Event()
+    first_finished = Event()
+    results: dict[str, str] = {}
+
+    class First:
+        def __pretty__(self, fmt: Any, skip_exc: Any) -> Iterator[str]:
+            yield 'First['
+            first_entered.set()
+            assert second_entered.wait(5)
+            yield '1]'
+
+    class Second:
+        def __pretty__(self, fmt: Any, skip_exc: Any) -> Iterator[str]:
+            yield 'Second['
+            second_entered.set()
+            assert first_finished.wait(5)
+            yield '2]'
+
+    def format_first() -> None:
+        results['first'] = formatter(First())
+        first_finished.set()
+
+    def format_second() -> None:
+        assert first_entered.wait(5)
+        results['second'] = formatter(Second())
+
+    threads = [Thread(target=format_first), Thread(target=format_second)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=10)
+        assert not thread.is_alive()
+
+    assert results == {'first': 'First[1]', 'second': 'Second[2]'}
+    assert formatter(3) == '3'
+
+
+def test_different_formatter_inside_pretty():
+    class Nested:
+        def __pretty__(self, fmt: Any, skip_exc: Any) -> Iterator[str]:
+            yield 'Nested('
+            yield PrettyFormat(indent_step=2)([1, 2, 3, 4])
+            yield ')'
+
+    assert pformat(Nested()) == 'Nested([\n  1,\n  2,\n  3,\n  4,\n])'
+
+
+def test_recursive_global_formatter_inside_pretty():
+    class Nested:
+        def __pretty__(self, fmt: Any, skip_exc: Any) -> Iterator[str]:
+            yield 'Nested('
+            yield pformat([1, 2, 3, 4])
+            yield ')'
+
+    assert pformat(Nested()) == 'Nested([\n    1,\n    2,\n    3,\n    4,\n])'
+
+
+def test_different_formatter_exception_inside_pretty():
+    class Broken:
+        def __repr__(self) -> str:
+            raise ValueError('broken repr')
+
+    class Nested:
+        def __pretty__(self, fmt: Any, skip_exc: Any) -> Iterator[str]:
+            yield 'before:'
+            with pytest.raises(ValueError, match='broken repr'):
+                PrettyFormat()(Broken())
+            yield pformat(1)
+            yield ':after'
+
+    assert pformat(Nested()) == 'before:1:after'
+    with pytest.raises(ValueError, match='broken repr'):
+        pformat(Broken())
+    assert pformat(2) == '2'
 
 
 def test_reentrant_exception():

@@ -3,6 +3,7 @@ import io
 import os
 from collections import OrderedDict
 from collections.abc import Callable, Generator, Iterable, Mapping
+from contextvars import ContextVar
 from functools import cache
 from typing import TYPE_CHECKING, Any, TextIO, cast
 
@@ -27,6 +28,7 @@ PARENTHESES_LOOKUP = [
 DEFAULT_WIDTH = int(os.getenv('PY_DEVTOOLS_WIDTH', '120'))
 MISSING = object()
 PRETTY_KEY = '__prettier_formatted_value__'
+_current_stream: ContextVar[io.StringIO] = ContextVar('devtools_pretty_stream')
 
 
 def fmt(v: Any) -> Any:
@@ -87,16 +89,23 @@ class PrettyFormat:
             (SQLAlchemyClassType, self._format_sqlalchemy_class),
         ]
 
+    @property
+    def _stream(self) -> io.StringIO:
+        return _current_stream.get(self.__dict__['_stream'])
+
+    @_stream.setter
+    def _stream(self, stream: io.StringIO) -> None:
+        # Keep the idle stream in instance state for copying and pickling.
+        self.__dict__['_stream'] = stream
+
     def __call__(self, value: Any, *, indent: int = 0, indent_first: bool = False, highlight: bool = False) -> str:
-        # save and restore the stream so `pformat` can be called from inside a `__repr__` without clobbering
-        # the output of the outer call, see #162
-        previous_stream = self._stream
-        self._stream = io.StringIO()
+        # Each call owns its stream, including reentrant and concurrent calls.
+        stream_token = _current_stream.set(io.StringIO())
         try:
             self._format(value, indent_current=indent, indent_first=indent_first)
             s = self._stream.getvalue()
         finally:
-            self._stream = previous_stream
+            _current_stream.reset(stream_token)
         pyg = get_pygments()
         if highlight and pyg:
             pygments, pyg_lexer, pyg_formatter = pyg

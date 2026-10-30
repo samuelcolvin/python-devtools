@@ -3,7 +3,7 @@ import os
 import string
 from collections import Counter, OrderedDict
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from importlib.util import find_spec
 from typing import Any, ClassVar, NamedTuple, cast
 from unittest.mock import MagicMock
@@ -11,7 +11,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from devtools.ansi import strip_ansi
-from devtools.prettier import PrettyFormat, pformat, pprint
+from devtools.prettier import MISSING, PrettyFormat, pformat, pprint
 
 
 class Foobar(NamedTuple):
@@ -287,6 +287,195 @@ FooDataclass(
     y='bar',
 )"""
     )
+
+
+def test_inherited_dataclass_slots():
+    @dataclass(slots=True)
+    class Base:
+        first: int
+
+    @dataclass(slots=True)
+    class Child(Base):
+        second: str
+
+    assert (
+        pformat(Child(123, 'value'))
+        == """\
+Child(
+    first=123,
+    second='value',
+)"""
+    )
+
+
+def test_dataclass_with_only_inherited_slots():
+    @dataclass(slots=True)
+    class Base:
+        first: int
+
+    @dataclass(slots=True)
+    class Child(Base):
+        pass
+
+    assert (
+        pformat(Child(123))
+        == """\
+Child(
+    first=123,
+)"""
+    )
+
+
+def test_dataclass_slots_with_overridden_inherited_field():
+    @dataclass(slots=True)
+    class Base:
+        first: int
+
+    @dataclass(slots=True)
+    class Child(Base):
+        first: int
+        second: str
+
+    @dataclass(slots=True)
+    class Grandchild(Child):
+        third: bool
+
+    assert (
+        pformat(Grandchild(123, 'value', True))
+        == """\
+Grandchild(
+    first=123,
+    second='value',
+    third=True,
+)"""
+    )
+
+
+@pytest.mark.parametrize(
+    ('slots', 'expected_fields'),
+    [
+        (('first', 'extra'), "    first=123,\n    extra='value',\n"),
+        (('extra', 'first'), "    extra='value',\n    first=123,\n"),
+    ],
+)
+def test_manual_dataclass_slots_keep_auxiliary_values_and_order(slots: tuple[str, ...], expected_fields: str):
+    @dataclass
+    class ManualSlots:
+        __slots__ = slots
+        first: int
+
+    value = ManualSlots(123)
+    cast(Any, value).extra = 'value'
+    assert pformat(value) == f'ManualSlots(\n{expected_fields})'
+
+
+def test_undecorated_dataclass_subclass_keeps_auxiliary_slots():
+    @dataclass(slots=True)
+    class Base:
+        first: int
+
+    class Child(Base):
+        __slots__ = ('extra',)
+
+        def __init__(self, first: int, extra: str) -> None:
+            super().__init__(first)
+            self.extra = extra
+
+    assert (
+        pformat(Child(123, 'value'))
+        == """\
+Child(
+    first=123,
+    extra='value',
+)"""
+    )
+
+
+def test_dataclass_string_slots():
+    @dataclass
+    class StringSlots:
+        __slots__ = 'long_name'  # noqa: PLC0205 - exercise Python's valid single-slot string form
+        long_name: int
+
+    assert (
+        pformat(StringSlots(123))
+        == """\
+StringSlots(
+    long_name=123,
+)"""
+    )
+
+
+def test_dataclass_keeps_explicit_weakref_slot():
+    @dataclass
+    class WeakSlots:
+        __slots__ = ('__weakref__', 'first')
+        first: int
+
+    assert (
+        pformat(WeakSlots(123))
+        == """\
+WeakSlots(
+    __weakref__=None,
+    first=123,
+)"""
+    )
+
+
+def test_slotted_dataclass_unassigned_inherited_field():
+    @dataclass(slots=True)
+    class Base:
+        pending: int = field(init=False, repr=False)
+
+    @dataclass(slots=True)
+    class Child(Base):
+        ready: int = field(default=42, repr=False)
+
+    value = Child()
+    assert pformat(value) == 'Child(\n    ready=42,\n)'
+    value.pending = 7
+    assert pformat(value) == 'Child(\n    pending=7,\n    ready=42,\n)'
+
+
+def test_slotted_dataclass_unassigned_leaf_field():
+    @dataclass(slots=True)
+    class Value:
+        pending: int = field(init=False, repr=False)
+        ready: int = field(default=42, repr=False)
+
+    assert pformat(Value()) == 'Value(\n    ready=42,\n)'
+
+
+def test_slotted_dataclass_stored_missing_sentinel():
+    @dataclass(slots=True)
+    class Base:
+        first: Any
+
+    @dataclass(slots=True)
+    class Child(Base):
+        second: Any
+
+    assert pformat(Child(MISSING, MISSING)) == f'Child(\n    first={MISSING!r},\n    second={MISSING!r},\n)'
+
+
+def test_slotted_dataclass_field_read_once():
+    reads: list[str] = []
+
+    @dataclass(slots=True)
+    class Base:
+        pending: int = field(init=False, repr=False)
+
+        def __getattribute__(self, name: str) -> Any:
+            if name in {'pending', 'ready'}:
+                reads.append(name)
+            return object.__getattribute__(self, name)
+
+    @dataclass(slots=True)
+    class Child(Base):
+        ready: int = field(default=42, repr=False)
+
+    assert pformat(Child()) == 'Child(\n    ready=42,\n)'
+    assert reads == ['pending', 'ready']
 
 
 @pytest.mark.skipif(find_spec('numpy') is None, reason='numpy not installed')

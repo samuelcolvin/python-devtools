@@ -263,8 +263,21 @@ class PrettyFormat:
         try:
             field_items = value.__dict__.items()
         except AttributeError:
-            # slots
-            field_items = ((f, getattr(value, f)) for f in value.__slots__)
+            from dataclasses import fields
+
+            slots = value.__slots__
+            slot_names = (slots,) if isinstance(slots, str) else tuple(slots)
+            # Keep explicitly declared slots in their existing order, including
+            # auxiliary values that are not dataclass fields.
+            field_names = dict.fromkeys(
+                [field.name for field in fields(value) if field.name not in slot_names] + list(slot_names)
+            )
+            missing = object()
+            field_items = (
+                (name, field_value)
+                for name in field_names
+                if (field_value := getattr(value, name, missing)) is not missing
+            )
         self._format_fields(value, field_items, indent_current, indent_new)
 
     def _format_sqlalchemy_class(self, value: Any, _: str, indent_current: int, indent_new: int) -> None:

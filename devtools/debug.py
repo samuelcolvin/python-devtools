@@ -50,7 +50,11 @@ class DebugArgument:
             s += pformat(self.value, indent=4, highlight=highlight)
         except Exception as exc:
             v = sformat(f'!!! error pretty printing value: {exc!r}', sformat.yellow, apply=highlight)
-            s += f'{self.value!r}{suffix}\n    {v}'
+            try:
+                fallback = repr(self.value)
+            except Exception:
+                fallback = '<unrepresentable value>'
+            s += f'{fallback}{suffix}\n    {v}'
         else:
             s += suffix
         return s

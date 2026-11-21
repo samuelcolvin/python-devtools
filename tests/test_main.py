@@ -310,6 +310,19 @@ def test_pretty_error():
     )
 
 
+def test_debug_when_repr_raises(capsys: pytest.CaptureFixture[str]):
+    class ClosedResource:
+        def __repr__(self) -> str:
+            raise RuntimeError('resource is closed')
+
+    resource = ClosedResource()
+    assert debug(resource) is resource
+    stdout, stderr = capsys.readouterr()
+    assert '<unrepresentable value> (ClosedResource)' in stdout
+    assert "!!! error pretty printing value: RuntimeError('resource is closed')" in stdout
+    assert stderr == ''
+
+
 def test_multiple_debugs():
     debug.format([i * 2 for i in range(2)])
     debug.format([i * 2 for i in range(2)])
